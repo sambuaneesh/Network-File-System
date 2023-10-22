@@ -131,15 +131,18 @@ int main()
 {
     Tree T = MakeNode(".");
 
-    T = Search_Till_Parent(T, "A");
-    T = Search_Till_Parent(T, "B/B1");
-    T = Search_Till_Parent(T, "B/B2");
-    T = Search_Till_Parent(T, "C");
-    T = Search_Till_Parent(T, "D/D1");
-    T = Search_Till_Parent(T, "E/E1/E2");
-    T = Search_Till_Parent(T, "E/E3");
-    Delete_Path(T, "B");
-    Delete_Path(T, "E/E1");
+    // T = Search_Till_Parent(T, "A");
+    // T = Search_Till_Parent(T, "B/B1");
+    // T = Search_Till_Parent(T, "B/B2");
+    // T = Search_Till_Parent(T, "C");
+    // T = Search_Till_Parent(T, "D/D1");
+    // T = Search_Till_Parent(T, "E/E1/E2");
+    // T = Search_Till_Parent(T, "E/E3");
+    // Delete_Path(T, "B");
+    // Delete_Path(T, "E/E1");
+    T = Search_Till_Parent(T, "home/dell/gitrepo/file1");
+    T = Search_Till_Parent(T, "home/dell/gitrepo/file2");
+    T = Search_Till_Parent(T, "home/dell/gitrepo/file3");
     PrintTree(T);
     return 0;
 }

@@ -49,7 +49,7 @@ typedef struct ss_send
     char ip_addr[20];
     int client_port;
     int server_port;
-    Tree *files_and_dirs;
+    Tree files_and_dirs;
 } ss_send;
 
 typedef struct ss* storage_servers;
