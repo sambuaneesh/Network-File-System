@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/stat.h>
 
 #define MAX_FILE_PATH 500
 #define MAX_FILE_NAME 100
@@ -22,13 +23,19 @@ typedef struct TreeNode
     Tree parent;
 } TreeNode;
 
+typedef struct paths
+{
+    char path[MAX_FILE_PATH];
+    struct paths *next;
+} paths;
+
 // for now, I am assuming that the storage server sends all paths in the format:
 //
 // Trees somehow
 // ├── A
 // ├── B
-// │   ├── B1
-// │   └── B2
+// │   ├── B1
+// │   └── B2
 // ├── C
 // └── D
 //     ├── D1
@@ -69,3 +76,9 @@ void close_socket(int* client_sock);
 void connect_to_naming_server(char *ip, int *sock, struct sockaddr_in *addr);
 void listen_for_client(int* server_sock, int* client_sock, struct sockaddr_in *client_addr, socklen_t *addr_size);
 void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_in *server_addr);
+void get_path_details(char* path_to_go_to, char* file_name,char* file_path);
+
+void create_file(char* file_path);
+void create_directory(char* file_path);
+void delete_file(char* file_path);
+void delete_directory(char* file_path);

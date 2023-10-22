@@ -1,5 +1,6 @@
 #include "header.h"
 
+
 Tree MakeNode(char *name)
 {
     Tree T = (Tree)malloc(sizeof(struct TreeNode));
@@ -197,4 +198,208 @@ void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_
         exit(1);
     }
     printf("[+]Bind to the port number: %d\n", port);
+}
+
+void get_path_details(char *path_to_go_to, char *file_name, char *file_path)
+{
+
+    // Extracting the index of the start of the file name - the part after the last '\'
+    int i = 0;
+    for (i = strlen(file_path) - 1; i >= 0; i--)
+    {
+        if (file_path[i] == '/')
+        {
+            break;
+        }
+    }
+    int j;
+    int ind = 0;
+
+    // Getting the file name
+    for (j = i + 1; j < strlen(file_path); j++)
+    {
+        file_name[ind] = file_path[j];
+        ind++;
+    }
+    file_name[ind] = '\0';
+
+    // Getting the path
+    for (j = 0; j < i; j++)
+    {
+        path_to_go_to[j] = file_path[j];
+    }
+    path_to_go_to[j] = '\0';
+}
+
+void create_file(char *file_path)
+{
+
+    // Finding the directory we need to change to
+    char *path_to_go_to = (char *)malloc(sizeof(char) * 100);
+    char *file_name = (char *)malloc(sizeof(char) * 100);
+    char current_dir[1000];
+
+    // Getting the current directory
+
+    if (getcwd(current_dir, sizeof(current_dir)) == NULL)
+    {
+        perror("getcwd");
+        exit(0);
+    }
+
+    get_path_details(path_to_go_to, file_name, file_path);
+
+   if (chdir(path_to_go_to) == -1)
+{
+    perror("chdir");
+    exit(0);
+}
+
+// Creating a new file
+FILE *file = fopen(file_name, "w");
+if (file == NULL)
+{
+    perror("fopen");
+    exit(0);
+}
+fclose(file);
+
+if (chdir(current_dir) == -1)
+{
+    perror("chdir");
+    exit(0);
+}
+    printf("File Created Successfully!\n");
+}
+
+
+
+
+
+void create_directory(char *file_path)
+{
+
+    // Finding the directory we need to change to
+    char *path_to_go_to = (char *)malloc(sizeof(char) * 100);
+    char *directory_name = (char *)malloc(sizeof(char) * 100);
+    char current_dir[1000];
+
+    // Getting the current directory
+
+    if (getcwd(current_dir, sizeof(current_dir)) == NULL)
+    {
+        perror("getcwd");
+        exit(0);
+    }
+
+    get_path_details(path_to_go_to, directory_name, file_path);
+
+    if (chdir(path_to_go_to) == -1)
+    {
+        perror("chdir");
+        exit(0);
+    }
+
+    // Creating the directory
+
+     if (mkdir(directory_name, 0777) == 0) {
+        printf("Directory created successfully!\n");
+    } else {
+        perror("mkdir");
+        exit(0);
+    }
+
+    if (chdir(current_dir) == -1)
+    {
+        perror("chdir");
+        exit(0);
+    }
+
+}
+
+
+void delete_file(char *file_path)
+{
+
+    // Finding the directory we need to change to
+    char *path_to_go_to = (char *)malloc(sizeof(char) * 100);
+    char *file_name = (char *)malloc(sizeof(char) * 100);
+    char current_dir[1000];
+
+    // Getting the current directory
+
+    if (getcwd(current_dir, sizeof(current_dir)) == NULL)
+    {
+        perror("getcwd");
+        exit(0);
+    }
+
+    get_path_details(path_to_go_to, file_name, file_path);
+
+    if (chdir(path_to_go_to) == -1)
+    {
+        perror("chdir");
+        exit(0);
+    }
+ 
+    // Deleting the file
+    if (remove(file_name) == 0) {
+    
+    } else {
+        perror("remove");
+        exit(0);
+    }
+
+    if (chdir(current_dir) == -1)
+    {
+        perror("chdir");
+        exit(0);
+    }
+
+    printf("File Deleted Successfully!\n");
+}
+
+
+
+
+
+void delete_directory(char *file_path)
+{
+
+    // Finding the directory we need to change to
+    char *path_to_go_to = (char *)malloc(sizeof(char) * 100);
+    char *directory_name = (char *)malloc(sizeof(char) * 100);
+    char current_dir[1000];
+
+    // Getting the current directory
+
+    if (getcwd(current_dir, sizeof(current_dir)) == NULL)
+    {
+        perror("getcwd");
+        exit(0);
+    }
+
+    get_path_details(path_to_go_to, directory_name, file_path);
+
+    if (chdir(path_to_go_to) == -1)
+    {
+        perror("chdir");
+        exit(0);
+    }
+
+    // Deleting the directory
+
+     if (rmdir(directory_name) == 0) {
+       
+    } else {
+        perror("rmdir");
+        exit(0);
+    }
+
+    if (chdir(current_dir) == -1)
+    {
+        perror("chdir");
+        exit(0);
+    }
+     printf("Directory Deleted Successfully!\n");
 }
