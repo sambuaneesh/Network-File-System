@@ -18,6 +18,8 @@ typedef struct TreeNode
     char path[MAX_FILE_NAME];
     Tree first_child;
     Tree next_sibling;
+    Tree prev_sibling;
+    Tree parent;
 } TreeNode;
 
 // for now, I am assuming that the storage server sends all paths in the format:

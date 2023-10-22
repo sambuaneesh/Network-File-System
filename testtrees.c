@@ -6,6 +6,8 @@ Tree MakeNode(char *name)
     strcpy(T->path, name);
     T->first_child = NULL;
     T->next_sibling = NULL;
+    T->prev_sibling = NULL;
+    T->parent = NULL;
 
     return T;
 }
@@ -26,8 +28,10 @@ Tree Insert(Tree parent, char *path)
         else
         {
             traveller->next_sibling = new;
+            new->prev_sibling = traveller;
             traveller = NULL;
         }
+        new->parent = parent;
         parent = new;
         token = strtok_r(path, "/", &path);
     }
@@ -66,7 +70,7 @@ Tree Search_Till_Parent(Tree T, char *path)
             // break the string and send remaining part to function
             // send parent also to function
             parent = Insert(parent, path_duplicate2 + strlen(so_far));
-            break;
+            return T;
         }
         else
         {
@@ -78,7 +82,7 @@ Tree Search_Till_Parent(Tree T, char *path)
         token = strtok_r(NULL, "/", &path_duplicate);
     }
 
-    return T;
+    return traveller->parent;
 }
 
 void PrintTree(Tree T)
@@ -89,6 +93,38 @@ void PrintTree(Tree T)
     printf("%s\n", T->path);
     PrintTree(T->first_child);
     PrintTree(T->next_sibling);
+}
+
+void Del_Rec(Tree T)
+{
+    if (T == NULL)
+        return;
+
+    Del_Rec(T->first_child);
+    Del_Rec(T->next_sibling);
+    free(T);
+}
+
+void Delete_Path(Tree T, char *path)
+{
+    Tree traveller = Search_Till_Parent(T, path);
+    if (traveller == NULL)
+    {
+        printf("Path not found\n");
+        return;
+    }
+    if(traveller->parent == NULL)
+    {
+        printf("Cannot delete root\n");
+        return;
+    }
+    if (traveller->parent->first_child == traveller)
+        traveller->parent->first_child = traveller->next_sibling;
+    if (traveller->prev_sibling != NULL)
+        traveller->prev_sibling->next_sibling = traveller->next_sibling; // diconnected the dir now
+    
+    Del_Rec(traveller->first_child);
+    free(traveller);
 }
 
 int main()
@@ -102,6 +138,8 @@ int main()
     T = Search_Till_Parent(T, "D/D1");
     T = Search_Till_Parent(T, "E/E1/E2");
     T = Search_Till_Parent(T, "E/E3");
+    Delete_Path(T, "B");
+    Delete_Path(T, "E/E1");
     PrintTree(T);
     return 0;
 }
