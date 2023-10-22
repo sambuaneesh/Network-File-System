@@ -23,12 +23,13 @@ int main()
     strcpy(data->ip_addr, ip);
     data->client_port = client_port;
     data->server_port = server_port;
-    data->files_and_dirs = NULL;
+    data->files_and_dirs = NULL; // readiir() function to be implemented
     printf("Data sent to naming server.\n");
 
     // send data to naming server
     send(sock, data, sizeof(ss_send), 0);
     close(sock);
+    
     connect_to_naming_server(ip, &sock, &addr);
     return 0;
 }

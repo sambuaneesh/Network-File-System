@@ -40,6 +40,7 @@ int main()
             list = new;
 
             close_socket(&server_sock);
+            // initialise another socket to fix
             open_naming_server_port(received_data->server_port, &server_sock, &server_addr);
             // we now have a dedicated port for the storage server
             listen_for_client(&server_sock, &client_sock, &client_addr, &addr_size);
