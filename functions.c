@@ -471,7 +471,22 @@ void delete_directory(char *file_path)
 }
 
 
+void load_SS(Tree T,char* file_name){
+    char line[1024];  
 
+   FILE* file = fopen(file_name, "r"); 
+
+    if (file == NULL) {
+        perror("Error opening the file");
+        return;
+    }
+
+    while (fgets(line, sizeof(line), file) != NULL) {
+        T = Search_Till_Parent(T,line);
+    }
+
+    fclose(file);
+}
 void load_SS(Tree T,char* file_name){
     char line[1024];  
 
