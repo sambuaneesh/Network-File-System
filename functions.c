@@ -70,6 +70,17 @@ Tree Search_Till_Parent(Tree T, char *path)
         {
             // break the string and send remaining part to function
             // send parent also to function
+            int count = 0;
+            for (int i = strlen(so_far) + 1; i < strlen(path_duplicate2); i++)
+            {
+                if (path_duplicate2[i] == '/')
+                    count++;
+            }
+            if (count > 1)
+            {
+                printf(RED "Path not found\n" RESET);
+                return NULL;
+            }
             parent = Insert(parent, path_duplicate2 + strlen(so_far));
             return T;
         }
