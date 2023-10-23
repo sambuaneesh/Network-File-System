@@ -17,7 +17,7 @@ int main()
     storage_servers list = NULL;
     int num_storage_servers = 0;
     listen_for_client(&server_sock, &client_sock, &client_addr, &addr_size);
-    load_SS(SS1, "paths.txt");
+    //load_SS(SS1, "paths.txt");
 
     // while (1)
     // {
