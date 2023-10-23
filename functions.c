@@ -470,20 +470,22 @@ void delete_directory(char *file_path)
     printf("Directory Deleted Successfully!\n");
 }
 
-void load_SS(Tree T, char *file_name)
-{
+void load_SS(Tree T, char* file_name) {
     char line[1024];
+    FILE* file = fopen(file_name, "r");
 
-    FILE *file = fopen(file_name, "r");
-
-    if (file == NULL)
-    {
+    if (file == NULL) {
         perror("Error opening the file");
         return;
     }
 
-    while (fgets(line, sizeof(line), file) != NULL)
-    {
+    while (fgets(line, sizeof(line), file) != NULL) {
+        // Remove the newline character (if it exists)
+        size_t len = strcspn(line, "\n");
+        if (line[len] == '\n') {
+            line[len] = '\0'; // Replace newline with null-terminator
+        }
+
         T = Search_Till_Parent(T, line);
     }
 
