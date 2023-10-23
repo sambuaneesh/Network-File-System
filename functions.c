@@ -300,11 +300,10 @@ void get_path_details(char *path_to_go_to, char *file_name, char *file_path)
 
 void create_file(char *file_path)
 {
-
     // Finding the directory we need to change to
-    char *path_to_go_to = (char *)malloc(sizeof(char) * 100);
-    char *file_name = (char *)malloc(sizeof(char) * 100);
-    char current_dir[1000];
+    char *path_to_go_to = (char *)malloc(sizeof(char) * MAX_FILE_PATH);
+    char *file_name = (char *)malloc(sizeof(char) * MAX_FILE_NAME);
+    char current_dir[MAX_FILE_PATH];
 
     // Getting the current directory
 
@@ -346,11 +345,10 @@ void create_file(char *file_path)
 
 void create_directory(char *file_path)
 {
-
     // Finding the directory we need to change to
-    char *path_to_go_to = (char *)malloc(sizeof(char) * 100);
-    char *directory_name = (char *)malloc(sizeof(char) * 100);
-    char current_dir[1000];
+    char *path_to_go_to = (char *)malloc(sizeof(char) * MAX_FILE_PATH);
+    char *directory_name = (char *)malloc(sizeof(char) * MAX_FILE_NAME);
+    char current_dir[MAX_FILE_PATH];
 
     // Getting the current directory
 
@@ -390,11 +388,10 @@ void create_directory(char *file_path)
 
 void delete_file(char *file_path)
 {
-
     // Finding the directory we need to change to
-    char *path_to_go_to = (char *)malloc(sizeof(char) * 100);
-    char *file_name = (char *)malloc(sizeof(char) * 100);
-    char current_dir[1000];
+    char *path_to_go_to = (char *)malloc(sizeof(char) * MAX_FILE_PATH);
+    char *file_name = (char *)malloc(sizeof(char) * MAX_FILE_NAME);
+    char current_dir[MAX_FILE_PATH];
 
     // Getting the current directory
 
@@ -433,11 +430,10 @@ void delete_file(char *file_path)
 
 void delete_directory(char *file_path)
 {
-
     // Finding the directory we need to change to
-    char *path_to_go_to = (char *)malloc(sizeof(char) * 100);
-    char *directory_name = (char *)malloc(sizeof(char) * 100);
-    char current_dir[1000];
+    char *path_to_go_to = (char *)malloc(sizeof(char) * MAX_FILE_PATH);
+    char *directory_name = (char *)malloc(sizeof(char) * MAX_FILE_NAME);
+    char current_dir[MAX_FILE_PATH];
 
     // Getting the current directory
 
