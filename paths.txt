@@ -1,0 +1,3 @@
+/home/dell/gitrepo/file1
+/home/dell/gitrepo/file2
+/home/dell/gitrepo/file3

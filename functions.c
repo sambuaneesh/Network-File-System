@@ -1,6 +1,5 @@
 #include "header.h"
 
-
 Tree MakeNode(char *name)
 {
     Tree T = (Tree)malloc(sizeof(struct TreeNode));
@@ -211,6 +210,57 @@ void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_
     printf("[+]Bind to the port number: %d\n", port);
 }
 
+void connect_to_NS_from_SS(int* sock, struct sockaddr_in* addr, const char* ip, int port_num) {
+    // Create the socket
+    *sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (*sock == -1) {
+        perror("[-] Socket error");
+        return;
+    }
+
+    // Set up the address structure
+    addr->sin_family = AF_INET;
+    addr->sin_port = htons(port_num);
+    addr->sin_addr.s_addr = inet_addr(ip); // Convert IP address to the proper format
+
+    // Bind the socket to the address
+    if (bind(*sock, (struct sockaddr *)addr, sizeof(*addr)) == -1) {
+        perror("[-] Bind error");
+        return;
+    }
+
+    // Start listening
+    if (listen(*sock, 5) == -1) {
+        perror("[-] Listen error");
+        return;
+    }
+
+    return;
+}
+
+void connect_to_SS_from_NS(int* ns_sock, struct sockaddr_in* ns_addr) {
+    // Create the socket for the naming server
+    *ns_sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (*ns_sock == -1) {
+        perror("[-] Socket error");
+        exit(1);
+    }
+
+    // Set up the address structure for the naming server
+    ns_addr->sin_family = AF_INET;
+    ns_addr->sin_port = htons(5566); // Replace with your naming server's port number
+    ns_addr->sin_addr.s_addr = inet_addr("127.0.0.1"); // Replace with the actual IP address of the storage server
+
+    // Connect to the storage server
+    if (connect(*ns_sock, (struct sockaddr *)ns_addr, sizeof(*ns_addr)) == -1) {
+        perror("[-] Connect error");
+        exit(1);
+    }
+
+    printf("[+] Connected to Storage Server.\n");
+}
+
+
 void get_path_details(char *path_to_go_to, char *file_name, char *file_path)
 {
 
@@ -273,6 +323,9 @@ if (file == NULL)
     perror("fopen");
     exit(0);
 }
+else{
+    printf("File Created Successfully!\n");
+}
 fclose(file);
 
 if (chdir(current_dir) == -1)
@@ -280,7 +333,8 @@ if (chdir(current_dir) == -1)
     perror("chdir");
     exit(0);
 }
-    printf("File Created Successfully!\n");
+    
+    return;
 }
 
 
@@ -315,7 +369,8 @@ void create_directory(char *file_path)
 
      if (mkdir(directory_name, 0777) == 0) {
         printf("Directory created successfully!\n");
-    } else {
+    } 
+    else {
         perror("mkdir");
         exit(0);
     }
@@ -325,7 +380,7 @@ void create_directory(char *file_path)
         perror("chdir");
         exit(0);
     }
-
+   return;
 }
 
 
@@ -358,7 +413,7 @@ void delete_file(char *file_path)
     
     } else {
         perror("remove");
-        exit(0);
+        return;
     }
 
     if (chdir(current_dir) == -1)
@@ -404,7 +459,7 @@ void delete_directory(char *file_path)
        
     } else {
         perror("rmdir");
-        exit(0);
+        return;
     }
 
     if (chdir(current_dir) == -1)
@@ -414,3 +469,25 @@ void delete_directory(char *file_path)
     }
      printf("Directory Deleted Successfully!\n");
 }
+
+
+
+void load_SS(Tree T,char* file_name){
+    char line[1024];  
+
+   FILE* file = fopen(file_name, "r"); 
+
+    if (file == NULL) {
+        perror("Error opening the file");
+        return;
+    }
+
+    while (fgets(line, sizeof(line), file) != NULL) {
+        T = Search_Till_Parent(T,line);
+    }
+
+    fclose(file);
+}
+
+
+

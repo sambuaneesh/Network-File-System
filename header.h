@@ -74,14 +74,18 @@ Tree Insert(Tree parent, char *path);
 Tree MakeNode(char *name);
 Tree Search_Till_Parent(Tree T, char *path);
 void PrintTree(Tree T);
+void load_SS(Tree T,char* file_name);
 
 void close_socket(int* client_sock);
 void connect_to_naming_server(char *ip, int *sock, struct sockaddr_in *addr);
 void listen_for_client(int* server_sock, int* client_sock, struct sockaddr_in *client_addr, socklen_t *addr_size);
 void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_in *server_addr);
-void get_path_details(char* path_to_go_to, char* file_name,char* file_path);
+void connect_to_NS_from_SS(int* sock, struct sockaddr_in* addr, const char* ip, int port_num);
+void connect_to_SS_from_NS(int* ns_sock, struct sockaddr_in* ns_addr);
 
+void get_path_details(char* path_to_go_to, char* file_name,char* file_path);
 void create_file(char* file_path);
 void create_directory(char* file_path);
 void delete_file(char* file_path);
 void delete_directory(char* file_path);
+
