@@ -4,6 +4,9 @@ int main()
 {
     Tree SS1 = MakeNode(".");
 
+    storage_server_list = MakeNode_ss(" ", 1, 2);
+    storage_server_list->files_and_dirs = SS1;
+
     int server_sock, client_sock;
     struct sockaddr_in server_addr, client_addr;
     socklen_t addr_size, ss_addr_size;
@@ -17,13 +20,12 @@ int main()
     storage_servers list = NULL;
     int num_storage_servers = 0;
     listen_for_client(&server_sock, &client_sock, &client_addr, &addr_size);
-    // load_SS(SS1, "paths.txt");
+    load_SS(SS1, "paths.txt");
 
     int ns_sock;
     struct sockaddr_in ns_addr;
     while (1)
     {
-
         char opt[2];
         int recieved;
         if ((recieved = recv(client_sock, &opt, sizeof(opt), 0)) == -1)
@@ -77,8 +79,14 @@ int main()
                 exit(0);
             }
 
-          //END OF GETTING DATA FROM CLIENT
-          //THE REST OF THIS CODE MUST EXECUTE ONLY IF file_path IS IN THE LIST OF ACCESSIBLE PATHS
+            // END OF GETTING DATA FROM CLIENT
+            // THE REST OF THIS CODE MUST EXECUTE ONLY IF file_path IS IN THE LIST OF ACCESSIBLE PATHS
+
+            if (check_if_path_in_ss(file_path) == -1)
+            {
+                printf("[-]Path not in list of accessible paths\n");
+                continue;
+            }
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr);
             if (send(ns_sock, "3", sizeof("3"), 0) == -1)

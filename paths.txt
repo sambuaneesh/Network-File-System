@@ -1,3 +1,4 @@
-/home/dell/gitrepo/file1
-/home/dell/gitrepo/file2
-/home/dell/gitrepo/file3
+/home
+/home/nishita
+/home/nishita/Desktop
+/home/nishita/Desktop/final-project-76
