@@ -13,6 +13,9 @@
 #define MAX_NUM_FILES 10
 #define port 5566               // port number for naming server
 
+#define RED "\033[31m"
+#define RESET "\033[0m"
+
 typedef struct TreeNode* Tree;
 typedef struct TreeNode
 {
