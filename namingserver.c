@@ -47,7 +47,7 @@ int main()
         }
         else if (strcmp("2", opt) == 0) // Deletion
         {
-            printf("Deletion\n");
+            // printf("Deletion\n");
             char temp_file_path[MAX_FILE_PATH];
             char temp_option[10];
             char server_number[10];
@@ -77,14 +77,7 @@ int main()
 
             // END OF GETTING DATA FROM CLIENT
             // THE REST OF THIS CODE MUST EXECUTE ONLY IF file_path IS IN THE LIST OF ACCESSIBLE PATHS
-            // printf("File path: %s\n", file_path);
             Delete_Path(SS1, file_path);
-
-            // if (check_if_path_in_ss(file_path) == -1)
-            // {
-            //     printf(RED "[-]Path not in list of accessible paths\n" RESET);
-            //     continue;
-            // }
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr);
             if (send(ns_sock, "2", sizeof("2"), 0) == -1)
@@ -115,6 +108,32 @@ int main()
 
             if (strcmp(success, "done") == 0)
             {
+                FILE *file = fopen("paths.txt", "r");
+                FILE *temp_file = fopen("temp.txt", "w");
+
+                char buffer[MAX_FILE_PATH];
+                char prefix_path[MAX_FILE_PATH] = {'\0'};
+                strcpy(prefix_path, file_path);
+                strcat(prefix_path, "/");
+
+                printf("path: %s\n", file_path);
+
+                while (fgets(buffer, MAX_FILE_PATH, file) != NULL)
+                {
+                    if (buffer[strlen(buffer) - 1] == '\n')
+                        buffer[strlen(buffer) - 1] = '\0';
+                    if (strcmp(buffer, file_path) != 0 && strncmp(buffer, prefix_path, strlen(prefix_path)) != 0)
+                    {
+                        fprintf(temp_file, "%s", buffer);
+                        fprintf(temp_file, "\n");
+                    }
+                }
+
+                fclose(file);
+                fclose(temp_file);
+                remove("paths.txt");
+                rename("temp.txt", "paths.txt");
+
                 printf("Deleted Successfully!\n");
             }
             else
@@ -147,8 +166,10 @@ int main()
             char create_option[10];
             if ((recieved = recv(client_sock, &create_option, sizeof(create_option), 0)) == -1)
             {
-                perror("Not successful");
-                exit(0);
+                // perror("Not successful");
+                printf(RED "[-]Send error\n" RESET);
+                // exit(0);
+                continue;
             }
 
             // END OF GETTING DATA FROM CLIENT
@@ -199,7 +220,7 @@ int main()
                     return 1;
                 }
 
-                fprintf(file, "\n%s", file_path);
+                fprintf(file, "%s\n", file_path);
 
                 fclose(file);
             }
