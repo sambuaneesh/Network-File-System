@@ -227,7 +227,7 @@ int main()
 
             if ((cli_sock = accept(cli_temp_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
-                perror("[-] Accept error");
+                perror(RED "[-] Accept error" RESET);
                 exit(0);
             }
             close_socket(&cli_temp_sock);
@@ -235,7 +235,7 @@ int main()
             // Getting file path from client
             if ((received = recv(cli_sock, file_path, sizeof(file_path), 0)) == -1)
             {
-                printf("Error receiving data\n");
+                printf(RED "Error receiving data\n" RESET);
                 exit(0);
             }
 
@@ -245,7 +245,7 @@ int main()
             file = fopen(file_path, "r");
             if (file == NULL)
             {
-                perror("[-] File opening error");
+                perror(RED "[-] File opening error" RESET);
                 return 1;
             }
             int line_count = 0;
@@ -259,17 +259,19 @@ int main()
             // Sending number of lines in the file
             if (send(cli_sock, line_count_str, sizeof(line_count_str), 0) == -1)
             {
-                printf("Error sending data\n");
+                printf(RED "Error sending data\n" RESET);
                 exit(0);
             }
             rewind(file);
             // Sending file contents line by line
+
+            printf("Sending file contents...\n");
+
             while (fgets(buffer, sizeof(buffer), file) != NULL)
             {
-
                 if (send(cli_sock, buffer, sizeof(buffer), 0) == -1)
                 {
-                    printf("Error sending data\n");
+                    perror(RED "[-] Error sending data\n" RESET);
                     exit(0);
                 }
             }

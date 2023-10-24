@@ -18,9 +18,9 @@ int main()
             printf("2. Delete a File/Directory         (enter 2)\n");
             printf("3. Create an Empty File/Directory  (enter 3)\n");
             printf("4. Copy Files/Directories          (enter 4)\n");
-            printf("5. Read File                       (enter 6)\n");
-            printf("6. Write To File                   (enter 7)\n");
-            printf("7. Get File Info                   (enter 8)\n");
+            printf("5. Write To File                   (enter 5)\n");
+            printf("6. Read File                       (enter 6)\n");
+            printf("7. Get File Info                   (enter 7)\n");
         }
 
         scanf("%d", &option);
@@ -125,7 +125,7 @@ int main()
             if (send(client_sock, create_option, sizeof(create_option), 0) == -1)
                 printf("[-]Send error\n");
         }
-                    else if (option == 4)
+        else if (option == 4)
         {
         }
         else if (option == 5)
@@ -150,7 +150,8 @@ int main()
                 perror("[-]Send error");
                 exit(1);
             }
-            if(strcmp(ip_addr,"failed")==0){
+            if (strcmp(ip_addr, "failed") == 0)
+            {
                 printf(RED "File does not exist\n" RESET);
                 continue;
             }
@@ -161,44 +162,46 @@ int main()
             }
 
             int ns_sock;
-struct sockaddr_in ns_addr;
-connect_to_SS_from_client(&ns_sock, &ns_addr, ip_addr, atoi(server_addr));
-if (send(ns_sock, path, sizeof(path), 0) == -1) {
-    printf("[-] Send error\n");
-    close_socket(&ns_sock);
-    return 1;  // Return an error code
-}
+            struct sockaddr_in ns_addr;
+            connect_to_SS_from_client(&ns_sock, &ns_addr, ip_addr, atoi(server_addr));
+            if (send(ns_sock, path, sizeof(path), 0) == -1)
+            {
+                printf("[-] Send error\n");
+                close_socket(&ns_sock);
+                return 1; // Return an error code
+            }
 
-char input[1024];
+            char input[1024];
 
-printf("Start entering data: (Enter 'done' to stop): \n");
-while (1) {
-    
-    scanf(" %[^\n]s", input);
-    // strcat(input, "\n"); 
-    // input[strlen(input)] = '\0';
-    
-    if (strcmp(input, "done") == 0) {
-        if (send(ns_sock, input, sizeof(input), 0) == -1) {
-            printf("[-] Send error\n");
-            break;
-        }
-        break;
-    } else {
-     
-        if (send(ns_sock, input, sizeof(input), 0) == -1) {
-            printf("[-] Send error\n");
-            break;
-        }
-    }
-}
+            printf("Start entering data: (Enter 'done' to stop): \n");
+            while (1)
+            {
 
+                scanf(" %[^\n]s", input);
+                // strcat(input, "\n");
+                // input[strlen(input)] = '\0';
 
+                if (strcmp(input, "done") == 0)
+                {
+                    if (send(ns_sock, input, sizeof(input), 0) == -1)
+                    {
+                        printf("[-] Send error\n");
+                        break;
+                    }
+                    break;
+                }
+                else
+                {
 
+                    if (send(ns_sock, input, sizeof(input), 0) == -1)
+                    {
+                        printf("[-] Send error\n");
+                        break;
+                    }
+                }
+            }
 
-
-close_socket(&ns_sock);
-
+            close_socket(&ns_sock);
         }
         else if (option == 6)
         {
@@ -219,16 +222,17 @@ close_socket(&ns_sock);
 
             if (recv(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
             {
-                perror("[-]Send error");
+                perror(RED "[-]Receive error" RESET);
                 exit(1);
             }
-            if(strcmp(ip_addr,"failed")==0){
+            if (strcmp(ip_addr, "failed") == 0)
+            {
                 printf(RED "File does not exist\n" RESET);
                 continue;
             }
             if (recv(client_sock, server_addr, sizeof(server_addr), 0) == -1)
             {
-                perror("[-]Send error");
+                perror(RED "[-]Send error" RESET);
                 exit(1);
             }
 
@@ -241,20 +245,20 @@ close_socket(&ns_sock);
             // Getting file contents
             char received_data[1024];
             char line_count[10];
-            //Getting the number of lines in the file
+            // Getting the number of lines in the file
             if (recv(ns_sock, line_count, sizeof(line_count), 0) == -1)
             {
                 perror("[-] Receive error");
             }
-          
-           
+
             for (int i = 0; i < atoi(line_count); i++)
             {
                 char received_data[1024];
+                receive:
                 if (recv(ns_sock, received_data, sizeof(received_data), 0) == -1)
                 {
-                    perror("[-] Receive error");
-                    break;
+                    perror(RED "[-] Receive error" RESET);
+                    goto receive;
                 }
 
                 printf("%s", received_data);
