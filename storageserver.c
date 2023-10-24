@@ -75,7 +75,7 @@ int main()
                 option[received] = '\0';
             }
 
-            // // If option is 1, delete a file, if option is 2, delete a directory
+            // If option is 1, delete a file, if option is 2, delete a directory
             if (strcmp(option, "1") == 0)
             {
                 delete_file(temp);

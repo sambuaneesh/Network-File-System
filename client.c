@@ -18,10 +18,9 @@ int main()
             printf("2. Delete a File/Directory         (enter 2)\n");
             printf("3. Create an Empty File/Directory  (enter 3)\n");
             printf("4. Copy Files/Directories          (enter 4)\n");
-            printf("5. Edit File                       (enter 5)\n");
-            printf("6. Read File                       (enter 6)\n");
-            printf("7. Write To File                   (enter 7)\n");
-            printf("8. Get File Info                   (enter 8)\n");
+            printf("5. Read File                       (enter 6)\n");
+            printf("6. Write To File                   (enter 7)\n");
+            printf("7. Get File Info                   (enter 8)\n");
         }
 
         scanf("%d", &option);
