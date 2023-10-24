@@ -8,6 +8,8 @@
 #include <arpa/inet.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <ctype.h>
+
 
 #define MAX_FILE_PATH 500
 #define MAX_FILE_NAME 100
