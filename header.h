@@ -77,8 +77,10 @@ Tree Search_Till_Parent(Tree T, char *path, int insert); // returns the parent o
         // node if path is found or inserts one new node if only one new node is asked
         // to be made or returns NULL if many new nodes need to be made
 void PrintTree(Tree T);
-void load_SS(Tree T,char* file_name);
+void Delete_Path(Tree T, char *path);
+void Del_Rec(Tree T);
 
+void load_SS(Tree T,char* file_name);
 void close_socket(int* client_sock);
 void connect_to_naming_server(char *ip, int *sock, struct sockaddr_in *addr);
 void listen_for_client(int* server_sock, int* client_sock, struct sockaddr_in *client_addr, socklen_t *addr_size);
