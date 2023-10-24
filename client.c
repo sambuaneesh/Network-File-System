@@ -34,11 +34,49 @@ int main()
         }
         else if (option == 2)
         {
-            if (send(client_sock, "2", strlen("2"), 0) == -1)
+            char option_client[2] = "2";
+            option_client[strlen(option_client)] = '\0';
+
+            // Send option to NS
+            if (send(client_sock, option_client, sizeof(option_client), 0) == -1)
             {
                 perror("[-]Send error");
                 exit(1);
             }
+
+            char storage_server_num[10];
+            int num_storage_servers = 10;
+            printf("Enter the storage server number: ");
+            scanf("%s", storage_server_num);
+
+            if (atoi(storage_server_num) > num_storage_servers)
+            {
+                printf("Invalid storage server number\n");
+                continue;
+            }
+
+            char path[MAX_FILE_PATH];
+            printf("Enter the path: ");
+            scanf("%s", path);
+
+            char delete_option[10];
+
+            printf("Do you want to\n");
+            printf("Delete a file       (Enter 1)\n");
+            printf("Delete a directory  (Enter 2)\n");
+            scanf("%s", delete_option);
+            // Send storage sever number to the NS
+            if (send(client_sock, storage_server_num, sizeof(storage_server_num), 0) == -1)
+            {
+                perror("[-]Send error");
+                exit(1);
+            }
+            // Send the path to NS
+            if (send(client_sock, path, sizeof(path), 0) == -1)
+                printf("[-]Send error\n");
+            // Send whether you want to create a file or directory to NS
+            if (send(client_sock, delete_option, sizeof(delete_option), 0) == -1)
+                printf("[-]Send error\n");
         }
         else if (option == 3)
         {
@@ -46,7 +84,7 @@ int main()
             char option_client[2] = "3";
             option_client[strlen(option_client)] = '\0';
 
-// Send option to NS
+            // Send option to NS
             if (send(client_sock, option_client, sizeof(option_client), 0) == -1)
             {
                 perror("[-]Send error");
@@ -74,18 +112,57 @@ int main()
             printf("Create an empty file       (Enter 1)\n");
             printf("Create an empty directory  (Enter 2)\n");
             scanf("%s", create_option);
-// Send storage sever number to the NS
+            // Send storage sever number to the NS
             if (send(client_sock, storage_server_num, sizeof(storage_server_num), 0) == -1)
             {
                 perror("[-]Send error");
                 exit(1);
             }
-// Send the path to NS
+            // Send the path to NS
             if (send(client_sock, path, sizeof(path), 0) == -1)
                 printf("[-]Send error\n");
-// Send whether you want to create a file or directory to NS
+            // Send whether you want to create a file or directory to NS
             if (send(client_sock, create_option, sizeof(create_option), 0) == -1)
                 printf("[-]Send error\n");
+        }
+        else if (option == 4)
+        {
+        }
+        else if (option == 5)
+        {
+        }
+        else if (option == 6)
+        {
+            if (send(client_sock, "6", strlen("6"), 0) == -1)
+            {
+                perror("[-]Send error");
+                exit(1);
+            }
+            char path[MAX_FILE_PATH];
+            printf("Enter the path: ");
+            scanf("%s", path);
+
+            if (send(client_sock, path, sizeof(path), 0) == -1)
+                printf("[-]Send error\n");
+
+            char ip_addr[50];
+            char server_addr[50];
+
+           if(recv(client_sock, ip_addr, sizeof(ip_addr), 0) == -1){
+            perror("[-]Send error");
+            exit(1);
+           }
+           if(recv(client_sock, server_addr, sizeof(server_addr), 0) == -1){
+            perror("[-]Send error");
+            exit(1);
+           }
+               int ns_sock;
+    struct sockaddr_in ns_addr;
+           connect_to_SS_from_NS(&ns_sock, &ns_addr,5568);
+            if (send(ns_sock, "65", sizeof("65"), 0) == -1)
+                printf("[-]Send error\n");
+         close_socket(&ns_sock);
+          
         }
         else
         {
