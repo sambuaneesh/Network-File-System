@@ -248,30 +248,28 @@ void connect_to_NS_from_SS(int *sock, struct sockaddr_in *addr, const char *ip, 
     return;
 }
 
-void connect_to_SS_from_NS(int *ns_sock, struct sockaddr_in *ns_addr)
-{
+void connect_to_SS_from_NS(int* ns_sock, struct sockaddr_in* ns_addr,int port_num) {
     // Create the socket for the naming server
     *ns_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (*ns_sock == -1)
-    {
+    if (*ns_sock == -1) {
         perror("[-] Socket error");
         exit(1);
     }
 
     // Set up the address structure for the naming server
     ns_addr->sin_family = AF_INET;
-    ns_addr->sin_port = htons(5566);                   // Replace with your naming server's port number
+    ns_addr->sin_port = htons(port_num); // Replace with your naming server's port number
     ns_addr->sin_addr.s_addr = inet_addr("127.0.0.1"); // Replace with the actual IP address of the storage server
 
     // Connect to the storage server
-    if (connect(*ns_sock, (struct sockaddr *)ns_addr, sizeof(*ns_addr)) == -1)
-    {
+    if (connect(*ns_sock, (struct sockaddr *)ns_addr, sizeof(*ns_addr)) == -1) {
         perror("[-] Connect error");
         exit(1);
     }
 
     printf("[+] Connected to Storage Server.\n");
 }
+
 
 void get_path_details(char *path_to_go_to, char *file_name, char *file_path)
 {
