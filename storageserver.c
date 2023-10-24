@@ -118,7 +118,7 @@ int main()
                 option[received] = '\0';
             }
 
-            // // If option is 1, create a file, if option is 2, create a directory
+            // If option is 1, create a file, if option is 2, create a directory
             if (strcmp(option, "1") == 0)
             {
                 create_file(temp);

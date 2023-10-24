@@ -29,11 +29,11 @@ typedef struct TreeNode
     Tree parent;
 } TreeNode;
 
-typedef struct paths
-{
-    char path[MAX_FILE_PATH];
-    struct paths *next;
-} paths;
+// typedef struct paths
+// {
+//     char path[MAX_FILE_PATH];
+//     struct paths *next;
+// } paths;
 
 // for now, I am assuming that the storage server sends all paths in the format:
 //

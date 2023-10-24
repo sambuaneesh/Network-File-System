@@ -244,7 +244,7 @@ int main()
                 }
             }
         }
-        else if (strcmp("6", opt) == 0)
+        else if (strcmp("6", opt) == 0) // Read
         {
             connect_to_SS_from_NS(&ns_sock, &ns_addr, 5566);
             if (send(ns_sock, "6", sizeof("6"), 0) == -1)
