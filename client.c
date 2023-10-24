@@ -125,6 +125,143 @@ int main()
             if (send(client_sock, create_option, sizeof(create_option), 0) == -1)
                 printf("[-]Send error\n");
         }
+                    else if (option == 4)
+        {
+        }
+        else if (option == 5)
+        {
+            if (send(client_sock, "5", strlen("5"), 0) == -1)
+            {
+                perror("[-]Send error");
+                exit(1);
+            }
+            char path[MAX_FILE_PATH];
+            printf("Enter the path: ");
+            scanf("%s", path);
+
+            if (send(client_sock, path, sizeof(path), 0) == -1)
+                printf("[-]Send error\n");
+
+            char ip_addr[50];
+            char server_addr[50];
+
+            if (recv(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
+            {
+                perror("[-]Send error");
+                exit(1);
+            }
+            if(strcmp(ip_addr,"failed")==0){
+                printf(RED "File does not exist\n" RESET);
+                continue;
+            }
+            if (recv(client_sock, server_addr, sizeof(server_addr), 0) == -1)
+            {
+                perror("[-]Send error");
+                exit(1);
+            }
+
+            int ns_sock;
+struct sockaddr_in ns_addr;
+connect_to_SS_from_client(&ns_sock, &ns_addr, ip_addr, atoi(server_addr));
+if (send(ns_sock, path, sizeof(path), 0) == -1) {
+    printf("[-] Send error\n");
+    close_socket(&ns_sock);
+    return 1;  // Return an error code
+}
+
+char input[1024];
+
+printf("Start entering data: (Enter 'done' to stop): \n");
+while (1) {
+    
+    scanf(" %[^\n]s", input);
+    // strcat(input, "\n"); 
+    // input[strlen(input)] = '\0';
+    
+    if (strcmp(input, "done") == 0) {
+        if (send(ns_sock, input, sizeof(input), 0) == -1) {
+            printf("[-] Send error\n");
+            break;
+        }
+        break;
+    } else {
+     
+        if (send(ns_sock, input, sizeof(input), 0) == -1) {
+            printf("[-] Send error\n");
+            break;
+        }
+    }
+}
+
+
+
+
+
+close_socket(&ns_sock);
+
+        }
+        else if (option == 6)
+        {
+            if (send(client_sock, "6", strlen("6"), 0) == -1)
+            {
+                perror("[-]Send error");
+                exit(1);
+            }
+            char path[MAX_FILE_PATH];
+            printf("Enter the path: ");
+            scanf("%s", path);
+
+            if (send(client_sock, path, sizeof(path), 0) == -1)
+                printf("[-]Send error\n");
+
+            char ip_addr[50];
+            char server_addr[50];
+
+            if (recv(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
+            {
+                perror("[-]Send error");
+                exit(1);
+            }
+            if(strcmp(ip_addr,"failed")==0){
+                printf(RED "File does not exist\n" RESET);
+                continue;
+            }
+            if (recv(client_sock, server_addr, sizeof(server_addr), 0) == -1)
+            {
+                perror("[-]Send error");
+                exit(1);
+            }
+
+            int ns_sock;
+            struct sockaddr_in ns_addr;
+            connect_to_SS_from_client(&ns_sock, &ns_addr, ip_addr, atoi(server_addr));
+            if (send(ns_sock, path, sizeof(path), 0) == -1)
+                printf("[-]Send error\n");
+
+            // Getting file contents
+            char received_data[1024];
+            char line_count[10];
+            //Getting the number of lines in the file
+            if (recv(ns_sock, line_count, sizeof(line_count), 0) == -1)
+            {
+                perror("[-] Receive error");
+            }
+          
+           
+            for (int i = 0; i < atoi(line_count); i++)
+            {
+                char received_data[1024];
+                if (recv(ns_sock, received_data, sizeof(received_data), 0) == -1)
+                {
+                    perror("[-] Receive error");
+                    break;
+                }
+
+                printf("%s", received_data);
+            }
+
+            close_socket(&ns_sock);
+        }
         else
         {
             printf("Invalid option\n");
