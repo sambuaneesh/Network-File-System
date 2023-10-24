@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/stat.h>
+#include <dirent.h>
 
 #define MAX_FILE_PATH 500
 #define MAX_FILE_NAME 100
@@ -95,6 +96,7 @@ void create_file(char* file_path);
 void create_directory(char* file_path);
 void delete_file(char* file_path);
 void delete_directory(char* file_path);
+void delete_non_empty_dir(char *directory_name);
 
 void Delete_from_path_file(char* file_path);
 int Add_to_path_file(char *file_path);

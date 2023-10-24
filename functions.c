@@ -331,7 +331,7 @@ void create_file(char *file_path)
     if (file == NULL)
     {
         perror("fopen");
-        exit(0);
+        return;
     }
     else
     {
@@ -380,7 +380,7 @@ void create_directory(char *file_path)
     else
     {
         perror("mkdir");
-        exit(0);
+        return;
     }
 
     if (chdir(current_dir) == -1)
@@ -458,13 +458,10 @@ void delete_directory(char *file_path)
 
     // Deleting the directory
 
-    if (rmdir(directory_name) == 0)
+    if (rmdir(directory_name) != 0)
     {
-    }
-    else
-    {
-        perror("rmdir");
-        return;
+        delete_non_empty_dir(directory_name);
+        // perror(RED "rmdir" RESET);
     }
 
     if (chdir(current_dir) == -1)
@@ -473,6 +470,49 @@ void delete_directory(char *file_path)
         exit(0);
     }
     printf("Directory Deleted Successfully!\n");
+}
+
+void delete_non_empty_dir(char *directory_name)
+{
+    DIR *dir;
+    struct dirent *entry;
+    dir = opendir(directory_name);
+    if (!dir)
+    {
+        perror(RED "opendir" RESET);
+        return;
+    }
+
+    while ((entry = readdir(dir)))
+    {
+        if (entry->d_type != DT_DIR)
+        {
+            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
+            {
+                char path[MAX_FILE_PATH];
+                snprintf(path, sizeof(path), "%s/%s", directory_name, entry->d_name);
+
+                if (remove(path) != 0)
+                {
+                    perror(RED "remove" RESET);
+                    closedir(dir);
+                    return;
+                }
+            }
+        }
+        else
+        {
+            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
+            {
+                char path[MAX_FILE_PATH];
+                snprintf(path, sizeof(path), "%s/%s", directory_name, entry->d_name);
+                delete_non_empty_dir(path);
+            }
+        }
+    }
+
+    closedir(dir);
+    rmdir(directory_name);
 }
 
 void load_SS(Tree T, char *file_name)
