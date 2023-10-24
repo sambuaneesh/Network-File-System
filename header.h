@@ -73,7 +73,7 @@ extern storage_servers storage_server_list;
 
 Tree Insert(Tree parent, char *path);
 Tree MakeNode(char *name);
-Tree Search_Till_Parent(Tree T, char *path); // returns the parent of the 
+Tree Search_Till_Parent(Tree T, char *path, int insert); // returns the parent of the 
         // node if path is found or inserts one new node if only one new node is asked
         // to be made or returns NULL if many new nodes need to be made
 void PrintTree(Tree T);
