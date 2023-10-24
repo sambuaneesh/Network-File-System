@@ -2,7 +2,6 @@
 
 int main()
 {
-
     int sock, client_sock;
     struct sockaddr_in addr, client_addr;
     socklen_t addr_size;
@@ -22,7 +21,6 @@ int main()
     int i = 0;
     while (1)
     {
-
         client_sock = accept(sock, (struct sockaddr *)&client_addr, &addr_size);
         if (client_sock == -1)
         {
@@ -46,7 +44,7 @@ int main()
         {
             command[received] = '\0';
         }
-    
+
         if (strcmp(command, "1") == 0)
         {
         }
@@ -135,30 +133,6 @@ int main()
             {
                 perror("Error sending data");
             }
-        }
-        else if(strcmp(command,"6")==0){
-           
-            int cli_sock;
-            struct sockaddr_in cli_addr;
-            connect_to_NS_from_SS(&cli_sock, &cli_addr, "127.0.0.1", 5568);
-            socklen_t cli_addr_size = sizeof(cli_addr);
-            printf("here 1\n");
-             client_sock = accept(cli_sock, (struct sockaddr *)&cli_addr, &cli_addr_size);
-              printf("here 2\n");
-        if (client_sock == -1)
-        {
-            perror("[-] Accept error");
-            exit(0);
-        }
-        printf("Here\n");
-        char t[10];
-        if ((received = recv(client_sock, &t, sizeof(t), 0)) == -1)
-            {
-                printf("Error recieving data\n");
-                exit(0);
-            }
-            printf("**%s\n",t);
-
         }
     }
     close(client_sock);

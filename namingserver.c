@@ -1,7 +1,5 @@
 #include "header.h"
 
-// storage_servers storage_server_list;
-
 int main()
 {
     Tree SS1 = MakeNode(".");
@@ -26,7 +24,7 @@ int main()
     struct sockaddr_in ns_addr;
     while (1)
     {
- PrintTree(SS1);
+        PrintTree(SS1);
         char opt[2];
         int recieved;
         if ((recieved = recv(client_sock, &opt, sizeof(opt), 0)) == -1)
@@ -47,9 +45,9 @@ int main()
         if (strcmp("1", opt) == 0)
         {
         }
-        else if (strcmp("2", opt) == 0)
+        else if (strcmp("2", opt) == 0) // Deletion
         {
-
+            printf("Deletion\n");
             char temp_file_path[MAX_FILE_PATH];
             char temp_option[10];
             char server_number[10];
@@ -79,15 +77,15 @@ int main()
 
             // END OF GETTING DATA FROM CLIENT
             // THE REST OF THIS CODE MUST EXECUTE ONLY IF file_path IS IN THE LIST OF ACCESSIBLE PATHS
-            
-             Delete_Path(SS1,file_path);
-           
-            if (check_if_path_in_ss(file_path) == -1)
-            {
-                printf("[-]Path not in list of accessible paths\n");
-                continue;
-            }
-          
+            // printf("File path: %s\n", file_path);
+            Delete_Path(SS1, file_path);
+
+            // if (check_if_path_in_ss(file_path) == -1)
+            // {
+            //     printf(RED "[-]Path not in list of accessible paths\n" RESET);
+            //     continue;
+            // }
+
             connect_to_SS_from_NS(&ns_sock, &ns_addr);
             if (send(ns_sock, "2", sizeof("2"), 0) == -1)
                 printf("[-]Send error\n");
@@ -118,14 +116,14 @@ int main()
             if (strcmp(success, "done") == 0)
             {
                 printf("Deleted Successfully!\n");
-                
-               
-                
+            }
+            else
+            {
+                printf(RED "[-]Deletion unsuccessful\n" RESET);
             }
         }
-        else if (strcmp("3", opt) == 0)
+        else if (strcmp("3", opt) == 0) // Creation
         {
-
             char temp_file_path[MAX_FILE_PATH];
             char temp_option[10];
             char server_number[10];
@@ -201,13 +199,11 @@ int main()
                     return 1;
                 }
 
-                fprintf(file, "%s\n", file_path);
-
+                fprintf(file, "\n%s", file_path);
 
                 fclose(file);
             }
         }
-       
     }
     close_socket(&ns_sock);
     close_socket(&client_sock);

@@ -40,7 +40,7 @@ Tree Insert(Tree parent, char *path)
     return parent;
 }
 
-Tree Search_Till_Parent(Tree T, char *path)
+Tree Search_Till_Parent(Tree T, char *path, int insert)
 {
     Tree parent = T;
     Tree traveller = parent->first_child;
@@ -76,13 +76,18 @@ Tree Search_Till_Parent(Tree T, char *path)
                 if (path_duplicate2[i] == '/')
                     count++;
             }
-            if (count > 1)
+            if (count >= 1)
             {
                 printf(RED "Path not found\n" RESET);
                 return NULL;
             }
-            parent = Insert(parent, path_duplicate2 + strlen(so_far));
-            return T;
+            if (insert == 1)
+            {
+                parent = Insert(parent, path_duplicate2 + strlen(so_far));
+                return T;
+            }
+            else
+                return NULL;
         }
         else
         {
@@ -94,7 +99,7 @@ Tree Search_Till_Parent(Tree T, char *path)
         token = strtok_r(NULL, "/", &path_duplicate);
     }
 
-    return traveller->parent;
+    return parent;
 }
 
 void PrintTree(Tree T)
@@ -119,7 +124,7 @@ void Del_Rec(Tree T)
 
 void Delete_Path(Tree T, char *path)
 {
-    Tree traveller = Search_Till_Parent(T, path);
+    Tree traveller = Search_Till_Parent(T, path, 0);
     if (traveller == NULL)
     {
         printf("Path not found\n");
@@ -150,6 +155,20 @@ void close_socket(int *client_sock)
         printf("[+]Client disconnected.\n\n");
 }
 
+void listen_for_client(int *server_sock, int *client_sock, struct sockaddr_in *client_addr, socklen_t *addr_size)
+{
+    if (listen(*server_sock, 5) == -1)
+    {
+        perror("[-]Listen error");
+        exit(1);
+    }
+
+    printf("Listening...\n");
+    *addr_size = sizeof(*client_addr);
+    *client_sock = accept(*server_sock, (struct sockaddr *)client_addr, addr_size);
+    printf("[+]Storage Server connected.\n");
+}
+
 void connect_to_naming_server(char *ip, int *sock, struct sockaddr_in *addr)
 {
     *sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -168,20 +187,6 @@ void connect_to_naming_server(char *ip, int *sock, struct sockaddr_in *addr)
     if (connect(*sock, (struct sockaddr *)addr, sizeof(*addr)) == -1)
         printf("[-]Connect error");
     printf("Connected to the naming server.\n");
-}
-
-void listen_for_client(int *server_sock, int *client_sock, struct sockaddr_in *client_addr, socklen_t *addr_size)
-{
-    if (listen(*server_sock, 5) == -1)
-    {
-        perror("[-]Listen error");
-        exit(1);
-    }
-
-    printf("Listening...\n");
-    *addr_size = sizeof(*client_addr);
-    *client_sock = accept(*server_sock, (struct sockaddr *)client_addr, addr_size);
-    printf("[+]Storage Server connected.\n");
 }
 
 void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_in *server_addr)
@@ -470,23 +475,27 @@ void delete_directory(char *file_path)
     printf("Directory Deleted Successfully!\n");
 }
 
-void load_SS(Tree T, char* file_name) {
+void load_SS(Tree T, char *file_name)
+{
     char line[1024];
-    FILE* file = fopen(file_name, "r");
+    FILE *file = fopen(file_name, "r");
 
-    if (file == NULL) {
+    if (file == NULL)
+    {
         perror("Error opening the file");
         return;
     }
 
-    while (fgets(line, sizeof(line), file) != NULL) {
+    while (fgets(line, sizeof(line), file) != NULL)
+    {
         // Remove the newline character (if it exists)
         size_t len = strcspn(line, "\n");
-        if (line[len] == '\n') {
+        if (line[len] == '\n')
+        {
             line[len] = '\0'; // Replace newline with null-terminator
         }
 
-        T = Search_Till_Parent(T, line);
+        T = Search_Till_Parent(T, line, 1);
     }
 
     fclose(file);
@@ -505,14 +514,14 @@ storage_servers MakeNode_ss(char *ip_addr, int client_port, int server_port)
     return new;
 }
 
-int check_if_path_in_ss(char *file_path)
+int check_if_path_in_ss(char *file_path) // used to create if one new file/folder only
 {
     storage_servers traveller = storage_server_list;
-    while(traveller != NULL)
+    while (traveller != NULL)
     {
         Tree T = traveller->files_and_dirs;
-        Tree parent = Search_Till_Parent(T, file_path);
-        if(parent != NULL)
+        Tree parent = Search_Till_Parent(T, file_path, 1);
+        if (parent != NULL)
             return 1;
         traveller = traveller->next;
     }
