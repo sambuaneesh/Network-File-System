@@ -29,14 +29,14 @@ int main()
         int recieved;
         if ((recieved = recv(client_sock, &opt, sizeof(opt), 0)) == -1)
         {
-            perror("Not successful");
+            perror(RED "Not successful" RESET);
             close(client_sock);
             exit(0);
         }
         else if (recieved == 0)
         {
             // The client has closed the connection, so break out of the loop
-            printf("Client disconnected.\n");
+            printf(RED "Client disconnected.\n" RESET);
             close(client_sock);
             break;
         }
@@ -47,14 +47,13 @@ int main()
         }
         else if (strcmp("2", opt) == 0) // Deletion
         {
-            // printf("Deletion\n");
             char temp_file_path[MAX_FILE_PATH];
             char temp_option[10];
             char server_number[10];
             // Recieving the server number
             if ((recieved = recv(client_sock, &server_number, sizeof(server_number), 0)) == -1)
             {
-                perror("Not successful");
+                perror(RED "Not successful" RESET);
                 close(client_sock);
                 exit(0);
             }
@@ -63,7 +62,7 @@ int main()
             char file_path[MAX_FILE_PATH];
             if ((recieved = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
-                perror("Not successful");
+                perror(RED "Not successful" RESET);
                 exit(0);
             }
 
@@ -71,7 +70,7 @@ int main()
             char create_option[10];
             if ((recieved = recv(client_sock, &create_option, sizeof(create_option), 0)) == -1)
             {
-                perror("Not successful");
+                perror(RED "Not successful" RESET);
                 exit(0);
             }
 
@@ -81,16 +80,16 @@ int main()
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr);
             if (send(ns_sock, "2", sizeof("2"), 0) == -1)
-                printf("[-]Send error\n");
+                printf(RED "[-]Send error\n" RESET);
 
             // Sending path to the SS
             if (send(ns_sock, file_path, sizeof(file_path), 0) == -1)
-                printf("[-]Send error\n");
+                printf(RED "[-]Send error\n" RESET);
 
             //  Sending option to the SS
 
             if (send(ns_sock, create_option, sizeof(create_option), 0) == -1)
-                printf("[-]Send error\n");
+                printf(RED "[-]Send error\n" RESET);
 
             // Checking if creation was successful
             char success[5];
@@ -98,13 +97,11 @@ int main()
 
             if ((success_message = recv(ns_sock, &success, sizeof(success), 0)) == -1)
             {
-                perror("Not successful");
+                perror(RED "Not successful" RESET);
                 exit(0);
             }
             else
-            {
                 success[strlen(success)] = '\0';
-            }
 
             if (strcmp(success, "done") == 0)
             {
@@ -124,27 +121,25 @@ int main()
             // Recieving the server number
             if ((recieved = recv(client_sock, &server_number, sizeof(server_number), 0)) == -1)
             {
-                perror("Not successful");
+                perror(RED "Not successful" RESET);
                 close(client_sock);
-                exit(0);
+                return 1;
             }
 
             // Receiving the path of the file/directory
             char file_path[MAX_FILE_PATH];
             if ((recieved = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
-                perror("Not successful");
-                exit(0);
+                perror(RED "Not successful" RESET);
+                return 1;
             }
 
             // Recieving the create option - 1 for file and 2 for directory
             char create_option[10];
             if ((recieved = recv(client_sock, &create_option, sizeof(create_option), 0)) == -1)
             {
-                // perror("Not successful");
                 printf(RED "[-]Send error\n" RESET);
-                // exit(0);
-                continue;
+                return 1;
             }
 
             // END OF GETTING DATA FROM CLIENT
@@ -152,22 +147,22 @@ int main()
 
             if (check_if_path_in_ss(file_path) == -1)
             {
-                printf("[-]Path not in list of accessible paths\n");
+                printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 continue;
             }
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr);
             if (send(ns_sock, "3", sizeof("3"), 0) == -1)
-                printf("[-]Send error\n");
+                printf(RED "[-]Send error\n" RESET);
 
             // Sending path to the SS
             if (send(ns_sock, file_path, sizeof(file_path), 0) == -1)
-                printf("[-]Send error\n");
+                printf(RED "[-]Send error\n" RESET);
 
             //  Sending option to the SS
 
             if (send(ns_sock, create_option, sizeof(create_option), 0) == -1)
-                printf("[-]Send error\n");
+                printf(RED "[-]Send error\n" RESET);
 
             // Checking if creation was successful
             char success[5];
@@ -175,13 +170,11 @@ int main()
 
             if ((success_message = recv(ns_sock, &success, sizeof(success), 0)) == -1)
             {
-                perror("Not successful");
-                exit(0);
+                perror(RED "Not successful" RESET);
+                return 1;
             }
             else
-            {
                 success[strlen(success)] = '\0';
-            }
 
             if (strcmp(success, "done") == 0)
             {

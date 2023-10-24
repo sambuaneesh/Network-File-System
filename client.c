@@ -34,7 +34,7 @@ int main()
                 exit(1);
             }
         }
-        else if (option == 2)
+        else if (option == 2) // Deletion
         {
             char option_client[2] = "2";
             option_client[strlen(option_client)] = '\0';
