@@ -610,3 +610,57 @@ void Delete_from_path_file(char *file_path)
     remove("paths.txt");
     rename("temp.txt", "paths.txt");
 }
+
+
+
+
+void connect_to_SS_from_client(int* sock, struct sockaddr_in* addr, char* ns_ip, int ns_port) {
+    // Create the socket
+    *sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (*sock == -1) {
+        perror("[-] Socket error");
+        return;
+    }
+
+    // Set up the address structure
+    addr->sin_family = AF_INET;
+    addr->sin_port = htons(ns_port);
+    addr->sin_addr.s_addr = inet_addr(ns_ip);
+
+    // Connect to the naming server
+    if (connect(*sock, (struct sockaddr *)addr, sizeof(*addr)) == -1) {
+        perror("[-] Connect error");
+        return;
+    }
+
+    return;
+}
+
+
+void connect_to_client(int* sock, struct sockaddr_in* addr, const char* ip, int port_num) {
+    // Create the socket
+    *sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (*sock == -1) {
+        perror("[-] Socket error");
+        return;
+    }
+
+    // Set up the address structure
+    addr->sin_family = AF_INET;
+    addr->sin_port = htons(port_num);
+    addr->sin_addr.s_addr = inet_addr(ip); // Convert IP address to the proper format
+
+    // Bind the socket to the address
+    if (bind(*sock, (struct sockaddr *)addr, sizeof(*addr)) == -1) {
+        perror("[-] Bind error");
+        return;
+    }
+
+    // Start listening
+    if (listen(*sock, 5) == -1) {
+        perror("[-] Listen error");
+        return;
+    }
+
+    return;
+}
