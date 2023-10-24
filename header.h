@@ -87,7 +87,7 @@ void connect_to_naming_server(char *ip, int *sock, struct sockaddr_in *addr);
 void listen_for_client(int* server_sock, int* client_sock, struct sockaddr_in *client_addr, socklen_t *addr_size);
 void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_in *server_addr);
 void connect_to_NS_from_SS(int* sock, struct sockaddr_in* addr, const char* ip, int port_num);
-void connect_to_SS_from_NS(int* ns_sock, struct sockaddr_in* ns_addr);
+void connect_to_SS_from_NS(int* ns_sock, struct sockaddr_in* ns_addr,int port_num);
 storage_servers MakeNode_ss(char *ip_addr, int client_port, int server_port);
 int check_if_path_in_ss(char *file_path);
 
