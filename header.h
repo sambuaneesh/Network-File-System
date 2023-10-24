@@ -95,3 +95,6 @@ void create_file(char* file_path);
 void create_directory(char* file_path);
 void delete_file(char* file_path);
 void delete_directory(char* file_path);
+
+void Delete_from_path_file(char* file_path);
+int Add_to_path_file(char *file_path);

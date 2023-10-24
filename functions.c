@@ -527,3 +527,46 @@ int check_if_path_in_ss(char *file_path) // used to create if one new file/folde
     }
     return -1;
 }
+
+int Add_to_path_file(char *file_path)
+{
+    FILE *file = fopen("paths.txt", "a");
+    if (file == NULL)
+    {
+        perror("Error opening the file");
+        return -1;
+    }
+
+    fprintf(file, "%s\n", file_path);
+    fclose(file);
+    return 0;
+}
+
+void Delete_from_path_file(char *file_path)
+{
+    FILE *file = fopen("paths.txt", "r");
+    FILE *temp_file = fopen("temp.txt", "w");
+
+    char buffer[MAX_FILE_PATH];
+    char prefix_path[MAX_FILE_PATH] = {'\0'};
+    strcpy(prefix_path, file_path);
+    strcat(prefix_path, "/");
+
+    printf("path: %s\n", file_path);
+
+    while (fgets(buffer, MAX_FILE_PATH, file) != NULL)
+    {
+        if (buffer[strlen(buffer) - 1] == '\n')
+            buffer[strlen(buffer) - 1] = '\0';
+        if (strcmp(buffer, file_path) != 0 && strncmp(buffer, prefix_path, strlen(prefix_path)) != 0)
+        {
+            fprintf(temp_file, "%s", buffer);
+            fprintf(temp_file, "\n");
+        }
+    }
+
+    fclose(file);
+    fclose(temp_file);
+    remove("paths.txt");
+    rename("temp.txt", "paths.txt");
+}
