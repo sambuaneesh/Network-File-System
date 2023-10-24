@@ -100,3 +100,6 @@ void delete_non_empty_dir(char *directory_name);
 
 void Delete_from_path_file(char* file_path);
 int Add_to_path_file(char *file_path);
+
+void connect_to_SS_from_client(int* sock, struct sockaddr_in* addr, char* ns_ip, int ns_port);
+void connect_to_client(int* sock, struct sockaddr_in* addr, const char* ip, int port_num);
