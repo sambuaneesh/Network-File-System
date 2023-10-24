@@ -46,12 +46,52 @@ int main()
         {
             command[received] = '\0';
         }
-
+    
         if (strcmp(command, "1") == 0)
         {
         }
         else if (strcmp(command, "2") == 0)
         {
+            if ((received = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
+            {
+                printf("Error recieving data\n");
+                exit(0);
+            }
+            else
+            {
+                file_path[received] = '\0';
+            }
+
+            char *temp = (char *)malloc(sizeof(char) * 1000);
+            strcpy(temp, file_path);
+
+            char option[10];
+
+            if ((received = recv(client_sock, &option, sizeof(option), 0)) == -1)
+            {
+                printf("Error recieving data\n");
+                exit(0);
+            }
+            else
+            {
+                option[received] = '\0';
+            }
+
+            // // If option is 1, delete a file, if option is 2, delete a directory
+            if (strcmp(option, "1") == 0)
+            {
+                delete_file(temp);
+            }
+            else if (strcmp(option, "2") == 0)
+            {
+                delete_directory(temp);
+            }
+            // Sending success message
+            int sent = send(client_sock, "done", sizeof("done"), 0);
+            if (sent == -1)
+            {
+                perror("Error sending data");
+            }
         }
         else if (strcmp(command, "3") == 0)
         {
@@ -95,6 +135,30 @@ int main()
             {
                 perror("Error sending data");
             }
+        }
+        else if(strcmp(command,"6")==0){
+           
+            int cli_sock;
+            struct sockaddr_in cli_addr;
+            connect_to_NS_from_SS(&cli_sock, &cli_addr, "127.0.0.1", 5568);
+            socklen_t cli_addr_size = sizeof(cli_addr);
+            printf("here 1\n");
+             client_sock = accept(cli_sock, (struct sockaddr *)&cli_addr, &cli_addr_size);
+              printf("here 2\n");
+        if (client_sock == -1)
+        {
+            perror("[-] Accept error");
+            exit(0);
+        }
+        printf("Here\n");
+        char t[10];
+        if ((received = recv(client_sock, &t, sizeof(t), 0)) == -1)
+            {
+                printf("Error recieving data\n");
+                exit(0);
+            }
+            printf("**%s\n",t);
+
         }
     }
     close(client_sock);
