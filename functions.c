@@ -415,8 +415,8 @@ void delete_file(char *file_path)
 
     if (chdir(path_to_go_to) == -1)
     {
-        perror("chdir");
-        exit(0);
+        perror(RED "chdir" RESET);
+        return;
     }
 
     // Deleting the file
@@ -457,8 +457,8 @@ void delete_directory(char *file_path)
 
     if (chdir(path_to_go_to) == -1)
     {
-        perror("chdir");
-        exit(0);
+        perror(RED "chdir" RESET);
+        return;
     }
 
     // Deleting the directory

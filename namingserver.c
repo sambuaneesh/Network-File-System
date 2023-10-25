@@ -19,12 +19,11 @@ int main()
     struct sockaddr_in ns_addr;
 
     // storage_servers list = NULL;
-    if(initialize_SS(&server_sock, &client_sock, &ns_sock, &client_addr, &ns_addr, &addr_size) == -1)
+    if (initialize_SS(&server_sock, &client_sock, &ns_sock, &client_addr, &ns_addr, &addr_size) == -1)
     {
         printf(RED "[-]Error initializing storage servers\n" RESET);
         return 1;
     }
-
 
     while (1)
     {
@@ -81,7 +80,7 @@ int main()
             // END OF GETTING DATA FROM CLIENT
             // THE REST OF THIS CODE MUST EXECUTE ONLY IF file_path IS IN THE LIST OF ACCESSIBLE PATHS
             Tree T = check_if_path_in_ss(file_path, 0);
-            if(Delete_Path(T, file_path) == -1)
+            if (Delete_Path(T, file_path) == -1)
             {
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 continue;
@@ -210,6 +209,9 @@ int main()
                 exit(0);
             }
 
+            // Not sure what to do with this:
+            // Do I keep some kind of while loop to search for the server with the mentioned path
+            // and then use those ports and all?
             storage_servers temp = MakeNode_ss("127.0.0.1", 5568, 5568);
 
             int server_addr = temp->ss_send->server_port;
@@ -227,7 +229,7 @@ int main()
                 flag = 1;
                 continue;
             }
-            
+
             if (flag == 0)
             {
                 if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
@@ -252,6 +254,9 @@ int main()
                 exit(0);
             }
 
+            // Not sure what to do with this:
+            // Do I keep some kind of while loop to search for the server with the mentioned path
+            // and then use those ports and all?
             storage_servers temp = MakeNode_ss("127.0.0.1", 5568, 5568);
 
             int server_addr = temp->ss_send->server_port;
