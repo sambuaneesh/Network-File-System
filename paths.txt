@@ -3,4 +3,3 @@
 /home/nishita/Desktop
 /home/nishita/Desktop/final-project-76
 /home/nishita/Desktop/final-project-76/file1.txt
-/home/nishita/Desktop/file2.txt

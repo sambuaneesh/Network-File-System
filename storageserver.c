@@ -50,7 +50,7 @@ int main()
     // Forming connection with client
     int cli_temp_sock;
     struct sockaddr_in cli_temp_addr;
-    connect_to_client(&cli_temp_sock, &cli_temp_addr, "127.0.0.1", 5568);
+    connect_to_client(&cli_temp_sock, &cli_temp_addr, "127.0.0.1", port_for_client);
 
     struct sockaddr_in cli_addr;
     socklen_t cli_addr_size = sizeof(cli_addr);

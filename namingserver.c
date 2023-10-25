@@ -53,14 +53,14 @@ int main()
         {
             char temp_file_path[MAX_FILE_PATH];
             char temp_option[10];
-            char server_number[10];
-            // Recieving the server number
-            if ((recieved = recv(client_sock, &server_number, sizeof(server_number), 0)) == -1)
-            {
-                perror(RED "Not successful" RESET);
-                close(client_sock);
-                exit(0);
-            }
+            // char server_number[10];
+            // // Recieving the server number
+            // if ((recieved = recv(client_sock, &server_number, sizeof(server_number), 0)) == -1)
+            // {
+            //     perror(RED "Not successful" RESET);
+            //     close(client_sock);
+            //     exit(0);
+            // }
 
             // Receiving the path of the file/directory
             char file_path[MAX_FILE_PATH];
@@ -125,14 +125,14 @@ int main()
         {
             char temp_file_path[MAX_FILE_PATH];
             char temp_option[10];
-            char server_number[10];
-            // Recieving the server number
-            if ((recieved = recv(client_sock, &server_number, sizeof(server_number), 0)) == -1)
-            {
-                perror(RED "Not successful" RESET);
-                close(client_sock);
-                return 1;
-            }
+            // char server_number[10];
+            // // Recieving the server number
+            // if ((recieved = recv(client_sock, &server_number, sizeof(server_number), 0)) == -1)
+            // {
+            //     perror(RED "Not successful" RESET);
+            //     close(client_sock);
+            //     return 1;
+            // }
 
             // Receiving the path of the file/directory
             char file_path[MAX_FILE_PATH];

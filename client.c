@@ -45,16 +45,16 @@ int main()
                 exit(1);
             }
 
-            char storage_server_num[10];
-            int num_storage_servers = 10;
-            printf("Enter the storage server number: ");
-            scanf("%s", storage_server_num);
+            // char storage_server_num[10];
+            // int num_storage_servers = 10;
+            // printf("Enter the storage server number: ");
+            // scanf("%s", storage_server_num);
 
-            if (atoi(storage_server_num) > num_storage_servers)
-            {
-                printf("Invalid storage server number\n");
-                continue;
-            }
+            // if (atoi(storage_server_num) > num_storage_servers)
+            // {
+            //     printf("Invalid storage server number\n");
+            //     continue;
+            // }
 
             char path[MAX_FILE_PATH];
             printf("Enter the path: ");
@@ -66,12 +66,12 @@ int main()
             printf("Delete a file       (Enter 1)\n");
             printf("Delete a directory  (Enter 2)\n");
             scanf("%s", delete_option);
-            // Send storage sever number to the NS
-            if (send(client_sock, storage_server_num, sizeof(storage_server_num), 0) == -1)
-            {
-                perror("[-]Send error");
-                exit(1);
-            }
+            // // Send storage sever number to the NS
+            // if (send(client_sock, storage_server_num, sizeof(storage_server_num), 0) == -1)
+            // {
+            //     perror("[-]Send error");
+            //     exit(1);
+            // }
             // Send the path to NS
             if (send(client_sock, path, sizeof(path), 0) == -1)
                 printf("[-]Send error\n");
@@ -91,16 +91,16 @@ int main()
                 exit(1);
             }
 
-            char storage_server_num[10];
-            int num_storage_servers = 10;
-            printf("Enter the storage server number: ");
-            scanf("%s", storage_server_num);
+            // char storage_server_num[10];
+            // int num_storage_servers = 10;
+            // printf("Enter the storage server number: ");
+            // scanf("%s", storage_server_num);
 
-            if (atoi(storage_server_num) > num_storage_servers)
-            {
-                printf("Invalid storage server number\n");
-                continue;
-            }
+            // if (atoi(storage_server_num) > num_storage_servers)
+            // {
+            //     printf("Invalid storage server number\n");
+            //     continue;
+            // }
 
             char path[MAX_FILE_PATH];
             printf("Enter the path: ");
@@ -112,12 +112,12 @@ int main()
             printf("Create an empty file       (Enter 1)\n");
             printf("Create an empty directory  (Enter 2)\n");
             scanf("%s", create_option);
-            // Send storage sever number to the NS
-            if (send(client_sock, storage_server_num, sizeof(storage_server_num), 0) == -1)
-            {
-                perror("[-]Send error");
-                exit(1);
-            }
+            // // Send storage sever number to the NS
+            // if (send(client_sock, storage_server_num, sizeof(storage_server_num), 0) == -1)
+            // {
+            //     perror("[-]Send error");
+            //     exit(1);
+            // }
             // Send the path to NS
             if (send(client_sock, path, sizeof(path), 0) == -1)
                 printf("[-]Send error\n");
