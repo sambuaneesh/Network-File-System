@@ -84,7 +84,7 @@ int main()
 
         if (strcmp(command, "1") == 0) // Init
         {
-            printf("File contents:\n%s\n", buffer);
+            // printf("File contents:\n%s\n", buffer);
             if (send(client_sock, buffer, sizeof(buffer), 0) == -1)
                 perror(RED "[-] Error sending data" RESET);
             if (send(client_sock, &port_for_client, sizeof(port_for_client), 0) == -1)
@@ -94,7 +94,7 @@ int main()
             if (send(client_sock, ip, sizeof(ip), 0) == -1)
                 perror(RED "[-] Error sending data" RESET);
         }
-        else if (strcmp(command, "2") == 0)
+        else if (strcmp(command, "2") == 0) // Deletion
         {
             if ((received = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
@@ -124,26 +124,37 @@ int main()
             // If option is 1, delete a file, if option is 2, delete a directory
             if (strcmp(option, "1") == 0)
             {
-                delete_file(temp);
+                if (delete_file(temp) == -1)
+                    continue;
             }
             else if (strcmp(option, "2") == 0)
             {
-                delete_directory(temp);
+                if (delete_directory(temp) == -1)
+                    continue;
             }
 
             if (Delete_from_path_file(file_path, paths_file) == 0)
-                printf("Deleted Successfully!\n");
+            {
+                printf(GREEN "Deleted Successfully!\n" RESET);
+                int sent = send(client_sock, "done", sizeof("done"), 0);
+                if (sent == -1)
+                {
+                    perror(RED "[-] Error sending data" RESET);
+                }
+            }
             else
+            {
                 perror(RED "[-] Error deleting file/directory" RESET);
+                int sent = send(client_sock, "not done", sizeof("not done"), 0);
+                if (sent == -1)
+                {
+                    perror(RED "[-] Error sending data" RESET);
+                }
+            }
 
             // Sending success message
-            int sent = send(client_sock, "done", sizeof("done"), 0);
-            if (sent == -1)
-            {
-                perror(RED "Error sending data" RESET);
-            }
         }
-        else if (strcmp(command, "3") == 0)
+        else if (strcmp(command, "3") == 0) // Creation
         {
             if ((received = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
@@ -173,11 +184,27 @@ int main()
             // If option is 1, create a file, if option is 2, create a directory
             if (strcmp(option, "1") == 0)
             {
-                create_file(temp);
+                if (create_file(temp) == -1)
+                {
+                    int sent = send(client_sock, "Creation Error!!", sizeof("Creation Error!!"), 0);
+                    if (sent == -1)
+                    {
+                        perror("Error sending data");
+                    }
+                    continue;
+                }
             }
             else if (strcmp(option, "2") == 0)
             {
-                create_directory(temp);
+                if (create_directory(temp) == -1)
+                {
+                    int sent = send(client_sock, "Creation Error!!", sizeof("Creation Error!!"), 0);
+                    if (sent == -1)
+                    {
+                        perror("Error sending data");
+                    }
+                    continue;
+                }
             }
             if (Add_to_path_file(file_path, paths_file) == 0)
                 printf("Created Successfully!\n");

@@ -52,14 +52,6 @@ int main()
         {
             char temp_file_path[MAX_FILE_PATH];
             char temp_option[10];
-            // char server_number[10];
-            // // Recieving the server number
-            // if ((recieved = recv(client_sock, &server_number, sizeof(server_number), 0)) == -1)
-            // {
-            //     perror(RED "Not successful" RESET);
-            //     close(client_sock);
-            //     exit(0);
-            // }
 
             // Receiving the path of the file/directory
             char file_path[MAX_FILE_PATH];
@@ -83,8 +75,8 @@ int main()
             if (Delete_Path(T, file_path) == -1)
             {
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
-                continue;
             }
+            printf("Waiting for success message\n");
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr, 5566);
             if (send(ns_sock, "2", sizeof("2"), 0) == -1)
@@ -100,7 +92,7 @@ int main()
                 printf(RED "[-]Send error\n" RESET);
 
             // Checking if creation was successful
-            char success[5];
+            char success[20];
             int success_message = 0;
 
             if ((success_message = recv(ns_sock, &success, sizeof(success), 0)) == -1)
@@ -113,25 +105,21 @@ int main()
 
             if (strcmp(success, "done") == 0)
             {
-                printf("Deleted Successfully!\n");
+                printf(GREEN "Deleted Successfully!\n" RESET);
+                if(send(client_sock, success, sizeof(success), 0) == -1)
+                    printf(RED "[-]Send error\n" RESET);
             }
             else
             {
-                perror(RED "[-]Deletion unsuccessful\n" RESET);
+                printf(RED "[-]Deletion unsuccessful\n" RESET);
+                if(send(client_sock, success, sizeof(success), 0) == -1)
+                    printf(RED "[-]Send error\n" RESET);
             }
         }
         else if (strcmp("3", opt) == 0) // Creation
         {
             char temp_file_path[MAX_FILE_PATH];
             char temp_option[10];
-            // char server_number[10];
-            // // Recieving the server number
-            // if ((recieved = recv(client_sock, &server_number, sizeof(server_number), 0)) == -1)
-            // {
-            //     perror(RED "Not successful" RESET);
-            //     close(client_sock);
-            //     return 1;
-            // }
 
             // Receiving the path of the file/directory
             char file_path[MAX_FILE_PATH];
@@ -167,12 +155,11 @@ int main()
                 printf(RED "[-]Send error\n" RESET);
 
             //  Sending option to the SS
-
             if (send(ns_sock, create_option, sizeof(create_option), 0) == -1)
                 printf(RED "[-]Send error\n" RESET);
 
             // Checking if creation was successful
-            char success[5];
+            char success[25];
             int success_message = 0;
 
             if ((success_message = recv(ns_sock, &success, sizeof(success), 0)) == -1)
@@ -185,11 +172,16 @@ int main()
 
             if (strcmp(success, "done") == 0)
             {
-                printf("Created Successfully!\n");
+                printf(GREEN "Created Successfully!\n" RESET);
+                if(send(client_sock, success, sizeof(success), 0) == -1)
+                    printf(RED "[-]Send error\n" RESET);
             }
             else
             {
+                printf(RED "[-] %s\n" RESET, success);
                 perror(RED "[-]Creation unsuccessful\n" RESET);
+                if(send(client_sock, success, sizeof(success), 0) == -1)
+                    printf(RED "[-]Send error\n" RESET);
             }
         }
         else if (strcmp("4", opt) == 0)

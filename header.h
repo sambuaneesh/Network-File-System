@@ -17,6 +17,7 @@
 #define port 5566               // port number for naming server
 
 #define RED "\033[31m"
+#define GREEN "\033[32m"
 #define RESET "\033[0m"
 
 typedef struct TreeNode* Tree;
@@ -28,12 +29,6 @@ typedef struct TreeNode
     Tree prev_sibling;
     Tree parent;
 } TreeNode;
-
-// typedef struct paths
-// {
-//     char path[MAX_FILE_PATH];
-//     struct paths *next;
-// } paths;
 
 // for now, I am assuming that the storage server sends all paths in the format:
 //
@@ -96,11 +91,11 @@ Tree check_if_path_in_ss(char *file_path, int insert);
 int initialize_SS(int *server_sock, int *client_sock, int *ns_sock, struct sockaddr_in *client_addr, struct sockaddr_in *ns_addr, socklen_t *addr_size);
 
 void get_path_details(char* path_to_go_to, char* file_name,char* file_path);
-void create_file(char* file_path);
-void create_directory(char* file_path);
-void delete_file(char* file_path);
-void delete_directory(char* file_path);
-void delete_non_empty_dir(char *directory_name);
+int create_file(char* file_path);
+int create_directory(char* file_path);
+int delete_file(char* file_path);
+int delete_directory(char* file_path);
+int delete_non_empty_dir(char *directory_name);
 
 int Delete_from_path_file(char *file_path, char* storage_file);
 int Add_to_path_file(char *file_path, char* storage_file);

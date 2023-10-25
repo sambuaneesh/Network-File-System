@@ -14,7 +14,7 @@ int main()
         int option = -1;
         {
             printf("\nDo you want to:\n");
-            printf("1. Connect to a storage server     (enter 1)\n");
+            // printf("1. Connect to a storage server     (enter 1)\n");
             printf("2. Delete a File/Directory         (enter 2)\n");
             printf("3. Create an Empty File/Directory  (enter 3)\n");
             printf("4. Copy Files/Directories          (enter 4)\n");
@@ -41,20 +41,9 @@ int main()
             // Send option to NS
             if (send(client_sock, option_client, sizeof(option_client), 0) == -1)
             {
-                perror("[-]Send error");
+                perror(RED "[-]Send error" RESET);
                 exit(1);
             }
-
-            // char storage_server_num[10];
-            // int num_storage_servers = 10;
-            // printf("Enter the storage server number: ");
-            // scanf("%s", storage_server_num);
-
-            // if (atoi(storage_server_num) > num_storage_servers)
-            // {
-            //     printf("Invalid storage server number\n");
-            //     continue;
-            // }
 
             char path[MAX_FILE_PATH];
             printf("Enter the path: ");
@@ -66,18 +55,22 @@ int main()
             printf("Delete a file       (Enter 1)\n");
             printf("Delete a directory  (Enter 2)\n");
             scanf("%s", delete_option);
-            // // Send storage sever number to the NS
-            // if (send(client_sock, storage_server_num, sizeof(storage_server_num), 0) == -1)
-            // {
-            //     perror("[-]Send error");
-            //     exit(1);
-            // }
+
             // Send the path to NS
             if (send(client_sock, path, sizeof(path), 0) == -1)
-                printf("[-]Send error\n");
+                printf(RED "[-]Send error\n" RESET);
             // Send whether you want to create a file or directory to NS
             if (send(client_sock, delete_option, sizeof(delete_option), 0) == -1)
-                printf("[-]Send error\n");
+                printf(RED "[-]Send error\n" RESET);
+
+            // recieve success or error message from NS
+            char success[25];
+            if(recv(client_sock, success, sizeof(success), 0) == -1)
+                printf(RED "[-]Receive error\n" RESET);
+            if(strcmp(success, "done") == 0)
+                printf(GREEN "Deleted Successfully!\n" RESET);
+            else
+                printf(RED "Error deleting file/directory\n" RESET);
         }
         else if (option == 3) // Creation
         {
@@ -87,20 +80,9 @@ int main()
             // Send option to NS
             if (send(client_sock, option_client, sizeof(option_client), 0) == -1)
             {
-                perror("[-]Send error");
+                perror(RED "[-]Send error" RESET);
                 exit(1);
             }
-
-            // char storage_server_num[10];
-            // int num_storage_servers = 10;
-            // printf("Enter the storage server number: ");
-            // scanf("%s", storage_server_num);
-
-            // if (atoi(storage_server_num) > num_storage_servers)
-            // {
-            //     printf("Invalid storage server number\n");
-            //     continue;
-            // }
 
             char path[MAX_FILE_PATH];
             printf("Enter the path: ");
@@ -112,18 +94,22 @@ int main()
             printf("Create an empty file       (Enter 1)\n");
             printf("Create an empty directory  (Enter 2)\n");
             scanf("%s", create_option);
-            // // Send storage sever number to the NS
-            // if (send(client_sock, storage_server_num, sizeof(storage_server_num), 0) == -1)
-            // {
-            //     perror("[-]Send error");
-            //     exit(1);
-            // }
+
             // Send the path to NS
             if (send(client_sock, path, sizeof(path), 0) == -1)
-                printf("[-]Send error\n");
+                printf(RED "[-]Send error\n" RESET);
             // Send whether you want to create a file or directory to NS
             if (send(client_sock, create_option, sizeof(create_option), 0) == -1)
-                printf("[-]Send error\n");
+                printf(RED "[-]Send error\n" RESET);
+
+            // recieve success or error message from NS
+            char success[25];
+            if (recv(client_sock, success, sizeof(success), 0) == -1)
+                printf(RED "[-]Receive error\n" RESET);
+            if(strcmp(success, "done") == 0)
+                printf(GREEN "Created Successfully!\n" RESET);
+            else
+                printf(RED "Error creating file/directory\n" RESET);
         }
         else if (option == 4)
         {

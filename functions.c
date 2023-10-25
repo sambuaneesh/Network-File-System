@@ -124,6 +124,8 @@ void Del_Rec(Tree T)
 
 int Delete_Path(Tree T, char *path)
 {
+    if(T == NULL)
+        return -1;
     Tree traveller = Search_Till_Parent(T, path, 0);
     if (traveller == NULL)
     {
@@ -308,7 +310,7 @@ void get_path_details(char *path_to_go_to, char *file_name, char *file_path)
     path_to_go_to[j] = '\0';
 }
 
-void create_file(char *file_path)
+int create_file(char *file_path)
 {
     // Finding the directory we need to change to
     char *path_to_go_to = (char *)malloc(sizeof(char) * MAX_FILE_PATH);
@@ -319,24 +321,24 @@ void create_file(char *file_path)
 
     if (getcwd(current_dir, sizeof(current_dir)) == NULL)
     {
-        perror("getcwd");
-        exit(0);
+        perror(RED "[-] getcwd" RESET);
+        return -1;
     }
 
     get_path_details(path_to_go_to, file_name, file_path);
 
     if (chdir(path_to_go_to) == -1)
     {
-        perror("chdir");
-        exit(0);
+        perror(RED "[-] chdir" RESET);
+        return -1;
     }
 
     // Creating a new file
     FILE *file = fopen(file_name, "w");
     if (file == NULL)
     {
-        perror("fopen");
-        return;
+        perror(RED "[-] fopen" RESET);
+        return -1;
     }
     else
     {
@@ -346,14 +348,14 @@ void create_file(char *file_path)
 
     if (chdir(current_dir) == -1)
     {
-        perror("chdir");
-        exit(0);
+        perror(RED "[-] chdir" RESET);
+        return -1;
     }
 
-    return;
+    return 0;
 }
 
-void create_directory(char *file_path)
+int create_directory(char *file_path)
 {
     // Finding the directory we need to change to
     char *path_to_go_to = (char *)malloc(sizeof(char) * MAX_FILE_PATH);
@@ -364,16 +366,16 @@ void create_directory(char *file_path)
 
     if (getcwd(current_dir, sizeof(current_dir)) == NULL)
     {
-        perror("getcwd");
-        exit(0);
+        perror(RED "getcwd" RESET);
+        return -1;
     }
 
     get_path_details(path_to_go_to, directory_name, file_path);
 
     if (chdir(path_to_go_to) == -1)
     {
-        perror("chdir");
-        exit(0);
+        perror(RED "chdir" RESET);
+        return -1;
     }
 
     // Creating the directory
@@ -384,19 +386,19 @@ void create_directory(char *file_path)
     }
     else
     {
-        perror("mkdir");
-        return;
+        perror(RED "mkdir" RESET);
+        return -1;
     }
 
     if (chdir(current_dir) == -1)
     {
-        perror("chdir");
-        exit(0);
+        perror(RED "chdir" RESET);
+        return -1;
     }
-    return;
+    return 0;
 }
 
-void delete_file(char *file_path)
+int delete_file(char *file_path)
 {
     // Finding the directory we need to change to
     char *path_to_go_to = (char *)malloc(sizeof(char) * MAX_FILE_PATH);
@@ -407,8 +409,8 @@ void delete_file(char *file_path)
 
     if (getcwd(current_dir, sizeof(current_dir)) == NULL)
     {
-        perror("getcwd");
-        exit(0);
+        perror(RED "getcwd" RESET);
+        return -1;
     }
 
     get_path_details(path_to_go_to, file_name, file_path);
@@ -416,29 +418,26 @@ void delete_file(char *file_path)
     if (chdir(path_to_go_to) == -1)
     {
         perror(RED "chdir" RESET);
-        return;
+        return -1;
     }
 
     // Deleting the file
-    if (remove(file_name) == 0)
+    if (remove(file_name) != 0)
     {
-    }
-    else
-    {
-        perror("remove");
-        return;
+        perror(RED "remove" RESET);
+        return -1;
     }
 
     if (chdir(current_dir) == -1)
     {
-        perror("chdir");
-        exit(0);
+        perror(RED "chdir" RESET);
+        return -1;
     }
 
     printf("File Deleted Successfully!\n");
 }
 
-void delete_directory(char *file_path)
+int delete_directory(char *file_path)
 {
     // Finding the directory we need to change to
     char *path_to_go_to = (char *)malloc(sizeof(char) * MAX_FILE_PATH);
@@ -449,8 +448,8 @@ void delete_directory(char *file_path)
 
     if (getcwd(current_dir, sizeof(current_dir)) == NULL)
     {
-        perror("getcwd");
-        exit(0);
+        perror(RED "[-] getcwd" RESET);
+        return -1;
     }
 
     get_path_details(path_to_go_to, directory_name, file_path);
@@ -458,34 +457,36 @@ void delete_directory(char *file_path)
     if (chdir(path_to_go_to) == -1)
     {
         perror(RED "chdir" RESET);
-        return;
+        return -1;
     }
 
     // Deleting the directory
 
     if (rmdir(directory_name) != 0)
     {
-        delete_non_empty_dir(directory_name);
+        if(delete_non_empty_dir(directory_name) == -1)
+            return -1;
         // perror(RED "rmdir" RESET);
     }
 
     if (chdir(current_dir) == -1)
     {
-        perror("chdir");
-        exit(0);
+        perror(RED "[-] chdir" RESET);
+        return -1;
     }
     printf("Directory Deleted Successfully!\n");
+    return 0;
 }
 
-void delete_non_empty_dir(char *directory_name)
+int delete_non_empty_dir(char *directory_name)
 {
     DIR *dir;
     struct dirent *entry;
     dir = opendir(directory_name);
     if (!dir)
     {
-        perror(RED "opendir" RESET);
-        return;
+        perror(RED "[-] opendir" RESET);
+        return -1;
     }
 
     while ((entry = readdir(dir)))
@@ -501,7 +502,7 @@ void delete_non_empty_dir(char *directory_name)
                 {
                     perror(RED "remove" RESET);
                     closedir(dir);
-                    return;
+                    return -1;
                 }
             }
         }
@@ -517,7 +518,12 @@ void delete_non_empty_dir(char *directory_name)
     }
 
     closedir(dir);
-    rmdir(directory_name);
+    if(rmdir(directory_name) != 0)
+    {
+        perror(RED "rmdir" RESET);
+        return -1;
+    }
+    return 0;
 }
 
 void load_SS(Tree T, char *file_name)
@@ -731,11 +737,11 @@ int initialize_SS(int *server_sock, int *client_sock, int *ns_sock, struct socka
         return -1;
     }
 
-    printf("Recieved vital info from SS\n");
-    printf("Port for client: %d\n", vital_info->ss_send->client_port);
-    printf("Port for NM: %d\n", vital_info->ss_send->server_port);
-    printf("IP: %s\n", vital_info->ss_send->ip_addr);
-    printf("Paths: %s\n", buffer);
+    // printf("Recieved vital info from SS\n");
+    // printf("Port for client: %d\n", vital_info->ss_send->client_port);
+    // printf("Port for NM: %d\n", vital_info->ss_send->server_port);
+    // printf("IP: %s\n", vital_info->ss_send->ip_addr);
+    // printf("Paths: %s\n", buffer);
 
     FILE *file = fopen("temp.txt", "w");
     fputs(buffer, file);
