@@ -121,19 +121,20 @@ int main()
                 option[received] = '\0';
             }
 
+            int del = 0;
             // If option is 1, delete a file, if option is 2, delete a directory
             if (strcmp(option, "1") == 0)
             {
                 if (delete_file(temp) == -1)
-                    continue;
+                    del = 1;
             }
             else if (strcmp(option, "2") == 0)
             {
                 if (delete_directory(temp) == -1)
-                    continue;
+                    del = 1;
             }
 
-            if (Delete_from_path_file(file_path, paths_file) == 0)
+            if (Delete_from_path_file(file_path, paths_file) == 0 && del == 0)
             {
                 printf(GREEN "Deleted Successfully!\n" RESET);
                 int sent = send(client_sock, "done", sizeof("done"), 0);
@@ -151,8 +152,6 @@ int main()
                     perror(RED "[-] Error sending data" RESET);
                 }
             }
-
-            // Sending success message
         }
         else if (strcmp(command, "3") == 0) // Creation
         {
