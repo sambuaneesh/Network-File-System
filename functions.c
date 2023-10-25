@@ -742,7 +742,7 @@ int initialize_SS(int *server_sock, int *client_sock, int *ns_sock, struct socka
     // printf("IP: %s\n", vital_info->ss_send->ip_addr);
     // printf("Paths: %s\n", buffer);
 
-    FILE *file = fopen("temp.txt", "w");
+    FILE *file = fopen("namethatshallnotbeused.txt", "w");
     fputs(buffer, file);
     fclose(file);
 
@@ -762,9 +762,10 @@ int initialize_SS(int *server_sock, int *client_sock, int *ns_sock, struct socka
 
     listen_for_client(server_sock, client_sock, client_addr, addr_size);
     int num_storage_servers = 1;
-    load_SS(vital_info->files_and_dirs, "temp.txt");
+    load_SS(vital_info->files_and_dirs, "namethatshallnotbeused.txt");
     vital_info->next = storage_server_list;
     storage_server_list = vital_info;
+    remove("namethatshallnotbeused.txt");
 
     return 0;
 }

@@ -2,4 +2,3 @@
 /home/nishita
 /home/nishita/Desktop
 /home/nishita/Desktop/final-project-76
-
