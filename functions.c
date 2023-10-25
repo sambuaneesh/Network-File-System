@@ -334,7 +334,14 @@ int create_file(char *file_path)
     }
 
     // Creating a new file
-    FILE *file = fopen(file_name, "w");
+    
+    FILE *file = fopen(file_name, "r");
+    if (file != NULL)
+    {
+        printf(RED "[-] File already exists\n" RESET);
+        return -1;
+    }
+    file = fopen(file_name, "w");
     if (file == NULL)
     {
         perror(RED "[-] fopen" RESET);
