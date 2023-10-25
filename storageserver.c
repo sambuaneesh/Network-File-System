@@ -217,7 +217,7 @@ int main()
                 perror(RED "Error sending data" RESET);
             }
         }
-        else if (strcmp(command, "5") == 0)
+        else if (strcmp(command, "5") == 0) // Writing
         {
             if ((cli_sock = accept(cli_temp_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
@@ -247,7 +247,6 @@ int main()
 
             while (1)
             {
-
                 received_to_write = recv(cli_sock, received_data_to_write, sizeof(received_data_to_write), 0);
 
                 if (received_to_write == -1)
@@ -287,11 +286,10 @@ int main()
 
             fclose(file);
 
-            //  close_socket(&cli_sock);
+            close_socket(&cli_sock);
         }
-        else if (strcmp(command, "6") == 0)
+        else if (strcmp(command, "6") == 0) // Reading
         {
-
             if ((cli_sock = accept(cli_temp_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
                 perror("[-] Accept error");
@@ -323,9 +321,123 @@ int main()
             send(cli_sock, buffer, sizeof(buffer), 0);
 
             fclose(file);
-            // close(cli_sock);
+        }
+        else if (strcmp(command, "7") == 0) // Permissions
+        {
+            if ((cli_sock = accept(cli_temp_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
+            {
+                perror("[-] Accept error");
+                exit(0);
+            }
 
-            // close(cli_temp_sock);
+            char file_path[100];
+            // Getting file path from client
+            if ((received = recv(cli_sock, file_path, sizeof(file_path), 0)) == -1)
+            {
+                printf("Error receiving data\n");
+                exit(0);
+            }
+            struct stat fileStat;
+
+            // Getting file size
+            off_t fileSize = fileStat.st_size;
+
+            char buffer[1024];
+
+            if (stat(file_path, &fileStat) == 0)
+            {
+                // Storing file size in buffer
+                snprintf(buffer, sizeof(buffer), "File Size: %lld bytes\n", (long long)fileStat.st_size);
+
+                // Owner permissions
+                if (fileStat.st_mode & S_IRUSR)
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Owner has read permission\n");
+                }
+                else
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Owner does not have read permission\n");
+                }
+                if (fileStat.st_mode & S_IWUSR)
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Owner has write permission\n");
+                }
+                else
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Owner does not have write permission\n");
+                }
+                if (fileStat.st_mode & S_IXUSR)
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Owner has execute permission\n");
+                }
+                else
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Owner does not have execute permission\n");
+                }
+
+                // Group permissions
+                if (fileStat.st_mode & S_IRGRP)
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Group has read permission\n");
+                }
+                else
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Group does not have read permission\n");
+                }
+                if (fileStat.st_mode & S_IWGRP)
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Group has write permission\n");
+                }
+                else
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Group does not have write permission\n");
+                }
+                if (fileStat.st_mode & S_IXGRP)
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Group has execute permission\n");
+                }
+                else
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Group does not have execute permission\n");
+                }
+
+                // Others permissions
+                if (fileStat.st_mode & S_IROTH)
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other has read permission\n");
+                }
+                else
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other does not have read permission\n");
+                }
+                if (fileStat.st_mode & S_IWOTH)
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other has write permission\n");
+                }
+                else
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other does not have write permission\n");
+                }
+                if (fileStat.st_mode & S_IXOTH)
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other has execute permission\n");
+                }
+                else
+                {
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other does not have execute permission\n");
+                }
+                if (send(cli_sock, buffer, sizeof(buffer), 0) == -1)
+                {
+                    printf("Error sending data\n");
+                    exit(0);
+                }
+
+                printf("Permissions Sent Successfully!\n");
+            }
+            else
+            {
+                perror("stat");
+            }
         }
     }
     close_socket(&cli_temp_sock);

@@ -65,9 +65,9 @@ int main()
 
             // recieve success or error message from NS
             char success[25];
-            if(recv(client_sock, success, sizeof(success), 0) == -1)
+            if (recv(client_sock, success, sizeof(success), 0) == -1)
                 printf(RED "[-]Receive error\n" RESET);
-            if(strcmp(success, "done") == 0)
+            if (strcmp(success, "done") == 0)
                 printf(GREEN "Deleted Successfully!\n" RESET);
             else
                 printf(RED "Error deleting file/directory\n" RESET);
@@ -106,7 +106,7 @@ int main()
             char success[25];
             if (recv(client_sock, success, sizeof(success), 0) == -1)
                 printf(RED "[-]Receive error\n" RESET);
-            if(strcmp(success, "done") == 0)
+            if (strcmp(success, "done") == 0)
                 printf(GREEN "Created Successfully!\n" RESET);
             else
                 printf(RED "Error creating file/directory\n" RESET);
@@ -114,7 +114,7 @@ int main()
         else if (option == 4)
         {
         }
-        else if (option == 5)
+        else if (option == 5) // Write
         {
             if (send(client_sock, "5", strlen("5"), 0) == -1)
             {
@@ -189,7 +189,7 @@ int main()
 
             close_socket(&ns_sock);
         }
-        else if (option == 6)
+        else if (option == 6) // Read
         {
             if (send(client_sock, "6", strlen("6"), 0) == -1)
             {
@@ -247,6 +247,57 @@ int main()
 
             close_socket(&ns_sock);
         }
+        else if (option == 7) // Permissions
+        {
+            if (send(client_sock, "7", strlen("7"), 0) == -1)
+            {
+                perror("[-]Send error");
+                exit(1);
+            }
+            char path[MAX_FILE_PATH];
+            printf("Enter the path: ");
+            scanf("%s", path);
+
+            if (send(client_sock, path, sizeof(path), 0) == -1)
+                printf("[-]Send error\n");
+
+            char ip_addr[50];
+            char server_addr[50];
+
+            if (recv(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
+            {
+                perror(RED "[-]Receive error" RESET);
+                exit(1);
+            }
+            if (strcmp(ip_addr, "failed") == 0)
+            {
+                printf(RED "File does not exist\n" RESET);
+                continue;
+            }
+            if (recv(client_sock, server_addr, sizeof(server_addr), 0) == -1)
+            {
+                perror(RED "[-]Send error" RESET);
+                exit(1);
+            }
+
+            int ns_sock;
+            struct sockaddr_in ns_addr;
+            connect_to_SS_from_client(&ns_sock, &ns_addr, ip_addr, atoi(server_addr));
+            if (send(ns_sock, path, sizeof(path), 0) == -1)
+                printf("[-]Send error\n");
+            char permission[1024];
+
+            if (recv(ns_sock, permission, sizeof(permission), 0) == -1)
+            {
+                perror("Error receiving data");
+                exit(0);
+            }
+            printf("\n");
+            printf("%s", permission);
+
+            close_socket(&ns_sock);
+        }
+
         else
         {
             printf("Invalid option\n");
