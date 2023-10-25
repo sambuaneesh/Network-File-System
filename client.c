@@ -251,7 +251,7 @@ int main()
         {
             if (send(client_sock, "7", strlen("7"), 0) == -1)
             {
-                perror("[-]Send error");
+                perror(RED "[-]Send error" RESET);
                 exit(1);
             }
             char path[MAX_FILE_PATH];
@@ -259,7 +259,7 @@ int main()
             scanf("%s", path);
 
             if (send(client_sock, path, sizeof(path), 0) == -1)
-                printf("[-]Send error\n");
+                printf(RED "[-]Send error\n" RESET);
 
             char ip_addr[50];
             char server_addr[50];
@@ -284,12 +284,12 @@ int main()
             struct sockaddr_in ns_addr;
             connect_to_SS_from_client(&ns_sock, &ns_addr, ip_addr, atoi(server_addr));
             if (send(ns_sock, path, sizeof(path), 0) == -1)
-                printf("[-]Send error\n");
+                printf(RED "[-]Send error\n" RESET);
             char permission[1024];
 
             if (recv(ns_sock, permission, sizeof(permission), 0) == -1)
             {
-                perror("Error receiving data");
+                perror(RED "Error receiving data" RESET);
                 exit(0);
             }
             printf("\n");
@@ -297,10 +297,9 @@ int main()
 
             close_socket(&ns_sock);
         }
-
         else
         {
-            printf("Invalid option\n");
+            printf(RED "Invalid option\n" RESET);
         }
     }
 

@@ -281,13 +281,13 @@ int main()
         {
             connect_to_SS_from_NS(&ns_sock, &ns_addr, 5566);
             if (send(ns_sock, "7", sizeof("7"), 0) == -1)
-                printf("[-]Send error\n");
+                printf(RED "[-]Send error\n" RESET);
             close_socket(&ns_sock);
 
             char file_path[MAX_FILE_PATH];
             if ((recieved = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
-                perror("Not successful");
+                perror(RED "Not successful" RESET);
                 exit(0);
             }
 
@@ -303,35 +303,20 @@ int main()
 
             if (check_if_path_in_ss(file_path, 0) == NULL)
             {
-                printf("[-]Path not in list of accessible paths\n");
+                printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
-                    printf("[-] Send error\n");
+                    printf(RED "[-] Send error\n" RESET);
                 flag = 1;
                 continue;
             }
-            else if (1)
-            {
-                FILE *file_pointer;
-
-                // Checking if the file exists
-                if ((file_pointer = fopen(file_path, "r")) == NULL)
-                {
-                    printf("[-]Path not in list of accessible paths\n");
-                    if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
-                        printf("[-] Send error\n");
-                    flag = 1;
-                    continue;
-                }
-
-                fclose(file_pointer);
-            }
+            
             if (flag == 0)
             {
                 if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
-                    printf("[-] Send error\n");
+                    printf(RED "[-] Send error\n" RESET);
                 if (send(client_sock, server, sizeof(server), 0) == -1)
                 {
-                    printf("[-] Send error\n");
+                    printf(RED "[-] Send error\n" RESET);
                 }
             }
         }
