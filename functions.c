@@ -122,18 +122,18 @@ void Del_Rec(Tree T)
     free(T);
 }
 
-void Delete_Path(Tree T, char *path)
+int Delete_Path(Tree T, char *path)
 {
     Tree traveller = Search_Till_Parent(T, path, 0);
     if (traveller == NULL)
     {
-        printf("Path not found\n");
-        return;
+        printf(RED "Path not found\n" RESET);
+        return -1;
     }
     if (traveller->parent == NULL)
     {
-        printf("Cannot delete root\n");
-        return;
+        printf(RED "Cannot delete root\n" RESET);
+        return -1;
     }
     if (traveller->parent->first_child == traveller)
         traveller->parent->first_child = traveller->next_sibling;
@@ -142,13 +142,15 @@ void Delete_Path(Tree T, char *path)
 
     Del_Rec(traveller->first_child);
     free(traveller);
+
+    return 0;
 }
 
 void close_socket(int *client_sock)
 {
     if (close(*client_sock) == -1)
     {
-        perror("[-]Close error");
+        perror(RED "[-]Close error" RESET);
         exit(1);
     }
     else
@@ -159,7 +161,7 @@ void listen_for_client(int *server_sock, int *client_sock, struct sockaddr_in *c
 {
     if (listen(*server_sock, 5) == -1)
     {
-        perror("[-]Listen error");
+        perror(RED "[-]Listen error" RESET);
         exit(1);
     }
 
@@ -174,7 +176,7 @@ void connect_to_naming_server(char *ip, int *sock, struct sockaddr_in *addr)
     *sock = socket(AF_INET, SOCK_STREAM, 0);
     if (*sock < 0)
     {
-        perror("[-]Socket error");
+        perror(RED "[-]Socket error" RESET);
         exit(1);
     }
     printf("[+]TCP server socket created.\n");
@@ -185,8 +187,9 @@ void connect_to_naming_server(char *ip, int *sock, struct sockaddr_in *addr)
     addr->sin_addr.s_addr = inet_addr(ip); // converts the string to an acceptable form
 
     if (connect(*sock, (struct sockaddr *)addr, sizeof(*addr)) == -1)
-        printf("[-]Connect error");
-    printf("Connected to the naming server.\n");
+        printf(RED "[-]Connect error" RESET);
+    else
+        printf("Connected to the naming server.\n");
 }
 
 void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_in *server_addr)
@@ -197,7 +200,7 @@ void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_
     *server_sock = socket(AF_INET, SOCK_STREAM, 0);
     if (*server_sock < 0)
     {
-        perror("[-]Socket error");
+        perror(RED "[-]Socket error" RESET);
         exit(1);
     }
     printf("[+]TCP server socket created.\n");
@@ -210,7 +213,7 @@ void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_
     n = bind(*server_sock, (struct sockaddr *)server_addr, sizeof(*server_addr));
     if (n < 0)
     {
-        perror("[-]Bind error");
+        perror(RED "[-]Bind error" RESET);
         exit(1);
     }
     printf("[+]Bind to the port number: %d\n", port);
@@ -244,6 +247,8 @@ void connect_to_NS_from_SS(int *sock, struct sockaddr_in *addr, const char *ip, 
         perror("[-] Listen error");
         return;
     }
+    else
+        printf("[+] Connected to Naming Server.\n");
 
     return;
 }
@@ -554,23 +559,23 @@ storage_servers MakeNode_ss(char *ip_addr, int client_port, int server_port)
     return new;
 }
 
-int check_if_path_in_ss(char *file_path) // used to create if one new file/folder only
+Tree check_if_path_in_ss(char *file_path, int insert) // NULL if not found else returns the parent depending on value of insert
 {
     storage_servers traveller = storage_server_list;
     while (traveller != NULL)
     {
         Tree T = traveller->files_and_dirs;
-        Tree parent = Search_Till_Parent(T, file_path, 1);
+        Tree parent = Search_Till_Parent(T, file_path, insert);
         if (parent != NULL)
-            return 1;
+            return traveller->files_and_dirs;
         traveller = traveller->next;
     }
-    return -1;
+    return NULL;
 }
 
-int Add_to_path_file(char *file_path)
+int Add_to_path_file(char *file_path, char *storage_file)
 {
-    FILE *file = fopen("paths.txt", "a");
+    FILE *file = fopen(storage_file, "a");
     if (file == NULL)
     {
         perror("Error opening the file");
@@ -582,10 +587,20 @@ int Add_to_path_file(char *file_path)
     return 0;
 }
 
-void Delete_from_path_file(char *file_path)
+int Delete_from_path_file(char *file_path, char *storage_file)
 {
-    FILE *file = fopen("paths.txt", "r");
-    FILE *temp_file = fopen("temp.txt", "w");
+    FILE *file = fopen(storage_file, "r");
+    if (file == NULL)
+    {
+        perror("Error opening the file");
+        return -1;
+    }
+    FILE *temp_file = fopen("dollar.txt", "w");
+    if (temp_file == NULL)
+    {
+        perror("Error opening the file");
+        return -1;
+    }
 
     char buffer[MAX_FILE_PATH];
     char prefix_path[MAX_FILE_PATH] = {'\0'};
@@ -607,8 +622,10 @@ void Delete_from_path_file(char *file_path)
 
     fclose(file);
     fclose(temp_file);
-    remove("paths.txt");
-    rename("temp.txt", "paths.txt");
+    remove(storage_file);
+    rename("dollar.txt", storage_file);
+
+    return 0;
 }
 
 void connect_to_SS_from_client(int *sock, struct sockaddr_in *addr, char *ns_ip, int ns_port)
@@ -666,4 +683,83 @@ void connect_to_client(int *sock, struct sockaddr_in *addr, const char *ip, int 
     }
 
     return;
+}
+
+void PrintAll()
+{
+    storage_servers traveller = storage_server_list;
+    while (traveller != NULL)
+    {
+        printf("IP: %s\n", traveller->ss_send->ip_addr);
+        printf("Client Port: %d\n", traveller->ss_send->client_port);
+        printf("Server Port: %d\n", traveller->ss_send->server_port);
+        printf("Files and Directories:\n");
+        PrintTree(traveller->files_and_dirs);
+        printf("\n");
+        traveller = traveller->next;
+    }
+}
+
+int initialize_SS(int *server_sock, int *client_sock, int *ns_sock, struct sockaddr_in *client_addr, struct sockaddr_in *ns_addr, socklen_t *addr_size)
+{
+    storage_servers vital_info = MakeNode_ss("", 1, 1);
+    connect_to_SS_from_NS(ns_sock, ns_addr, 5566);
+    if (send(*ns_sock, "1", sizeof("1"), 0) == -1)
+    {
+        printf(RED "[-]Send error\n" RESET);
+        return -1;
+    }
+    char buffer[MAX_NUM_PATHS] = {'\0'};
+    if (recv(*ns_sock, buffer, sizeof(buffer), 0) == -1)
+    {
+        printf(RED "[-]Receive error\n" RESET);
+        return -1;
+    }
+    if (recv(*ns_sock, &vital_info->ss_send->client_port, sizeof(vital_info->ss_send->client_port), 0) == -1)
+    {
+        printf(RED "[-]Receive error\n" RESET);
+        return -1;
+    }
+    if (recv(*ns_sock, &vital_info->ss_send->server_port, sizeof(vital_info->ss_send->server_port), 0) == -1)
+    {
+        printf(RED "[-]Receive error\n" RESET);
+        return -1;
+    }
+    if (recv(*ns_sock, &vital_info->ss_send->ip_addr, sizeof(vital_info->ss_send->ip_addr), 0) == -1)
+    {
+        printf(RED "[-]Receive error\n" RESET);
+        return -1;
+    }
+
+    printf("Recieved vital info from SS\n");
+    printf("Port for client: %d\n", vital_info->ss_send->client_port);
+    printf("Port for NM: %d\n", vital_info->ss_send->server_port);
+    printf("IP: %s\n", vital_info->ss_send->ip_addr);
+    printf("Paths: %s\n", buffer);
+
+    FILE *file = fopen("temp.txt", "w");
+    fputs(buffer, file);
+    fclose(file);
+
+    {
+        // char buffer2[15] = {'\0'};
+        // file = fopen("temp.txt", "r");
+        // FILE *file2 = fopen("temp1.txt", "w");
+        // fgets(buffer2, sizeof(buffer2), file);
+        // while (fgets(buffer2, sizeof(buffer2), file) != NULL)
+        //     fputs(buffer2, file2);
+
+        // fclose(file);
+        // fclose(file2);
+        // remove("temp.txt");
+        // rename("temp1.txt", "temp.txt");
+    }
+
+    listen_for_client(server_sock, client_sock, client_addr, addr_size);
+    int num_storage_servers = 1;
+    load_SS(vital_info->files_and_dirs, "temp.txt");
+    vital_info->next = storage_server_list;
+    storage_server_list = vital_info;
+
+    return 0;
 }

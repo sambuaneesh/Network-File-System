@@ -243,25 +243,20 @@ int main()
                 printf("[-]Send error\n");
 
             // Getting file contents
-            char received_data[1024];
-            char line_count[10];
-            // Getting the number of lines in the file
-            if (recv(ns_sock, line_count, sizeof(line_count), 0) == -1)
+            char buffer[1024];
+            int c = 0;
+            while (c == 0)
             {
-                perror("[-] Receive error");
-            }
-
-            for (int i = 0; i < atoi(line_count); i++)
-            {
-                char received_data[1024];
-                receive:
-                if (recv(ns_sock, received_data, sizeof(received_data), 0) == -1)
+                recv(ns_sock, buffer, sizeof(buffer), 0);
+                if (strcmp("DONE", buffer) == 0)
                 {
-                    perror(RED "[-] Receive error" RESET);
-                    goto receive;
+                    c = 2; // DONE WITH FILE
+                    printf("Finished reading file!\n");
                 }
-
-                printf("%s", received_data);
+                else
+                {
+                    printf("%s", buffer);
+                }
             }
 
             close_socket(&ns_sock);

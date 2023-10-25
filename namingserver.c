@@ -3,8 +3,8 @@
 int main()
 {
     Tree SS1 = MakeNode(".");
-    storage_server_list = MakeNode_ss(" ", 1, 2);
-    storage_server_list->files_and_dirs = SS1;
+    storage_server_list = NULL;
+    // storage_server_list->files_and_dirs = SS1;
     int server_sock, client_sock;
     struct sockaddr_in server_addr, client_addr;
     socklen_t addr_size, ss_addr_size;
@@ -13,18 +13,22 @@ int main()
     ss_addr_size = sizeof(ss_addr);
 
     open_naming_server_port(5566, &server_sock, &server_addr);
+
     // we now have a dedicated port for the naming server
-
-    storage_servers list = NULL;
-    int num_storage_servers = 0;
-    listen_for_client(&server_sock, &client_sock, &client_addr, &addr_size);
-    load_SS(SS1, "paths.txt");
-
     int ns_sock;
     struct sockaddr_in ns_addr;
+
+    // storage_servers list = NULL;
+    if(initialize_SS(&server_sock, &client_sock, &ns_sock, &client_addr, &ns_addr, &addr_size) == -1)
+    {
+        printf(RED "[-]Error initializing storage servers\n" RESET);
+        return 1;
+    }
+
+
     while (1)
     {
-        PrintTree(SS1);
+        PrintAll();
         char opt[2];
         int recieved;
         if ((recieved = recv(client_sock, &opt, sizeof(opt), 0)) == -1)
@@ -76,7 +80,12 @@ int main()
 
             // END OF GETTING DATA FROM CLIENT
             // THE REST OF THIS CODE MUST EXECUTE ONLY IF file_path IS IN THE LIST OF ACCESSIBLE PATHS
-            Delete_Path(SS1, file_path);
+            Tree T = check_if_path_in_ss(file_path, 0);
+            if(Delete_Path(T, file_path) == -1)
+            {
+                printf(RED "[-]Path not in list of accessible paths\n" RESET);
+                continue;
+            }
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr, 5566);
             if (send(ns_sock, "2", sizeof("2"), 0) == -1)
@@ -105,12 +114,11 @@ int main()
 
             if (strcmp(success, "done") == 0)
             {
-                Delete_from_path_file(file_path);
                 printf("Deleted Successfully!\n");
             }
             else
             {
-                printf(RED "[-]Deletion unsuccessful\n" RESET);
+                perror(RED "[-]Deletion unsuccessful\n" RESET);
             }
         }
         else if (strcmp("3", opt) == 0) // Creation
@@ -145,7 +153,7 @@ int main()
             // END OF GETTING DATA FROM CLIENT
             // THE REST OF THIS CODE MUST EXECUTE ONLY IF file_path IS IN THE LIST OF ACCESSIBLE PATHS
 
-            if (check_if_path_in_ss(file_path) == -1)
+            if (check_if_path_in_ss(file_path, 1) == NULL)
             {
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 continue;
@@ -170,7 +178,7 @@ int main()
 
             if ((success_message = recv(ns_sock, &success, sizeof(success), 0)) == -1)
             {
-                perror(RED "Not successful" RESET);
+                perror(RED "[-]Creation unsuccessful\n" RESET);
                 return 1;
             }
             else
@@ -178,10 +186,11 @@ int main()
 
             if (strcmp(success, "done") == 0)
             {
-                if (Add_to_path_file(file_path) == 0)
-                    printf("Created Successfully!\n");
-                else
-                    return 1;
+                printf("Created Successfully!\n");
+            }
+            else
+            {
+                perror(RED "[-]Creation unsuccessful\n" RESET);
             }
         }
         else if (strcmp("4", opt) == 0)
@@ -210,7 +219,7 @@ int main()
             snprintf(server, sizeof(server), "%d", server_addr);
             int flag = 0;
 
-            if (check_if_path_in_ss(file_path) == -1)
+            if (check_if_path_in_ss(file_path, 0) == NULL)
             {
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
@@ -218,22 +227,7 @@ int main()
                 flag = 1;
                 continue;
             }
-            else if (1)
-            {
-                FILE *file_pointer;
-
-                // Checking if the file exists
-                if ((file_pointer = fopen(file_path, "r")) == NULL)
-                {
-                    printf(RED "[-]Path not in list of accessible paths\n" RESET);
-                    if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
-                        printf(RED "[-] Send error\n" RESET);
-                    flag = 1;
-                    continue;
-                }
-
-                fclose(file_pointer);
-            }
+            
             if (flag == 0)
             {
                 if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
@@ -268,7 +262,7 @@ int main()
 
             int flag = 0;
 
-            if (check_if_path_in_ss(file_path) == -1)
+            if (check_if_path_in_ss(file_path, 0) == NULL)
             {
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
@@ -276,22 +270,7 @@ int main()
                 flag = 1;
                 continue;
             }
-            else if (1)
-            {
-                FILE *file_pointer;
 
-                // Checking if the file exists
-                if ((file_pointer = fopen(file_path, "r")) == NULL)
-                {
-                    printf(RED "[-]Path not in list of accessible paths\n" RESET);
-                    if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
-                        printf(RED "[-] Send error\n" RESET);
-                    flag = 1;
-                    continue;
-                }
-
-                fclose(file_pointer);
-            }
             if (flag == 0)
             {
                 if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
@@ -304,5 +283,6 @@ int main()
     close_socket(&ns_sock);
     close_socket(&client_sock);
     close_socket(&server_sock);
+
     return 0;
 }
