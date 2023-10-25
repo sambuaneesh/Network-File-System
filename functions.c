@@ -570,8 +570,7 @@ Tree check_if_path_in_ss(char *file_path, int insert) // NULL if not found else 
     storage_servers traveller = storage_server_list;
     while (traveller != NULL)
     {
-        Tree T = traveller->files_and_dirs;
-        Tree parent = Search_Till_Parent(T, file_path, insert);
+        Tree parent = Search_Till_Parent(traveller->files_and_dirs, file_path, insert);
         if (parent != NULL)
             return traveller->files_and_dirs;
         traveller = traveller->next;

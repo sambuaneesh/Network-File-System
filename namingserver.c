@@ -72,6 +72,7 @@ int main()
             // END OF GETTING DATA FROM CLIENT
             // THE REST OF THIS CODE MUST EXECUTE ONLY IF file_path IS IN THE LIST OF ACCESSIBLE PATHS
             Tree T = check_if_path_in_ss(file_path, 0);
+            printf("T is %p\n", T);
             if (Delete_Path(T, file_path) == -1)
             {
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
@@ -139,6 +140,7 @@ int main()
 
             // END OF GETTING DATA FROM CLIENT
             // THE REST OF THIS CODE MUST EXECUTE ONLY IF file_path IS IN THE LIST OF ACCESSIBLE PATHS
+
 
             if (check_if_path_in_ss(file_path, 1) == NULL)
             {

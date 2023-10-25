@@ -157,7 +157,7 @@ int main()
         {
             if ((received = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
-                printf("Error recieving data\n");
+                printf(RED "Error recieving data\n" RESET);
                 exit(0);
             }
             else
@@ -172,7 +172,7 @@ int main()
 
             if ((received = recv(client_sock, &option, sizeof(option), 0)) == -1)
             {
-                printf("Error recieving data\n");
+                printf(RED "Error recieving data\n" RESET);
                 exit(0);
             }
             else
@@ -188,7 +188,7 @@ int main()
                     int sent = send(client_sock, "Creation Error!!", sizeof("Creation Error!!"), 0);
                     if (sent == -1)
                     {
-                        perror("Error sending data");
+                        perror(RED "Error sending data" RESET);
                     }
                     continue;
                 }
@@ -206,7 +206,7 @@ int main()
                 }
             }
             if (Add_to_path_file(file_path, paths_file) == 0)
-                printf("Created Successfully!\n");
+                printf(GREEN "Created Successfully!\n" RESET);
             else
                 perror(RED "[-] Error creating file/directory" RESET);
 
@@ -214,7 +214,7 @@ int main()
             int sent = send(client_sock, "done", sizeof("done"), 0);
             if (sent == -1)
             {
-                perror("Error sending data");
+                perror(RED "Error sending data" RESET);
             }
         }
         else if (strcmp(command, "5") == 0)
