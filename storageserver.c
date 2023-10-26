@@ -218,7 +218,7 @@ int main()
                 perror(RED "Error sending data" RESET);
             }
         }
-        else if (strcmp(command, "5") == 0) // Writing
+       else if (strcmp(command, "5") == 0) // Writing
         {
             //Checking if file was found
              char success_mg[100];
