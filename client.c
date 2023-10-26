@@ -96,7 +96,23 @@ int main()
             char path[MAX_FILE_PATH];
             printf(CYAN "Enter the path: " RESET);
             scanf("%s", path);
+             if (path[0] == '.')
+            {
 
+                // Converting relative to absolute path
+                char current_dir[1024];
+                // Get the current working directory
+                if (getcwd(current_dir, sizeof(current_dir)) != NULL)
+                {
+
+                    // Remove the first character from your string
+                    char *modified_string = path + 1;
+
+                    char temp_path[2048];
+                    snprintf(temp_path, sizeof(temp_path), "%s%s", current_dir, modified_string);
+                    strcpy(path, temp_path);
+                }
+            }
             char create_option[10];
 
             printf(CYAN "Do you want to\n");
@@ -142,6 +158,23 @@ int main()
             char path[MAX_FILE_PATH];
             printf("Enter the path: ");
             scanf("%s", path);
+             if (path[0] == '.')
+            {
+
+                // Converting relative to absolute path
+                char current_dir[1024];
+                // Get the current working directory
+                if (getcwd(current_dir, sizeof(current_dir)) != NULL)
+                {
+
+                    // Remove the first character from your string
+                    char *modified_string = path + 1;
+
+                    char temp_path[2048];
+                    snprintf(temp_path, sizeof(temp_path), "%s%s", current_dir, modified_string);
+                    strcpy(path, temp_path);
+                }
+            }
 
             if (send(naming_server_sock, path, sizeof(path), 0) == -1)
             {
