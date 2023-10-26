@@ -658,10 +658,13 @@ void connect_to_SS_from_client(int *sock, struct sockaddr_in *addr, char *ns_ip,
     // Connect to the naming server
     if (connect(*sock, (struct sockaddr *)addr, sizeof(*addr)) == -1)
     {
-        perror("[-] Connect error");
+        perror(RED "[-] Connect error" RESET);
         return;
     }
-
+    else
+    {
+        printf("[+] Connected to Storage Server.\n");
+    }
     return;
 }
 

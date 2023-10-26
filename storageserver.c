@@ -31,7 +31,7 @@ int main()
         return 1;
     }
 
-    int sock, client_sock;
+    int sock, naming_server_sock;
     struct sockaddr_in addr, client_addr;
     socklen_t addr_size;
     int n;
@@ -48,9 +48,9 @@ int main()
     int i = 0;
 
     // Forming connection with client
-    int cli_temp_sock;
+    int client_sock;
     struct sockaddr_in cli_temp_addr;
-    connect_to_client(&cli_temp_sock, &cli_temp_addr, "127.0.0.1", port_for_client);
+    connect_to_client(&client_sock, &cli_temp_addr, "127.0.0.1", port_for_client);
 
     struct sockaddr_in cli_addr;
     socklen_t cli_addr_size = sizeof(cli_addr);
@@ -58,14 +58,14 @@ int main()
 
     while (1)
     {
-        client_sock = accept(sock, (struct sockaddr *)&client_addr, &addr_size);
-        if (client_sock == -1)
+        naming_server_sock = accept(sock, (struct sockaddr *)&client_addr, &addr_size);
+        if (naming_server_sock == -1)
         {
             perror("[-] Accept error");
             exit(0);
         }
 
-        if ((received = recv(client_sock, &command, sizeof(command), 0)) == -1)
+        if ((received = recv(naming_server_sock, &command, sizeof(command), 0)) == -1)
         {
             printf(RED "Error recieving data\n" RESET);
             exit(0);
@@ -74,7 +74,7 @@ int main()
         {
             // The client has closed the connection, so break out of the loop
             printf("Client disconnected.\n");
-            close(client_sock);
+            close(naming_server_sock);
             break;
         }
         else
@@ -85,18 +85,18 @@ int main()
         if (strcmp(command, "1") == 0) // Init
         {
             // printf("File contents:\n%s\n", buffer);
-            if (send(client_sock, buffer, sizeof(buffer), 0) == -1)
+            if (send(naming_server_sock, buffer, sizeof(buffer), 0) == -1)
                 perror(RED "[-] Error sending data" RESET);
-            if (send(client_sock, &port_for_client, sizeof(port_for_client), 0) == -1)
+            if (send(naming_server_sock, &port_for_client, sizeof(port_for_client), 0) == -1)
                 perror(RED "[-] Error sending data" RESET);
-            if (send(client_sock, &port_for_nm, sizeof(port_for_nm), 0) == -1)
+            if (send(naming_server_sock, &port_for_nm, sizeof(port_for_nm), 0) == -1)
                 perror(RED "[-] Error sending data" RESET);
-            if (send(client_sock, ip, sizeof(ip), 0) == -1)
+            if (send(naming_server_sock, ip, sizeof(ip), 0) == -1)
                 perror(RED "[-] Error sending data" RESET);
         }
         else if (strcmp(command, "2") == 0) // Deletion
         {
-            if ((received = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
+            if ((received = recv(naming_server_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
                 printf(RED "Error recieving data\n" RESET);
                 exit(0);
@@ -111,7 +111,7 @@ int main()
 
             char option[10];
 
-            if ((received = recv(client_sock, &option, sizeof(option), 0)) == -1)
+            if ((received = recv(naming_server_sock, &option, sizeof(option), 0)) == -1)
             {
                 printf(RED "Error recieving data\n" RESET);
                 exit(0);
@@ -137,7 +137,7 @@ int main()
             if (Delete_from_path_file(file_path, paths_file) == 0 && del == 0)
             {
                 printf(GREEN "Deleted Successfully!\n" RESET);
-                int sent = send(client_sock, "done", sizeof("done"), 0);
+                int sent = send(naming_server_sock, "done", sizeof("done"), 0);
                 if (sent == -1)
                 {
                     perror(RED "[-] Error sending data" RESET);
@@ -146,7 +146,7 @@ int main()
             else
             {
                 perror(RED "[-] Error deleting file/directory" RESET);
-                int sent = send(client_sock, "not done", sizeof("not done"), 0);
+                int sent = send(naming_server_sock, "not done", sizeof("not done"), 0);
                 if (sent == -1)
                 {
                     perror(RED "[-] Error sending data" RESET);
@@ -155,7 +155,7 @@ int main()
         }
         else if (strcmp(command, "3") == 0) // Creation
         {
-            if ((received = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
+            if ((received = recv(naming_server_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
                 printf(RED "Error recieving data\n" RESET);
                 exit(0);
@@ -170,7 +170,7 @@ int main()
 
             char option[10];
 
-            if ((received = recv(client_sock, &option, sizeof(option), 0)) == -1)
+            if ((received = recv(naming_server_sock, &option, sizeof(option), 0)) == -1)
             {
                 printf(RED "Error recieving data\n" RESET);
                 exit(0);
@@ -185,7 +185,7 @@ int main()
             {
                 if (create_file(temp) == -1)
                 {
-                    int sent = send(client_sock, "Creation Error!!", sizeof("Creation Error!!"), 0);
+                    int sent = send(naming_server_sock, "Creation Error!!", sizeof("Creation Error!!"), 0);
                     if (sent == -1)
                     {
                         perror(RED "Error sending data" RESET);
@@ -197,7 +197,7 @@ int main()
             {
                 if (create_directory(temp) == -1)
                 {
-                    int sent = send(client_sock, "Creation Error!!", sizeof("Creation Error!!"), 0);
+                    int sent = send(naming_server_sock, "Creation Error!!", sizeof("Creation Error!!"), 0);
                     if (sent == -1)
                     {
                         perror("Error sending data");
@@ -211,7 +211,7 @@ int main()
                 perror(RED "[-] Error creating file/directory" RESET);
 
             // Sending success message
-            int sent = send(client_sock, "done", sizeof("done"), 0);
+            int sent = send(naming_server_sock, "done", sizeof("done"), 0);
             if (sent == -1)
             {
                 perror(RED "Error sending data" RESET);
@@ -219,7 +219,7 @@ int main()
         }
         else if (strcmp(command, "5") == 0) // Writing
         {
-            if ((cli_sock = accept(cli_temp_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
+            if ((cli_sock = accept(client_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
                 perror("[-] Accept error");
                 exit(0);
@@ -290,7 +290,7 @@ int main()
         }
         else if (strcmp(command, "6") == 0) // Reading
         {
-            if ((cli_sock = accept(cli_temp_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
+            if ((cli_sock = accept(client_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
                 perror("[-] Accept error");
                 exit(0);
@@ -324,7 +324,7 @@ int main()
         }
         else if (strcmp(command, "7") == 0) // Permissions
         {
-            if ((cli_sock = accept(cli_temp_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
+            if ((cli_sock = accept(client_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
                 perror("[-] Accept error");
                 exit(0);
@@ -337,95 +337,77 @@ int main()
                 printf("Error receiving data\n");
                 exit(0);
             }
+            if (strcmp(file_path, "failed") == 0)
+            {
+                printf(RED "[-] File does not exist\n" RESET);
+                continue;
+            }
             struct stat fileStat;
 
             // Getting file size
             off_t fileSize = fileStat.st_size;
+            if (fileSize == 0)
+            {
+                printf(RED "[-] File does not exist\n" RESET);
+                if (send(cli_sock, "failed", sizeof("failed"), 0) == -1)
+                {
+                    printf("Error sending data\n");
+                    exit(0);
+                }
+
+                continue;
+            }
 
             char buffer[1024];
 
             if (stat(file_path, &fileStat) == 0)
             {
+                printf("Error getting file permissions\n");
                 // Storing file size in buffer
                 snprintf(buffer, sizeof(buffer), "File Size: %lld bytes\n", (long long)fileStat.st_size);
 
                 // Owner permissions
                 if (fileStat.st_mode & S_IRUSR)
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Owner has read permission\n");
-                }
                 else
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Owner does not have read permission\n");
-                }
                 if (fileStat.st_mode & S_IWUSR)
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Owner has write permission\n");
-                }
                 else
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Owner does not have write permission\n");
-                }
                 if (fileStat.st_mode & S_IXUSR)
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Owner has execute permission\n");
-                }
                 else
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Owner does not have execute permission\n");
-                }
 
                 // Group permissions
                 if (fileStat.st_mode & S_IRGRP)
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Group has read permission\n");
-                }
                 else
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Group does not have read permission\n");
-                }
                 if (fileStat.st_mode & S_IWGRP)
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Group has write permission\n");
-                }
                 else
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Group does not have write permission\n");
-                }
                 if (fileStat.st_mode & S_IXGRP)
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Group has execute permission\n");
-                }
                 else
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Group does not have execute permission\n");
-                }
 
                 // Others permissions
                 if (fileStat.st_mode & S_IROTH)
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other has read permission\n");
-                }
                 else
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other does not have read permission\n");
-                }
                 if (fileStat.st_mode & S_IWOTH)
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other has write permission\n");
-                }
                 else
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other does not have write permission\n");
-                }
                 if (fileStat.st_mode & S_IXOTH)
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other has execute permission\n");
-                }
                 else
-                {
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other does not have execute permission\n");
-                }
+
                 if (send(cli_sock, buffer, sizeof(buffer), 0) == -1)
                 {
                     printf("Error sending data\n");
@@ -436,12 +418,17 @@ int main()
             }
             else
             {
-                perror("stat");
+                perror(RED "[-] stat" RESET);
+                if (send(cli_sock, "failed", sizeof("failed"), 0) == -1)
+                {
+                    printf("Error sending data\n");
+                    exit(0);
+                }
             }
         }
     }
-    close_socket(&cli_temp_sock);
+    close_socket(&client_sock);
     close_socket(&cli_sock);
-    close(client_sock);
+    close(naming_server_sock);
     return 0;
 }

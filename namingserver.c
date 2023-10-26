@@ -304,20 +304,22 @@ int main()
             if (check_if_path_in_ss(file_path, 0) == NULL)
             {
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
-                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
-                    printf(RED "[-] Send error\n" RESET);
                 flag = 1;
-                continue;
             }
-            
+
+            if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
+                printf(RED "[-] Send error\n" RESET);
+            if (send(client_sock, server, sizeof(server), 0) == -1)
+                printf(RED "[-] Send error\n" RESET);
             if (flag == 0)
             {
-                if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
+                if (send(client_sock, "exists", sizeof("exists"), 0) == -1)
                     printf(RED "[-] Send error\n" RESET);
-                if (send(client_sock, server, sizeof(server), 0) == -1)
-                {
+            }
+            else
+            {
+                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
                     printf(RED "[-] Send error\n" RESET);
-                }
             }
         }
     }
