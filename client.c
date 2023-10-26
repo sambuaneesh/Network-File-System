@@ -241,7 +241,7 @@ int main()
                 }
                 else
                 {
-                    printf("%s", buffer);
+                    printf(PINK "%s" RESET, buffer);
                 }
             }
 

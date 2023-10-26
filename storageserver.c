@@ -326,7 +326,7 @@ int main()
         {
             if ((cli_sock = accept(client_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
-                perror("[-] Accept error");
+                perror(RED "[-] Accept error" RESET);
                 exit(0);
             }
 
@@ -334,7 +334,7 @@ int main()
             // Getting file path from client
             if ((received = recv(cli_sock, file_path, sizeof(file_path), 0)) == -1)
             {
-                printf("Error receiving data\n");
+                printf(RED "[-] Error receiving data\n" RESET);
                 exit(0);
             }
             if (strcmp(file_path, "failed") == 0)
@@ -351,7 +351,7 @@ int main()
                 printf(RED "[-] File does not exist\n" RESET);
                 if (send(cli_sock, "failed", sizeof("failed"), 0) == -1)
                 {
-                    printf("Error sending data\n");
+                    printf(RED "[-] Error sending data\n" RESET);
                     exit(0);
                 }
 
@@ -362,7 +362,6 @@ int main()
 
             if (stat(file_path, &fileStat) == 0)
             {
-                printf("Error getting file permissions\n");
                 // Storing file size in buffer
                 snprintf(buffer, sizeof(buffer), "File Size: %lld bytes\n", (long long)fileStat.st_size);
 
@@ -410,7 +409,7 @@ int main()
 
                 if (send(cli_sock, buffer, sizeof(buffer), 0) == -1)
                 {
-                    printf("Error sending data\n");
+                    printf(RED "[-] Error sending data\n" RESET);
                     exit(0);
                 }
 
@@ -421,7 +420,7 @@ int main()
                 perror(RED "[-] stat" RESET);
                 if (send(cli_sock, "failed", sizeof("failed"), 0) == -1)
                 {
-                    printf("Error sending data\n");
+                    printf(RED "[-] Error sending data\n" RESET);
                     exit(0);
                 }
             }
