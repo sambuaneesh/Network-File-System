@@ -250,7 +250,7 @@ void connect_to_NS_from_SS(int *sock, struct sockaddr_in *addr, const char *ip, 
         return;
     }
     else
-        printf("[+] Connected to Naming Server.\n");
+        printf("[+] Listening...\n");
 
     return;
 }

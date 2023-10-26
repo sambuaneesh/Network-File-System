@@ -15,6 +15,7 @@ int main()
     scanf("%s", ip);
     printf("Enter name of paths file: ");
     scanf("%s", paths_file);
+    printf("\n");
 
     FILE *file = fopen(paths_file, "r");
     if (file == NULL)
@@ -292,7 +293,7 @@ int main()
         {
             if ((cli_sock = accept(client_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
-                perror("[-] Accept error");
+                perror(RED "[-] Accept error");
                 exit(0);
             }
 
@@ -300,7 +301,7 @@ int main()
             // Getting file path from client
             if ((received = recv(cli_sock, file_path, sizeof(file_path), 0)) == -1)
             {
-                printf("Error receiving data\n");
+                printf(RED "Error receiving data\n");
                 exit(0);
             }
 
@@ -310,15 +311,29 @@ int main()
             file = fopen(file_path, "r");
             if (file == NULL)
             {
-                perror("[-] File opening error");
-                return 1;
+                perror(RED "[-] File opening error");
+                if (send(cli_sock, "failed", sizeof("failed"), 0) == -1)
+                {
+                    perror(RED "[-] Error sending data" RESET);
+                    exit(0);
+                }
+
+                continue;
             }
             while (fgets(buffer, sizeof(buffer), file) != NULL)
             {
-                send(cli_sock, buffer, sizeof(buffer), 0);
+                if (send(cli_sock, buffer, sizeof(buffer), 0) == -1)
+                {
+                    perror(RED "[-] Error sending data" RESET);
+                    exit(0);
+                }
             }
             snprintf(buffer, sizeof(buffer), "DONE");
-            send(cli_sock, buffer, sizeof(buffer), 0);
+            if (send(cli_sock, buffer, sizeof(buffer), 0) == -1)
+            {
+                perror(RED "[-] Error sending data" RESET);
+                exit(0);
+            }
 
             fclose(file);
         }

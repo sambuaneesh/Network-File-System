@@ -193,7 +193,7 @@ int main()
         {
             if (send(naming_server_sock, "6", strlen("6"), 0) == -1)
             {
-                perror("[-]Send error");
+                perror(RED "[-]Send error" RESET);
                 exit(1);
             }
             char path[MAX_FILE_PATH];
@@ -201,7 +201,10 @@ int main()
             scanf("%s", path);
 
             if (send(naming_server_sock, path, sizeof(path), 0) == -1)
-                printf("[-]Send error\n");
+            {
+                printf(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
 
             char ip_addr[50];
             char server_addr[50];
@@ -213,7 +216,7 @@ int main()
             }
             if (strcmp(ip_addr, "failed") == 0)
             {
-                printf(RED "File does not exist\n" RESET);
+                printf(RED "[-] File does not exist\n" RESET);
                 continue;
             }
             if (recv(naming_server_sock, server_addr, sizeof(server_addr), 0) == -1)
@@ -226,7 +229,7 @@ int main()
             struct sockaddr_in ns_addr;
             connect_to_SS_from_client(&storage_server_sock, &ns_addr, ip_addr, atoi(server_addr));
             if (send(storage_server_sock, path, sizeof(path), 0) == -1)
-                printf("[-]Send error\n");
+                printf(RED "[-]Send error\n" RESET);
 
             // Getting file contents
             char buffer[1024];
@@ -238,6 +241,11 @@ int main()
                 {
                     c = 2; // DONE WITH FILE
                     printf("Finished reading file!\n");
+                }
+                else if(strcmp("failed", buffer) == 0)
+                {
+                    printf(RED "[-] Error reading file\n" RESET);
+                    c = 2;
                 }
                 else
                 {
