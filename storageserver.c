@@ -222,7 +222,7 @@ int main()
         {
             if ((cli_sock = accept(client_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
-                perror("[-] Accept error");
+                perror(RED "[-] Accept error" RESET);
                 exit(0);
             }
             // Forming connection with client
@@ -231,7 +231,7 @@ int main()
             // Getting file path from client
             if ((received = recv(cli_sock, file_path, sizeof(file_path), 0)) == -1)
             {
-                printf("Error receiving data\n");
+                perror(RED "[-] Receive error" RESET);
                 exit(0);
             }
 
@@ -240,7 +240,7 @@ int main()
             // Open the file for writing
             if ((file = fopen(file_path, "w")) == NULL)
             {
-                perror("[-] Could not open the file");
+                perror(RED "[-] Could not open the file" RESET);
                 return 1;
             }
             int received_to_write = 0;
@@ -252,7 +252,7 @@ int main()
 
                 if (received_to_write == -1)
                 {
-                    perror("[-] Receive error");
+                    perror(RED "[-] Receive error" RESET);
                     break;
                 }
 
@@ -264,9 +264,7 @@ int main()
 
                 // Check if the received data indicates the end of the transfer
                 if (strcmp(received_data_to_write, "done") == 0 || strcmp(received_data_to_write, "done\n") == 0)
-                {
                     break;
-                }
 
                 // Check if the received data is valid before writing to the file
                 int valid_data = 1;
@@ -280,9 +278,7 @@ int main()
                 }
 
                 if (valid_data && strlen(received_data_to_write) >= 1)
-                {
                     fprintf(file, "%s\n", received_data_to_write);
-                }
             }
 
             fclose(file);
