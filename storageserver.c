@@ -220,6 +220,21 @@ int main()
         }
         else if (strcmp(command, "5") == 0) // Writing
         {
+            //Checking if file was found
+             char success_mg[100];
+            if ((received = recv(naming_server_sock, success_mg, sizeof(success_mg), 0)) == -1)
+            {
+                printf(RED "Error receiving data\n");
+                exit(0);
+            }
+            else{
+                
+                if(strcmp(success_mg,"fail")==0){
+                    printf(RED "File not found!" RESET);
+                    continue;
+                }
+            }
+
             if ((cli_sock = accept(client_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
                 perror(RED "[-] Accept error" RESET);
@@ -287,12 +302,26 @@ int main()
         }
         else if (strcmp(command, "6") == 0) // Reading
         {
+               char success_mg[100];
+            if ((received = recv(naming_server_sock, success_mg, sizeof(success_mg), 0)) == -1)
+            {
+                printf(RED "Error receiving data\n");
+                exit(0);
+            }
+            else{
+                
+                if(strcmp(success_mg,"fail")==0){
+                    printf(RED "File not found!" RESET);
+                    continue;
+                }
+            }
             if ((cli_sock = accept(client_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
                 perror(RED "[-] Accept error");
                 exit(0);
             }
-
+         
+           
             char file_path[100];
             // Getting file path from client
             if ((received = recv(cli_sock, file_path, sizeof(file_path), 0)) == -1)
@@ -334,7 +363,22 @@ int main()
             fclose(file);
         }
         else if (strcmp(command, "7") == 0) // Permissions
-        {
+        {   
+            // Checking if file was found
+             char success_mg[100];
+            if ((received = recv(naming_server_sock, success_mg, sizeof(success_mg), 0)) == -1)
+            {
+                printf(RED "Error receiving data\n");
+                exit(0);
+            }
+            else{
+               
+                if(strcmp(success_mg,"fail")==0){
+                    printf(RED "File not found!" RESET);
+                    continue;
+                }
+            }
+
             if ((cli_sock = accept(client_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
                 perror(RED "[-] Accept error" RESET);
