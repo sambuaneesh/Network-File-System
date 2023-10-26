@@ -2,18 +2,7 @@
 
 int main()
 {
-    //Opening the bookkeeping file
-    FILE *filePointer;
-    filePointer = fopen("bookkeeping.txt", "w");
-
-    if (filePointer == NULL) {
-        printf(RED "File could not be opened.\n" RESET);
-        return 1; 
-    }
-
-    fclose(filePointer);
-
-
+    
     Tree SS1 = MakeNode(".");
     storage_server_list = NULL;
     // storage_server_list->files_and_dirs = SS1;
@@ -115,15 +104,10 @@ int main()
             }
             else
                 success[strlen(success)] = '\0';
-            char record[1024];
-            strcpy(record,"");
-            snprintf(record, 1024, "Delete: %s\nIP: %s\nPort: %s\nStatus: ",file_path,"127.0.0.1","5566");
-              
 
             if (strcmp(success, "done") == 0)
             {
                 printf(GREEN "Deleted Successfully!\n" RESET);
-                strcat(record,"Successful\n");
                 if (send(client_sock, success, sizeof(success), 0) == -1)
                 {
                     perror(RED "[-]Send error\n" RESET);
@@ -133,23 +117,12 @@ int main()
             else
             {
                 printf(RED "[-]Deletion unsuccessful\n" RESET);
-                strcat(record,"Unsuccessful\n");
                 if (send(client_sock, success, sizeof(success), 0) == -1)
                 {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
             }
-              FILE *filePointer;
-    filePointer = fopen("bookkeeping.txt", "a");
-
-    if (filePointer == NULL) {
-        printf(RED "File could not be opened.\n" RESET);
-        return 1; 
-    }
-    fprintf(filePointer, "%s\n", record);
-
-    fclose(filePointer);
         }
         else if (strcmp("3", opt) == 0) // Creation
         {
@@ -340,17 +313,16 @@ int main()
 
             int flag = 0;
 
-            if (check_if_path_in_ss(file_path, 0) == NULL)
+             if (check_if_path_in_ss(file_path, 0) == NULL)
             {
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
                 {
-                    printf(RED "[-] Send error\n" RESET);
+                    perror(RED "[-] Send error\n" RESET);
                     exit(1);
                 }
                 flag = 1;
-              
-           char success_msg[100];
+                 char success_msg[100];
             strcpy(success_msg,"fail");
             if (send(ns_sock,success_msg, sizeof(success_msg), 0) == -1)
             {
@@ -361,7 +333,7 @@ int main()
             close_socket(&ns_sock);
                 continue;
             }
-            else{
+             else{
                 if (send(ns_sock, "success", sizeof("success"), 0) == -1)
             {
                 perror(RED "[-]Send error" RESET);
