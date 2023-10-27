@@ -8,6 +8,12 @@ int main()
 
     // Create a socket and connect to the naming server
     connect_to_naming_server("127.0.0.1", &naming_server_sock, &client_addr);
+    int role = 2;
+    if(send(naming_server_sock, &role, sizeof(role), 0) == -1)
+    {
+        perror(RED "[-]Send error" RESET);
+        exit(1);
+    }
 
     while (1)
     {

@@ -5,34 +5,99 @@ int main()
     Tree SS1 = MakeNode(".");
     storage_server_list = NULL;
     // storage_server_list->files_and_dirs = SS1;
-    int server_sock, client_sock;
-    struct sockaddr_in server_addr, client_addr;
-    socklen_t addr_size, ss_addr_size;
-    int ss_sock; // Socket for the accepted connection
-    struct sockaddr_in ss_addr;
+    int nm_sock, client_sock, ss_sock;
+    struct sockaddr_in server_addr, client_addr, ss_addr;
+    socklen_t client_addr_size, ss_addr_size;
+
     ss_addr_size = sizeof(ss_addr);
 
-    open_naming_server_port(5566, &server_sock, &server_addr);
+    open_naming_server_port(5566, &nm_sock, &server_addr);
+    make_socket_non_blocking(nm_sock); // so that some accept requests can be ignored
 
     // we now have a dedicated port for the naming server
     int ns_sock;
     struct sockaddr_in ns_addr;
 
     // storage_servers list = NULL;
-    if (initialize_SS(&server_sock, &client_sock, &ns_sock, &client_addr, &ns_addr, &addr_size) == -1)
-    {
-        printf(RED "[-]Error initializing storage servers\n" RESET);
-        return 1;
-    }
+    // NISHITA
+    // if (initialize_SS(&nm_sock, &client_sock, &ns_sock, &client_addr, &ns_addr, &addr_size) == -1)
+    // {
+    //     printf(RED "[-]Error initializing storage servers\n" RESET);
+    //     return 1;
+    // }
+    // NISHITA
+    int something_connect = 0;
+    int num_ss = 0;
+    int num_client = 0;
+    int role = 0;
 
     while (1)
     {
+        // NISHITA
+        ss_sock = accept(nm_sock, (struct sockaddr *)&ss_addr, &ss_addr_size);
+        if (ss_sock < 0)
+        {
+            if (errno == EWOULDBLOCK || errno == EAGAIN)
+            {
+                // No client connection available, continue with other tasks
+            }
+            else
+            {
+                perror(RED "[-]Accept error" RESET);
+                exit(0);
+            }
+        }
+        else
+        {
+            if (recv(ss_sock, &role, sizeof(role), 0) == -1)
+            {
+                perror(RED "[-]Receive error" RESET);
+                exit(1);
+            }
+            else
+            {
+                printf("role is %d\n", role);
+                something_connect = 1;
+                if (role == 1)
+                {
+                    num_ss++;
+                    if (initialize_SS(&ss_sock) == -1)
+                    {
+                        perror(RED "[-]Error initializing storage servers" RESET);
+                        exit(1);
+                    }
+                    printf("[+]New storage server connected\n");
+                    close_socket(&ss_sock);
+                    continue;
+                }
+                else if(role == 2)
+                {
+                    client_sock = ss_sock;
+                    client_addr = ss_addr;
+                    client_addr_size = ss_addr_size;
+                    num_client++;
+                    printf("[+]New client connected\n");
+                }
+            }
+            // receive vital information, store in ll, disconnect
+        }
+        if (something_connect == 0 || (something_connect != 0 && num_client == 0))
+        {
+            continue;
+        }
+        if (num_ss == 0 && num_client != 0)
+        {
+            printf(RED "[-]No storage servers connected\n" RESET);
+            break;
+            continue;
+        }
+
         PrintAll();
         char opt[2];
         int recieved;
         if ((recieved = recv(client_sock, &opt, sizeof(opt), 0)) == -1)
         {
-            perror(RED "Not successful" RESET);
+            perror(RED "[-]Receive Error" RESET);
             close(client_sock);
             exit(1);
         }
@@ -43,7 +108,7 @@ int main()
             close(client_sock);
             break;
         }
-        opt[strlen(opt)] = '\0';
+        opt[strlen(opt)]= '\0';
 
         if (strcmp("1", opt) == 0)
         {
@@ -98,11 +163,11 @@ int main()
 
             if ((success_message = recv(ns_sock, &success, sizeof(success), 0)) == -1)
             {
-                perror(RED "[-] Not successful" RESET);
+                perror(RED "[-]Not successful" RESET);
                 exit(0);
             }
             else
-                success[strlen(success)] = '\0';
+                success[strlen(success)]= '\0';
 
             if (strcmp(success, "done") == 0)
             {
@@ -132,7 +197,7 @@ int main()
             char file_path[MAX_FILE_PATH];
             if ((recieved = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
-                perror(RED "[-] Receive error\n" RESET);
+                perror(RED "[-]Receive error\n" RESET);
                 exit(1);
             }
 
@@ -140,7 +205,7 @@ int main()
             char create_option[10];
             if ((recieved = recv(client_sock, &create_option, sizeof(create_option), 0)) == -1)
             {
-                perror(RED "[-] Receive error\n" RESET);
+                perror(RED "[-]Receive error\n" RESET);
                 exit(1);
             }
 
@@ -156,21 +221,21 @@ int main()
             connect_to_SS_from_NS(&ns_sock, &ns_addr, 5566);
             if (send(ns_sock, "3", sizeof("3"), 0) == -1)
             {
-                perror(RED "[-] Send error\n" RESET);
+                perror(RED "[-]Send error\n" RESET);
                 exit(1);
             }
 
             // Sending path to the SS
             if (send(ns_sock, file_path, sizeof(file_path), 0) == -1)
             {
-                perror(RED "[-] Send error\n" RESET);
+                perror(RED "[-]Send error\n" RESET);
                 exit(1);
             }
 
             //  Sending option to the SS
             if (send(ns_sock, create_option, sizeof(create_option), 0) == -1)
             {
-                perror(RED "[-] Send error\n" RESET);
+                perror(RED "[-]Send error\n" RESET);
                 exit(1);
             }
 
@@ -184,24 +249,24 @@ int main()
                 return 1;
             }
             else
-                success[strlen(success)] = '\0';
+                success[strlen(success)]= '\0';
 
             if (strcmp(success, "done") == 0)
             {
                 printf(GREEN "Created Successfully!\n" RESET);
                 if (send(client_sock, success, sizeof(success), 0) == -1)
                 {
-                    perror(RED "[-] Send error\n" RESET);
+                    perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
             }
             else
             {
-                printf(RED "[-] %s\n" RESET, success);
+                printf(RED "[-]%s\n" RESET, success);
                 perror(RED "[-]Creation unsuccessful\n" RESET);
                 if (send(client_sock, success, sizeof(success), 0) == -1)
                 {
-                    perror(RED "[-] Send error\n" RESET);
+                    perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
             }
@@ -214,15 +279,14 @@ int main()
             connect_to_SS_from_NS(&ns_sock, &ns_addr, 5566);
             if (send(ns_sock, "5", sizeof("5"), 0) == -1)
             {
-                perror(RED "[-] Send error\n" RESET);
+                perror(RED "[-]Send error\n" RESET);
                 exit(1);
             }
-            
 
             char file_path[MAX_FILE_PATH];
             if ((recieved = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
-                perror(RED "[-] Receive error\n" RESET);
+                perror(RED "[-]Receive error\n" RESET);
                 exit(1);
             }
 
@@ -243,59 +307,59 @@ int main()
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
                 {
-                    perror(RED "[-] Send error\n" RESET);
+                    perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
                 flag = 1;
-                 char success_msg[100];
-            strcpy(success_msg,"fail");
-            if (send(ns_sock,success_msg, sizeof(success_msg), 0) == -1)
-            {
-                perror(RED "[-]Send error" RESET);
-                exit(1);
-            }
-          
-            close_socket(&ns_sock);
+                char success_msg[100];
+                strcpy(success_msg, "fail");
+                if (send(ns_sock, success_msg, sizeof(success_msg), 0) == -1)
+                {
+                    perror(RED "[-]Send error" RESET);
+                    exit(1);
+                }
+
+                close_socket(&ns_sock);
                 continue;
             }
-             else{
-                if (send(ns_sock, "success", sizeof("success"), 0) == -1)
+            else
             {
-                perror(RED "[-]Send error" RESET);
-                exit(1);
+                if (send(ns_sock, "success", sizeof("success"), 0) == -1)
+                {
+                    perror(RED "[-]Send error" RESET);
+                    exit(1);
+                }
             }
-            }
-             close_socket(&ns_sock);
+            close_socket(&ns_sock);
 
             if (flag == 0)
             {
                 if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
                 {
-                    perror(RED "[-] Send error\n" RESET);
+                    perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
                 if (send(client_sock, server, sizeof(server), 0) == -1)
                 {
-                    perror(RED "[-] Send error\n" RESET);
+                    perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
             }
-            
         }
         else if (strcmp("6", opt) == 0) // Read
-        {  
+        {
             connect_to_SS_from_NS(&ns_sock, &ns_addr, 5566);
             if (send(ns_sock, "6", sizeof("6"), 0) == -1)
             {
                 perror(RED "[-]Send error" RESET);
                 exit(1);
             }
-           // close_socket(&ns_sock);
+            // close_socket(&ns_sock);
 
             char file_path[MAX_FILE_PATH];
             if ((recieved = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
-                perror(RED "[-] Receive error" RESET);
+                perror(RED "[-]Receive error" RESET);
                 exit(1);
             }
 
@@ -312,44 +376,45 @@ int main()
 
             int flag = 0;
 
-             if (check_if_path_in_ss(file_path, 0) == NULL)
+            if (check_if_path_in_ss(file_path, 0) == NULL)
             {
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
                 {
-                    perror(RED "[-] Send error\n" RESET);
+                    perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
                 flag = 1;
-                 char success_msg[100];
-            strcpy(success_msg,"fail");
-            if (send(ns_sock,success_msg, sizeof(success_msg), 0) == -1)
-            {
-                perror(RED "[-]Send error" RESET);
-                exit(1);
-            }
-          
-            close_socket(&ns_sock);
+                char success_msg[100];
+                strcpy(success_msg, "fail");
+                if (send(ns_sock, success_msg, sizeof(success_msg), 0) == -1)
+                {
+                    perror(RED "[-]Send error" RESET);
+                    exit(1);
+                }
+
+                close_socket(&ns_sock);
                 continue;
             }
-             else{
-                if (send(ns_sock, "success", sizeof("success"), 0) == -1)
+            else
             {
-                perror(RED "[-]Send error" RESET);
-                exit(1);
+                if (send(ns_sock, "success", sizeof("success"), 0) == -1)
+                {
+                    perror(RED "[-]Send error" RESET);
+                    exit(1);
+                }
             }
-            }
-             close_socket(&ns_sock);
+            close_socket(&ns_sock);
             if (flag == 0)
             {
                 if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
                 {
-                    printf(RED "[-] Send error\n" RESET);
+                    printf(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
                 if (send(client_sock, server, sizeof(server), 0) == -1)
                 {
-                    printf(RED "[-] Send error\n" RESET);
+                    printf(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
             }
@@ -358,8 +423,10 @@ int main()
         {
             connect_to_SS_from_NS(&ns_sock, &ns_addr, 5566);
             if (send(ns_sock, "7", sizeof("7"), 0) == -1)
-                printf(RED "[-]Send error\n" RESET);
-         
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
 
             char file_path[MAX_FILE_PATH];
             if ((recieved = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
@@ -383,45 +450,50 @@ int main()
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
                 {
-                    printf(RED "[-] Send error\n" RESET);
+                    perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
                 flag = 1;
-              
-           char success_msg[100];
-            strcpy(success_msg,"fail");
-            if (send(ns_sock,success_msg, sizeof(success_msg), 0) == -1)
-            {
-                perror(RED "[-]Send error" RESET);
-                exit(1);
-            }
-          
-            close_socket(&ns_sock);
+
+                char success_msg[100];
+                strcpy(success_msg, "fail");
+                if (send(ns_sock, success_msg, sizeof(success_msg), 0) == -1)
+                {
+                    perror(RED "[-]Send error" RESET);
+                    exit(1);
+                }
+
+                close_socket(&ns_sock);
                 continue;
             }
-             else{
-                if (send(ns_sock, "success", sizeof("success"), 0) == -1)
+            else
             {
-                perror(RED "[-]Send error" RESET);
-                exit(1);
+                if (send(ns_sock, "success", sizeof("success"), 0) == -1)
+                {
+                    perror(RED "[-]Send error" RESET);
+                    exit(1);
+                }
             }
-           
-            }
-              close_socket(&ns_sock);
+            close_socket(&ns_sock);
 
-           
-            if (flag == 0){
- if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
-                printf(RED "[-] Send error\n" RESET);
-            if (send(client_sock, server, sizeof(server), 0) == -1)
-                printf(RED "[-] Send error\n" RESET);
+            if (flag == 0)
+            {
+                if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
+                if (send(client_sock, server, sizeof(server), 0) == -1)
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
             }
-           
         }
     }
     close_socket(&ns_sock);
     close_socket(&client_sock);
-    close_socket(&server_sock);
+    close_socket(&nm_sock);
 
     return 0;
 }

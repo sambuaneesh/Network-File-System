@@ -17,28 +17,45 @@ int main()
     scanf("%s", paths_file);
     printf("\n");
 
-    FILE *file = fopen(paths_file, "r");
-    if (file == NULL)
-    {
-        perror(RED "[-] File opening error" RESET);
-        return 1;
-    }
-    char buffer[MAX_NUM_PATHS] = {'\0'};
+    // FILE *file = fopen(paths_file, "r");
+    // if (file == NULL)
+    // {
+    //     perror(RED "[-] File opening error" RESET);
+    //     exit(1);
+    // }
+    // char buffer[MAX_NUM_PATHS] = {'\0'};
 
-    size_t len;
-    if (fread(buffer, sizeof(buffer), 1, file) == -1)
-    {
-        perror(RED "[-] File reading error" RESET);
-        return 1;
-    }
+    // size_t len;
+    // if ((len = fread(buffer, sizeof(buffer), 1, file)) == -1)
+    // {
+    //     perror(RED "[-] File reading error" RESET);
+    //     exit(1);
+    // }
+    // buffer[len] = '\0';
 
     int sock, naming_server_sock;
-    struct sockaddr_in addr, client_addr;
+    struct sockaddr_in addr, client_addr, ss_addr;
     socklen_t addr_size;
     int n;
 
     // Connect to SS
-    connect_to_NS_from_SS(&sock, &addr, ip, 5566);
+    // NISHITA
+    // connect_to_NS_from_SS(&sock, &addr, ip, 5566);
+    // NISHITA
+
+    // NISHITA
+    // send vital details directly to NS
+    connect_to_naming_server(ip, &naming_server_sock, &ss_addr);
+    int role = 1;
+    if(send(naming_server_sock, &role, sizeof(role), 0) == -1)
+    {
+        perror(RED "[-]Error sending data" RESET);
+        exit(1);
+    }
+    MakeSSsend_vital(&naming_server_sock, ip, &port_for_client, &port_for_nm, paths_file);
+    printf("Sent vital details to NS\n");
+    close_socket(&naming_server_sock);
+    // NISHITA
 
     addr_size = sizeof(client_addr);
 
@@ -48,18 +65,34 @@ int main()
     int received;
     int i = 0;
 
+    // port and sockets created for specified port numbers
     // Forming connection with client
-    int client_sock;
-    struct sockaddr_in cli_temp_addr;
-    connect_to_client(&client_sock, &cli_temp_addr, "127.0.0.1", port_for_client);
+    int sock_ss_nm, sock_ss_client;
+    struct sockaddr_in client_addr1, nm_addr;
+    socklen_t client1_addr_size = sizeof(client_addr1);
+    socklen_t nm_addr_size = sizeof(nm_addr);
+    init_port_create_sock(&sock_ss_client, &client_addr1, ip, port_for_client);
+    init_port_create_sock(&sock_ss_nm, &nm_addr, ip, port_for_nm);
+    // Nishita
+    // connect_to_client(&client_sock, &client_addr1, ip, port_for_client);
+    // connect_to_client(&naming_server_sock, &nm_addr, ip, port_for_nm);
+    // Nishita
+    // make_socket_non_blocking(sock_ss_client);
+    // make_socket_non_blocking(sock_ss_nm);
+    // Nishita
 
     struct sockaddr_in cli_addr;
     socklen_t cli_addr_size = sizeof(cli_addr);
-    int cli_sock;
+    // int cli_sock;
+    int client_sock;
+
+// port ----> server sock
+//      ----> client sock
 
     while (1)
     {
-        naming_server_sock = accept(sock, (struct sockaddr *)&client_addr, &addr_size);
+        // client_socket = accept(server_socket, (struct sockaddr*)&client_address, &client_address_len);
+        naming_server_sock = accept(sock_ss_nm, (struct sockaddr *)&nm_addr, &nm_addr_size);
         if (naming_server_sock == -1)
         {
             perror("[-] Accept error");
@@ -83,17 +116,19 @@ int main()
             command[received] = '\0';
         }
 
-        if (strcmp(command, "1") == 0) // Init
+        if (strcmp(command, "1") == 0) // Initialisation
         {
+            // NISHITA
             // printf("File contents:\n%s\n", buffer);
-            if (send(naming_server_sock, buffer, sizeof(buffer), 0) == -1)
-                perror(RED "[-] Error sending data" RESET);
-            if (send(naming_server_sock, &port_for_client, sizeof(port_for_client), 0) == -1)
-                perror(RED "[-] Error sending data" RESET);
-            if (send(naming_server_sock, &port_for_nm, sizeof(port_for_nm), 0) == -1)
-                perror(RED "[-] Error sending data" RESET);
-            if (send(naming_server_sock, ip, sizeof(ip), 0) == -1)
-                perror(RED "[-] Error sending data" RESET);
+            // if (send(naming_server_sock, buffer, sizeof(buffer), 0) == -1)
+            //     perror(RED "[-] Error sending data" RESET);
+            // if (send(naming_server_sock, &port_for_client, sizeof(port_for_client), 0) == -1)
+            //     perror(RED "[-] Error sending data" RESET);
+            // if (send(naming_server_sock, &port_for_nm, sizeof(port_for_nm), 0) == -1)
+            //     perror(RED "[-] Error sending data" RESET);
+            // if (send(naming_server_sock, ip, sizeof(ip), 0) == -1)
+            //     perror(RED "[-] Error sending data" RESET);
+            // NISHITA
         }
         else if (strcmp(command, "2") == 0) // Deletion
         {
@@ -218,24 +253,26 @@ int main()
                 perror(RED "Error sending data" RESET);
             }
         }
-       else if (strcmp(command, "5") == 0) // Writing
+        else if (strcmp(command, "5") == 0) // Writing
         {
-            //Checking if file was found
-             char success_mg[100];
+            // Checking if file was found
+            char success_mg[100];
             if ((received = recv(naming_server_sock, success_mg, sizeof(success_mg), 0)) == -1)
             {
                 printf(RED "Error receiving data\n");
                 exit(0);
             }
-            else{
-                
-                if(strcmp(success_mg,"fail")==0){
+            else
+            {
+                if (strcmp(success_mg, "fail") == 0)
+                {
                     printf(RED "File not found!\n" RESET);
                     continue;
                 }
             }
 
-            if ((cli_sock = accept(client_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
+            int client_sock;
+            if ((client_sock = accept(sock_ss_client, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
                 perror(RED "[-] Accept error" RESET);
                 exit(0);
@@ -244,7 +281,7 @@ int main()
 
             char file_path[100];
             // Getting file path from client
-            if ((received = recv(cli_sock, file_path, sizeof(file_path), 0)) == -1)
+            if ((received = recv(client_sock, file_path, sizeof(file_path), 0)) == -1)
             {
                 perror(RED "[-] Receive error" RESET);
                 exit(0);
@@ -263,7 +300,7 @@ int main()
 
             while (1)
             {
-                received_to_write = recv(cli_sock, received_data_to_write, sizeof(received_data_to_write), 0);
+                received_to_write = recv(client_sock, received_data_to_write, sizeof(received_data_to_write), 0);
 
                 if (received_to_write == -1)
                 {
@@ -298,34 +335,34 @@ int main()
 
             fclose(file);
 
-            close_socket(&cli_sock);
+            close_socket(&client_sock);
         }
         else if (strcmp(command, "6") == 0) // Reading
         {
-                char success_mg[100];
+            char success_mg[100];
             if ((received = recv(naming_server_sock, success_mg, sizeof(success_mg), 0)) == -1)
             {
                 printf(RED "Error receiving data\n");
                 exit(0);
             }
-            else{
-                
-                if(strcmp(success_mg,"fail")==0){
+            else
+            {
+                if (strcmp(success_mg, "fail") == 0)
+                {
                     printf(RED "File not found!" RESET);
                     continue;
                 }
             }
 
-            if ((cli_sock = accept(client_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
+            if ((client_sock = accept(sock_ss_client, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
                 perror(RED "[-] Accept error");
                 exit(0);
             }
-         
-           
+
             char file_path[100];
             // Getting file path from client
-            if ((received = recv(cli_sock, file_path, sizeof(file_path), 0)) == -1)
+            if ((received = recv(client_sock, file_path, sizeof(file_path), 0)) == -1)
             {
                 printf(RED "Error receiving data\n");
                 exit(0);
@@ -338,7 +375,7 @@ int main()
             if (file == NULL)
             {
                 perror(RED "[-] File opening error");
-                if (send(cli_sock, "failed", sizeof("failed"), 0) == -1)
+                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
                 {
                     perror(RED "[-] Error sending data" RESET);
                     exit(0);
@@ -348,14 +385,14 @@ int main()
             }
             while (fgets(buffer, sizeof(buffer), file) != NULL)
             {
-                if (send(cli_sock, buffer, sizeof(buffer), 0) == -1)
+                if (send(client_sock, buffer, sizeof(buffer), 0) == -1)
                 {
                     perror(RED "[-] Error sending data" RESET);
                     exit(0);
                 }
             }
             snprintf(buffer, sizeof(buffer), "DONE");
-            if (send(cli_sock, buffer, sizeof(buffer), 0) == -1)
+            if (send(client_sock, buffer, sizeof(buffer), 0) == -1)
             {
                 perror(RED "[-] Error sending data" RESET);
                 exit(0);
@@ -364,23 +401,24 @@ int main()
             fclose(file);
         }
         else if (strcmp(command, "7") == 0) // Permissions
-        {   
+        {
             // Checking if file was found
-             char success_mg[100];
+            char success_mg[100];
             if ((received = recv(naming_server_sock, success_mg, sizeof(success_mg), 0)) == -1)
             {
                 printf(RED "Error receiving data\n");
                 exit(0);
             }
-            else{
-               
-                if(strcmp(success_mg,"fail")==0){
+            else
+            {
+                if (strcmp(success_mg, "fail") == 0)
+                {
                     printf(RED "File not found!\n" RESET);
                     continue;
                 }
             }
 
-            if ((cli_sock = accept(client_sock, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
+            if ((client_sock = accept(sock_ss_client, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
                 perror(RED "[-] Accept error" RESET);
                 exit(0);
@@ -388,7 +426,7 @@ int main()
 
             char file_path[100];
             // Getting file path from client
-            if ((received = recv(cli_sock, file_path, sizeof(file_path), 0)) == -1)
+            if ((received = recv(client_sock, file_path, sizeof(file_path), 0)) == -1)
             {
                 printf(RED "[-] Error receiving data\n" RESET);
                 exit(0);
@@ -405,7 +443,7 @@ int main()
             if (fileSize == 0)
             {
                 printf(RED "[-] File does not exist\n" RESET);
-                if (send(cli_sock, "failed", sizeof("failed"), 0) == -1)
+                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
                 {
                     printf(RED "[-] Error sending data\n" RESET);
                     exit(0);
@@ -463,7 +501,7 @@ int main()
                 else
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other does not have execute permission\n");
 
-                if (send(cli_sock, buffer, sizeof(buffer), 0) == -1)
+                if (send(client_sock, buffer, sizeof(buffer), 0) == -1)
                 {
                     printf(RED "[-] Error sending data\n" RESET);
                     exit(0);
@@ -474,7 +512,7 @@ int main()
             else
             {
                 perror(RED "[-] stat" RESET);
-                if (send(cli_sock, "failed", sizeof("failed"), 0) == -1)
+                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
                 {
                     printf(RED "[-] Error sending data\n" RESET);
                     exit(0);
@@ -482,8 +520,8 @@ int main()
             }
         }
     }
+    close_socket(&sock_ss_client);
     close_socket(&client_sock);
-    close_socket(&cli_sock);
-    close(naming_server_sock);
+    close_socket(&naming_server_sock);
     return 0;
 }

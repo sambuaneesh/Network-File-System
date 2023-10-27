@@ -9,6 +9,8 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <ctype.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #define MAX_NUM_PATHS 2000
 #define MAX_FILE_PATH 500
@@ -91,7 +93,7 @@ void connect_to_NS_from_SS(int* sock, struct sockaddr_in* addr, const char* ip, 
 void connect_to_SS_from_NS(int* ns_sock, struct sockaddr_in* ns_addr,int port_num);
 storage_servers MakeNode_ss(char *ip_addr, int client_port, int server_port);
 Tree check_if_path_in_ss(char *file_path, int insert);
-int initialize_SS(int *server_sock, int *client_sock, int *ns_sock, struct sockaddr_in *client_addr, struct sockaddr_in *ns_addr, socklen_t *addr_size);
+int initialize_SS(int *ss_sock);
 
 void get_path_details(char* path_to_go_to, char* file_name,char* file_path);
 int create_file(char* file_path);
@@ -105,3 +107,7 @@ int Add_to_path_file(char *file_path, char* storage_file);
 
 void connect_to_SS_from_client(int* sock, struct sockaddr_in* addr, char* ns_ip, int ns_port);
 void connect_to_client(int* sock, struct sockaddr_in* addr, const char* ip, int port_num);
+
+void make_socket_non_blocking(int socket);
+void MakeSSsend_vital(int* naming_server_sock, char* ip, int* port_for_client, int* port_for_nm, char* paths_file);
+void init_port_create_sock(int *sock, struct sockaddr_in *addr, const char *ip, int port_num);
