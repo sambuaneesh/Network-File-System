@@ -149,14 +149,14 @@ int Delete_Path(Tree T, char *path)
     return 0;
 }
 
-Tree check_if_path_in_ss(char *file_path, int insert) // NULL if not found else returns the parent depending on value of insert
+storage_servers check_if_path_in_ss(char *file_path, int insert) // NULL if not found else returns the parent depending on value of insert
 {
     storage_servers traveller = storage_server_list;
     while (traveller != NULL)
     {
         Tree parent = Search_Till_Parent(traveller->files_and_dirs, file_path, insert);
         if (parent != NULL)
-            return traveller->files_and_dirs;
+            return traveller;
         traveller = traveller->next;
     }
     return NULL;

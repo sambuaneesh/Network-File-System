@@ -92,7 +92,7 @@ void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_
 void connect_to_NS_from_SS(int* sock, struct sockaddr_in* addr, const char* ip, int port_num);
 void connect_to_SS_from_NS(int* ns_sock, struct sockaddr_in* ns_addr,int port_num);
 storage_servers MakeNode_ss(char *ip_addr, int client_port, int server_port);
-Tree check_if_path_in_ss(char *file_path, int insert);
+storage_servers check_if_path_in_ss(char *file_path, int insert);
 int initialize_SS(int *ss_sock);
 
 void get_path_details(char* path_to_go_to, char* file_name,char* file_path);
