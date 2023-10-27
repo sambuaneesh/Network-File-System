@@ -2,7 +2,6 @@
 
 int main()
 {
-    
     Tree SS1 = MakeNode(".");
     storage_server_list = NULL;
     // storage_server_list->files_and_dirs = SS1;
@@ -45,7 +44,7 @@ int main()
             break;
         }
         opt[strlen(opt)] = '\0';
-       
+
         if (strcmp("1", opt) == 0)
         {
         }
