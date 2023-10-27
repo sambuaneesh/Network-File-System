@@ -132,7 +132,7 @@ int main()
         else if (option == 4)
         {
         }
-          else if (option == 5) // Write
+        else if (option == 5) // Write
         {
             if (send(naming_server_sock, "5", strlen("5"), 0) == -1)
             {
@@ -140,7 +140,7 @@ int main()
                 exit(1);
             }
             char path[MAX_FILE_PATH];
-            printf("Enter the path: ");
+            printf(CYAN "Enter the path: " RESET);
             scanf("%s", path);
 
             if (send(naming_server_sock, path, sizeof(path), 0) == -1)
@@ -177,10 +177,9 @@ int main()
 
             char input[1024];
 
-            printf("Start entering data: (Enter 'done' to stop): \n");
+            printf(CYAN "Start entering data: (Enter 'done' to stop): \n\n" RESET);
             while (1)
             {
-
                 scanf(" %[^\n]s", input);
                 // strcat(input, "\n");
                 // input[strlen(input)] = '\0';
@@ -215,11 +214,14 @@ int main()
                 exit(1);
             }
             char path[MAX_FILE_PATH];
-            printf("Enter the path: ");
+            printf(CYAN "Enter the path: " RESET);
             scanf("%s", path);
 
             if (send(naming_server_sock, path, sizeof(path), 0) == -1)
-                printf("[-]Send error\n");
+            {
+                perror(RED "[-]Send error" RESET);
+                exit(1);
+            }
 
             char ip_addr[50];
             char server_addr[50];
@@ -247,6 +249,7 @@ int main()
                 printf("[-]Send error\n");
 
             // Getting file contents
+            printf("\n");
             char buffer[1024];
             int c = 0;
             while (c == 0)
@@ -262,7 +265,7 @@ int main()
                     printf(PINK "%s" RESET, buffer);
                 }
             }
-
+            printf("\n");
             close_socket(&ns_sock);
         }
         else if (option == 7) // Permissions
@@ -273,7 +276,7 @@ int main()
                 exit(1);
             }
             char path[MAX_FILE_PATH];
-            printf("Enter the path: ");
+            printf(CYAN "Enter the path: " RESET);
             scanf("%s", path);
 
             if (send(naming_server_sock, path, sizeof(path), 0) == -1)

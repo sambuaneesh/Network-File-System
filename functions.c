@@ -349,7 +349,7 @@ int create_file(char *file_path)
     }
     else
     {
-        printf("File Created Successfully!\n");
+        // printf("File Created Successfully!\n");
     }
     fclose(file);
 
@@ -389,7 +389,7 @@ int create_directory(char *file_path)
 
     if (mkdir(directory_name, 0777) == 0)
     {
-        printf("Directory created successfully!\n");
+        // printf("Directory created successfully!\n");
     }
     else
     {
@@ -441,7 +441,7 @@ int delete_file(char *file_path)
         return -1;
     }
 
-    printf("File Deleted Successfully!\n");
+    // printf("File Deleted Successfully!\n");
 }
 
 int delete_directory(char *file_path)
@@ -481,7 +481,7 @@ int delete_directory(char *file_path)
         perror(RED "[-] chdir" RESET);
         return -1;
     }
-    printf("Directory Deleted Successfully!\n");
+    // printf("Directory Deleted Successfully!\n");
     return 0;
 }
 

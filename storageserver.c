@@ -230,7 +230,7 @@ int main()
             else{
                 
                 if(strcmp(success_mg,"fail")==0){
-                    printf(RED "File not found!" RESET);
+                    printf(RED "File not found!\n" RESET);
                     continue;
                 }
             }
