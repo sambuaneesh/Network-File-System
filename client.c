@@ -75,6 +75,18 @@ int main()
                 exit(1);
             }
 
+            char mid_ack[10];
+            if (recv(naming_server_sock, mid_ack, sizeof(mid_ack), 0) == -1)
+            {
+                printf(RED "[-]Receive error\n" RESET);
+                exit(1);
+            }
+            if (strcmp(mid_ack, "failed") == 0)
+            {
+                printf(RED "Invalid Path\n" RESET);
+                continue;
+            }
+
             // receive success or error message from NS
             char success[25];
             if (recv(naming_server_sock, success, sizeof(success), 0) == -1)
@@ -123,6 +135,18 @@ int main()
                 exit(1);
             }
 
+            char mid_ack[10];
+            if (recv(naming_server_sock, mid_ack, sizeof(mid_ack), 0) == -1)
+            {
+                printf(RED "[-]Receive error\n" RESET);
+                exit(1);
+            }
+            if (strcmp(mid_ack, "failed") == 0)
+            {
+                printf(RED "Invalid Path\n" RESET);
+                continue;
+            }
+
             // recieve success or error message from NS
             char success[25];
             if (recv(naming_server_sock, success, sizeof(success), 0) == -1)
@@ -150,7 +174,10 @@ int main()
             scanf("%s", path);
 
             if (send(naming_server_sock, path, sizeof(path), 0) == -1)
-                printf("[-]Send error\n");
+            {
+                perror("[-]Send error");
+                exit(1);
+            }
 
             char ip_addr[50];
             char server_addr[50];
@@ -187,8 +214,6 @@ int main()
             while (1)
             {
                 scanf(" %[^\n]s", input);
-                // strcat(input, "\n");
-                // input[strlen(input)] = '\0';
 
                 if (strcmp(input, "done") == 0)
                 {
@@ -201,7 +226,6 @@ int main()
                 }
                 else
                 {
-
                     if (send(ns_sock, input, sizeof(input), 0) == -1)
                     {
                         printf("[-] Send error\n");

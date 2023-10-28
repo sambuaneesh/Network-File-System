@@ -668,7 +668,7 @@ void connect_to_SS_from_NS(int *ns_sock, struct sockaddr_in *ns_addr, int port_n
     // Connect to the storage server
     if (connect(*ns_sock, (struct sockaddr *)ns_addr, sizeof(*ns_addr)) == -1)
     {
-        perror("[-]Connect error");
+        perror(RED "[-]Connect error" RESET);
         exit(1);
     }
 

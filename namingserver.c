@@ -138,24 +138,55 @@ int main()
             // THE REST OF THIS CODE MUST EXECUTE ONLY IF file_path IS IN THE LIST OF ACCESSIBLE PATHS
             storage_servers storage_server_details = check_if_path_in_ss(file_path, 0);
             // printf("T is %p\n", T);
+            if (storage_server_details == NULL)
+            {
+                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
+                continue;
+            }
+
             if (Delete_Path(storage_server_details->files_and_dirs, file_path) == -1)
             {
+                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
+                continue;
             }
+            if (send(client_sock, "success", sizeof("success"), 0) == -1)
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+
             printf("Waiting for success message\n");
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
             if (send(ns_sock, "2", sizeof("2"), 0) == -1)
-                printf(RED "[-]Send error\n" RESET);
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
 
             // Sending path to the SS
             if (send(ns_sock, file_path, sizeof(file_path), 0) == -1)
-                printf(RED "[-]Send error\n" RESET);
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
 
             //  Sending option to the SS
 
             if (send(ns_sock, create_option, sizeof(create_option), 0) == -1)
-                printf(RED "[-]Send error\n" RESET);
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
 
             // Checking if creation was successful
             char success[20];
@@ -215,8 +246,22 @@ int main()
             storage_servers storage_server_details = check_if_path_in_ss(file_path, 1);
             if (storage_server_details == NULL)
             {
+                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
+
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 continue;
+            }
+            else
+            {
+                if (send(client_sock, "success", sizeof("success"), 0) == -1)
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
             }
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
@@ -277,31 +322,12 @@ int main()
         }
         else if (strcmp("5", opt) == 0) // Write
         {
-            connect_to_SS_from_NS(&ns_sock, &ns_addr, 5566);
-            if (send(ns_sock, "5", sizeof("5"), 0) == -1)
-            {
-                perror(RED "[-]Send error\n" RESET);
-                exit(1);
-            }
-
             char file_path[MAX_FILE_PATH];
             if ((recieved = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
                 perror(RED "[-]Receive error\n" RESET);
                 exit(1);
             }
-
-            // Not sure what to do with this:
-            // Do I keep some kind of while loop to search for the server with the mentioned path
-            // and then use those ports and all?
-            storage_servers temp = MakeNode_ss("127.0.0.1", 5568, 5568);
-
-            int server_addr = temp->ss_send->server_port;
-            char ip_addr[50];
-            strcpy(ip_addr, temp->ss_send->ip_addr);
-            char server[50];
-            snprintf(server, sizeof(server), "%d", server_addr);
-            int flag = 0;
 
             storage_servers storage_server_details = check_if_path_in_ss(file_path, 0);
             if (storage_server_details == NULL)
@@ -312,41 +338,84 @@ int main()
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
-                flag = 1;
-                char success_msg[100];
-                strcpy(success_msg, "fail");
-                if (send(ns_sock, success_msg, sizeof(success_msg), 0) == -1)
-                {
-                    perror(RED "[-]Send error" RESET);
-                    exit(1);
-                }
-
-                close_socket(&ns_sock);
                 continue;
             }
-            else
+
+            // Not sure what to do with this:
+            // Do I keep some kind of while loop to search for the server with the mentioned path
+            // and then use those ports and all?
+            // storage_servers temp = MakeNode_ss("127.0.0.1", 5568, 5568);
+
+            int server_addr = storage_server_details->ss_send->client_port;
+            char ip_addr[50];
+            strcpy(ip_addr, storage_server_details->ss_send->ip_addr);
+            strcpy(ip_addr, "127.0.0.1"); // FIX
+            char server[50];
+            snprintf(server, sizeof(server), "%d", server_addr);
+            // int flag = 0;
+
+            // storage_servers storage_server_details = check_if_path_in_ss(file_path, 0);
+            // if (storage_server_details == NULL)
+            // {
+            //     printf(RED "[-]Path not in list of accessible paths\n" RESET);
+            //     if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
+            //     {
+            //         perror(RED "[-]Send error\n" RESET);
+            //         exit(1);
+            //     }
+            //     flag = 1;
+            //     char success_msg[100];
+            //     strcpy(success_msg, "fail");
+            //     if (send(ns_sock, success_msg, sizeof(success_msg), 0) == -1)
+            //     {
+            //         perror(RED "[-]Send error" RESET);
+            //         exit(1);
+            //     }
+
+            //     close_socket(&ns_sock);
+            //     continue;
+            // }
+            // else
+            // {
+            //     if (send(ns_sock, "success", sizeof("success"), 0) == -1)
+            //     {
+            //         perror(RED "[-]Send error" RESET);
+            //         exit(1);
+            //     }
+            // }
+            if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
             {
-                if (send(ns_sock, "success", sizeof("success"), 0) == -1)
-                {
-                    perror(RED "[-]Send error" RESET);
-                    exit(1);
-                }
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
             }
+            if (send(client_sock, server, sizeof(server), 0) == -1)
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+
+            connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
+            if (send(ns_sock, "5", sizeof("5"), 0) == -1)
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+
             close_socket(&ns_sock);
 
-            if (flag == 0)
-            {
-                if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
-                {
-                    perror(RED "[-]Send error\n" RESET);
-                    exit(1);
-                }
-                if (send(client_sock, server, sizeof(server), 0) == -1)
-                {
-                    perror(RED "[-]Send error\n" RESET);
-                    exit(1);
-                }
-            }
+            // if (flag == 0)
+            // {
+            //     if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
+            //     {
+            //         perror(RED "[-]Send error\n" RESET);
+            //         exit(1);
+            //     }
+            //     if (send(client_sock, server, sizeof(server), 0) == -1)
+            //     {
+            //         perror(RED "[-]Send error\n" RESET);
+            //         exit(1);
+            //     }
+            // }
         }
         else if (strcmp("6", opt) == 0) // Read
         {

@@ -47,7 +47,7 @@ int main()
     // send vital details directly to NS
     connect_to_naming_server(ip, &naming_server_sock, &ss_addr);
     int role = 1;
-    if(send(naming_server_sock, &role, sizeof(role), 0) == -1)
+    if (send(naming_server_sock, &role, sizeof(role), 0) == -1)
     {
         perror(RED "[-]Error sending data" RESET);
         exit(1);
@@ -86,8 +86,8 @@ int main()
     // int cli_sock;
     int client_sock;
 
-// port ----> server sock
-//      ----> client sock
+    // port ----> server sock
+    //      ----> client sock
 
     while (1)
     {
@@ -107,7 +107,7 @@ int main()
         else if (received == 0)
         {
             // The client has closed the connection, so break out of the loop
-            printf("Client disconnected.\n");
+            printf("Naming Server disconnected.\n");
             close(naming_server_sock);
             break;
         }
@@ -256,27 +256,33 @@ int main()
         else if (strcmp(command, "5") == 0) // Writing
         {
             // Checking if file was found
-            char success_mg[100];
-            if ((received = recv(naming_server_sock, success_mg, sizeof(success_mg), 0)) == -1)
-            {
-                printf(RED "Error receiving data\n");
-                exit(0);
-            }
-            else
-            {
-                if (strcmp(success_mg, "fail") == 0)
-                {
-                    printf(RED "File not found!\n" RESET);
-                    continue;
-                }
-            }
+            // char success_mg[100];
+            // if ((received = recv(naming_server_sock, success_mg, sizeof(success_mg), 0)) == -1)
+            // {
+            //     printf(RED "Error receiving data\n");
+            //     exit(0);
+            // }
+            // else
+            // {
+            //     if (strcmp(success_mg, "fail") == 0)
+            //     {
+            //         printf(RED "File not found!\n" RESET);
+            //         continue;
+            //     }
+            // }
 
-            int client_sock;
+            // int client_sock;
             if ((client_sock = accept(sock_ss_client, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
                 perror(RED "[-] Accept error" RESET);
                 exit(0);
             }
+            else
+            {
+                printf("[+]Client connected.\n");
+            }
+            printf("in here\n");
+
             // Forming connection with client
 
             char file_path[100];
@@ -334,8 +340,7 @@ int main()
             }
 
             fclose(file);
-
-            close_socket(&client_sock);
+            // close_socket(&client_sock);
         }
         else if (strcmp(command, "6") == 0) // Reading
         {
@@ -525,8 +530,8 @@ int main()
             }
         }
     }
+    close_socket(&naming_server_sock);
     close_socket(&sock_ss_client);
     close_socket(&client_sock);
-    close_socket(&naming_server_sock);
     return 0;
 }
