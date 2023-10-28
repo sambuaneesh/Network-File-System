@@ -689,6 +689,7 @@ void connect_to_SS_from_client(int *sock, struct sockaddr_in *addr, char *ns_ip,
     addr->sin_family = AF_INET;
     addr->sin_port = htons(ns_port);
     addr->sin_addr.s_addr = inet_addr(ns_ip);
+    printf("port: %d\n", ns_port);
 
     // Connect to the naming server
     if (connect(*sock, (struct sockaddr *)addr, sizeof(*addr)) == -1)

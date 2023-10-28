@@ -339,26 +339,31 @@ int main()
         }
         else if (strcmp(command, "6") == 0) // Reading
         {
-            char success_mg[100];
-            if ((received = recv(naming_server_sock, success_mg, sizeof(success_mg), 0)) == -1)
-            {
-                printf(RED "Error receiving data\n");
-                exit(0);
-            }
-            else
-            {
-                if (strcmp(success_mg, "fail") == 0)
-                {
-                    printf(RED "File not found!" RESET);
-                    continue;
-                }
-            }
+            // char success_mg[100];
+            // if ((received = recv(naming_server_sock, success_mg, sizeof(success_mg), 0)) == -1)
+            // {
+            //     printf(RED "Error receiving data\n");
+            //     exit(0);
+            // }
+            // else
+            // {
+            //     if (strcmp(success_mg, "fail") == 0)
+            //     {
+            //         printf(RED "File not found!" RESET);
+            //         continue;
+            //     }
+            // }
 
             if ((client_sock = accept(sock_ss_client, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
                 perror(RED "[-] Accept error");
                 exit(0);
             }
+            else
+            {
+                printf("[+]Client connected.\n");
+            }
+            // printf("in here\n");
 
             char file_path[100];
             // Getting file path from client
@@ -367,6 +372,7 @@ int main()
                 printf(RED "Error receiving data\n");
                 exit(0);
             }
+            // printf("path in here\n");
 
             FILE *file;
             char buffer[1024];
@@ -397,7 +403,6 @@ int main()
                 perror(RED "[-] Error sending data" RESET);
                 exit(0);
             }
-
             fclose(file);
         }
         else if (strcmp(command, "7") == 0) // Permissions

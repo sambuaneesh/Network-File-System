@@ -8,3 +8,4 @@
 - NM and SS connection -> SS is the server and NM is the client
 
 ### Project overview??
+- Fix search

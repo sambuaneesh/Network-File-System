@@ -70,7 +70,7 @@ int main()
                     close_socket(&ss_sock);
                     continue;
                 }
-                else if(role == 2)
+                else if (role == 2)
                 {
                     client_sock = ss_sock;
                     client_addr = ss_addr;
@@ -108,7 +108,7 @@ int main()
             close(client_sock);
             break;
         }
-        opt[strlen(opt)]= '\0';
+        opt[strlen(opt)] = '\0';
 
         if (strcmp("1", opt) == 0)
         {
@@ -167,7 +167,7 @@ int main()
                 exit(0);
             }
             else
-                success[strlen(success)]= '\0';
+                success[strlen(success)] = '\0';
 
             if (strcmp(success, "done") == 0)
             {
@@ -250,7 +250,7 @@ int main()
                 return 1;
             }
             else
-                success[strlen(success)]= '\0';
+                success[strlen(success)] = '\0';
 
             if (strcmp(success, "done") == 0)
             {
@@ -350,33 +350,12 @@ int main()
         }
         else if (strcmp("6", opt) == 0) // Read
         {
-            connect_to_SS_from_NS(&ns_sock, &ns_addr, 5566);
-            if (send(ns_sock, "6", sizeof("6"), 0) == -1)
-            {
-                perror(RED "[-]Send error" RESET);
-                exit(1);
-            }
-            // close_socket(&ns_sock);
-
             char file_path[MAX_FILE_PATH];
             if ((recieved = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
                 perror(RED "[-]Receive error" RESET);
                 exit(1);
             }
-
-            // Not sure what to do with this:
-            // Do I keep some kind of while loop to search for the server with the mentioned path
-            // and then use those ports and all?
-            storage_servers temp = MakeNode_ss("127.0.0.1", 5568, 5568);
-
-            int server_addr = temp->ss_send->server_port;
-            char ip_addr[50];
-            strcpy(ip_addr, temp->ss_send->ip_addr);
-            char server[50];
-            snprintf(server, sizeof(server), "%d", server_addr);
-
-            int flag = 0;
 
             storage_servers storage_server_details = check_if_path_in_ss(file_path, 0);
             if (storage_server_details == NULL)
@@ -387,40 +366,75 @@ int main()
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
-                flag = 1;
-                char success_msg[100];
-                strcpy(success_msg, "fail");
-                if (send(ns_sock, success_msg, sizeof(success_msg), 0) == -1)
-                {
-                    perror(RED "[-]Send error" RESET);
-                    exit(1);
-                }
-
-                close_socket(&ns_sock);
                 continue;
             }
-            else
+
+            int server_port = storage_server_details->ss_send->client_port;
+            char ip_addr[50];
+            // strcpy(ip_addr, storage_server_details->ss_send->ip_addr);
+            strcpy(ip_addr, "127.0.0.1"); // FIX
+            char server[50];
+            snprintf(server, sizeof(server), "%d", server_port);
+
+            if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
             {
-                if (send(ns_sock, "success", sizeof("success"), 0) == -1)
-                {
-                    perror(RED "[-]Send error" RESET);
-                    exit(1);
-                }
+                printf(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+            if (send(client_sock, server, sizeof(server), 0) == -1)
+            {
+                printf(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+
+            // Not sure what to do with this:
+            // Do I keep some kind of while loop to search for the server with the mentioned path
+            // and then use those ports and all?
+            // storage_servers temp = MakeNode_ss("127.0.0.1", 5568, 5568);
+            // close_socket(&ns_sock);
+
+            // int flag = 0;
+            // int storage_server_sock;
+            // change naming from ns_sock to storage_server_sock
+            connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
+            if (send(ns_sock, "6", sizeof("6"), 0) == -1)
+            {
+                perror(RED "[-]Send error" RESET);
+                exit(1);
             }
             close_socket(&ns_sock);
-            if (flag == 0)
-            {
-                if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
-                {
-                    printf(RED "[-]Send error\n" RESET);
-                    exit(1);
-                }
-                if (send(client_sock, server, sizeof(server), 0) == -1)
-                {
-                    printf(RED "[-]Send error\n" RESET);
-                    exit(1);
-                }
-            }
+            // storage_servers storage_server_details = check_if_path_in_ss(file_path, 0);
+            // if (storage_server_details == NULL)
+            // {
+            // printf(RED "[-]Path not in list of accessible paths\n" RESET);
+            // if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
+            // {
+            //     perror(RED "[-]Send error\n" RESET);
+            //     exit(1);
+            // }
+            // flag = 1;
+            // char success_msg[100];
+            // strcpy(success_msg, "fail");
+            // if (send(ns_sock, success_msg, sizeof(success_msg), 0) == -1)
+            // {
+            //     perror(RED "[-]Send error" RESET);
+            //     exit(1);
+            // }
+
+            // close_socket(&ns_sock);
+            // continue;
+            // }
+            // else
+            // {
+            // if (send(ns_sock, "success", sizeof("success"), 0) == -1)
+            // {
+            //     perror(RED "[-]Send error" RESET);
+            //     exit(1);
+            // }
+            // }
+            // if (flag == 0)
+            // {
+            // }
         }
         else if (strcmp("7", opt) == 0) // Permissions
         {

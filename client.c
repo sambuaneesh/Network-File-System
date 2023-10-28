@@ -9,7 +9,7 @@ int main()
     // Create a socket and connect to the naming server
     connect_to_naming_server("127.0.0.1", &naming_server_sock, &client_addr);
     int role = 2;
-    if(send(naming_server_sock, &role, sizeof(role), 0) == -1)
+    if (send(naming_server_sock, &role, sizeof(role), 0) == -1)
     {
         perror(RED "[-]Send error" RESET);
         exit(1);
@@ -244,15 +244,19 @@ int main()
             }
             if (recv(naming_server_sock, server_addr, sizeof(server_addr), 0) == -1)
             {
+                perror(RED "[-]Receive error" RESET);
+                exit(1);
+            }
+            strcpy(ip_addr, "127.0.0.1"); // Fix
+
+            int ss_sock;
+            struct sockaddr_in ss_addr;
+            connect_to_SS_from_client(&ss_sock, &ss_addr, ip_addr, atoi(server_addr));
+            if (send(ss_sock, path, sizeof(path), 0) == -1)
+            {
                 perror(RED "[-]Send error" RESET);
                 exit(1);
             }
-
-            int ns_sock;
-            struct sockaddr_in ns_addr;
-            connect_to_SS_from_client(&ns_sock, &ns_addr, ip_addr, atoi(server_addr));
-            if (send(ns_sock, path, sizeof(path), 0) == -1)
-                printf("[-]Send error\n");
 
             // Getting file contents
             printf("\n");
@@ -260,11 +264,11 @@ int main()
             int c = 0;
             while (c == 0)
             {
-                recv(ns_sock, buffer, sizeof(buffer), 0);
+                recv(ss_sock, buffer, sizeof(buffer), 0);
                 if (strcmp("DONE", buffer) == 0)
                 {
                     c = 2; // DONE WITH FILE
-                    printf("Finished reading file!\n");
+                    printf(CYAN "\nFinished reading file!\n" RESET);
                 }
                 else
                 {
@@ -272,7 +276,7 @@ int main()
                 }
             }
             printf("\n");
-            close_socket(&ns_sock);
+            close_socket(&ss_sock);
         }
         else if (option == 7) // Permissions
         {
