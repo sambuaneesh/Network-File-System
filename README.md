@@ -4,8 +4,12 @@
 - Name of a path cannot have spaces
 - Files and Directories do not have the same name
 - Error if file to write into does not exist
-- SS and client connection -> client is the server and SS is the client
-- NM and SS connection -> SS is the server and NM is the client
+- Size of the paths file is no bigger than 2000 characters
+- 
 
 ### Project overview??
-- Fix search
+- Fix search (done?)
+- To run: ./nm ./ss ./client and then ss can come at anytime
+- Same ports cannot be reused by multiple storage servers
+- 5566 is always reserved for the naming server and cannot be used for any other purpose
+- 
