@@ -1,7 +1,0 @@
-/home
-/home/nishita
-/home/nishita/Desktop
-/home/nishita/Desktop/final-project-76
-
-/home/nishita/Desktop/final-project-76/file1.txt
-/home/nishita/Desktop/final-project-76/file1.txt
