@@ -17,34 +17,11 @@ int main()
     scanf("%s", paths_file);
     printf("\n");
 
-    // FILE *file = fopen(paths_file, "r");
-    // if (file == NULL)
-    // {
-    //     perror(RED "[-] File opening error" RESET);
-    //     exit(1);
-    // }
-    // char buffer[MAX_NUM_PATHS] = {'\0'};
-
-    // size_t len;
-    // if ((len = fread(buffer, sizeof(buffer), 1, file)) == -1)
-    // {
-    //     perror(RED "[-] File reading error" RESET);
-    //     exit(1);
-    // }
-    // buffer[len] = '\0';
-
     int sock, naming_server_sock;
     struct sockaddr_in addr, client_addr, ss_addr;
     socklen_t addr_size;
     int n;
 
-    // Connect to SS
-    // NISHITA
-    // connect_to_NS_from_SS(&sock, &addr, ip, 5566);
-    // NISHITA
-
-    // NISHITA
-    // send vital details directly to NS
     connect_to_naming_server(ip, &naming_server_sock, &ss_addr);
     int role = 1;
     if (send(naming_server_sock, &role, sizeof(role), 0) == -1)
@@ -55,7 +32,6 @@ int main()
     MakeSSsend_vital(&naming_server_sock, ip, &port_for_client, &port_for_nm, paths_file);
     printf("Sent vital details to NS\n");
     close_socket(&naming_server_sock);
-    // NISHITA
 
     addr_size = sizeof(client_addr);
 
@@ -65,33 +41,19 @@ int main()
     int received;
     int i = 0;
 
-    // port and sockets created for specified port numbers
-    // Forming connection with client
     int sock_ss_nm, sock_ss_client;
     struct sockaddr_in client_addr1, nm_addr;
     socklen_t client1_addr_size = sizeof(client_addr1);
     socklen_t nm_addr_size = sizeof(nm_addr);
     init_port_create_sock(&sock_ss_client, &client_addr1, ip, port_for_client);
     init_port_create_sock(&sock_ss_nm, &nm_addr, ip, port_for_nm);
-    // Nishita
-    // connect_to_client(&client_sock, &client_addr1, ip, port_for_client);
-    // connect_to_client(&naming_server_sock, &nm_addr, ip, port_for_nm);
-    // Nishita
-    // make_socket_non_blocking(sock_ss_client);
-    // make_socket_non_blocking(sock_ss_nm);
-    // Nishita
 
     struct sockaddr_in cli_addr;
     socklen_t cli_addr_size = sizeof(cli_addr);
-    // int cli_sock;
     int client_sock;
-
-    // port ----> server sock
-    //      ----> client sock
 
     while (1)
     {
-        // client_socket = accept(server_socket, (struct sockaddr*)&client_address, &client_address_len);
         naming_server_sock = accept(sock_ss_nm, (struct sockaddr *)&nm_addr, &nm_addr_size);
         if (naming_server_sock == -1)
         {
@@ -255,23 +217,6 @@ int main()
         }
         else if (strcmp(command, "5") == 0) // Writing
         {
-            // Checking if file was found
-            // char success_mg[100];
-            // if ((received = recv(naming_server_sock, success_mg, sizeof(success_mg), 0)) == -1)
-            // {
-            //     printf(RED "Error receiving data\n");
-            //     exit(0);
-            // }
-            // else
-            // {
-            //     if (strcmp(success_mg, "fail") == 0)
-            //     {
-            //         printf(RED "File not found!\n" RESET);
-            //         continue;
-            //     }
-            // }
-
-            // int client_sock;
             if ((client_sock = accept(sock_ss_client, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
                 perror(RED "[-] Accept error" RESET);
@@ -282,8 +227,6 @@ int main()
                 printf("[+]Client connected.\n");
             }
             printf("in here\n");
-
-            // Forming connection with client
 
             char file_path[100];
             // Getting file path from client
@@ -340,25 +283,9 @@ int main()
             }
 
             fclose(file);
-            // close_socket(&client_sock);
         }
         else if (strcmp(command, "6") == 0) // Reading
         {
-            // char success_mg[100];
-            // if ((received = recv(naming_server_sock, success_mg, sizeof(success_mg), 0)) == -1)
-            // {
-            //     printf(RED "Error receiving data\n");
-            //     exit(0);
-            // }
-            // else
-            // {
-            //     if (strcmp(success_mg, "fail") == 0)
-            //     {
-            //         printf(RED "File not found!" RESET);
-            //         continue;
-            //     }
-            // }
-
             if ((client_sock = accept(sock_ss_client, (struct sockaddr *)&cli_addr, &cli_addr_size)) == -1)
             {
                 perror(RED "[-] Accept error");
@@ -368,7 +295,6 @@ int main()
             {
                 printf("[+]Client connected.\n");
             }
-            // printf("in here\n");
 
             char file_path[100];
             // Getting file path from client
@@ -377,7 +303,6 @@ int main()
                 printf(RED "Error receiving data\n");
                 exit(0);
             }
-            // printf("path in here\n");
 
             FILE *file;
             char buffer[1024];

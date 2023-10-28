@@ -4,7 +4,6 @@ int main()
 {
     Tree SS1 = MakeNode(".");
     storage_server_list = NULL;
-    // storage_server_list->files_and_dirs = SS1;
     int nm_sock, client_sock, ss_sock;
     struct sockaddr_in server_addr, client_addr, ss_addr;
     socklen_t client_addr_size, ss_addr_size;
@@ -18,14 +17,6 @@ int main()
     int ns_sock;
     struct sockaddr_in ns_addr;
 
-    // storage_servers list = NULL;
-    // NISHITA
-    // if (initialize_SS(&nm_sock, &client_sock, &ns_sock, &client_addr, &ns_addr, &addr_size) == -1)
-    // {
-    //     printf(RED "[-]Error initializing storage servers\n" RESET);
-    //     return 1;
-    // }
-    // NISHITA
     int something_connect = 0;
     int num_ss = 0;
     int num_client = 0;
@@ -136,8 +127,8 @@ int main()
 
             // END OF GETTING DATA FROM CLIENT
             // THE REST OF THIS CODE MUST EXECUTE ONLY IF file_path IS IN THE LIST OF ACCESSIBLE PATHS
+            
             storage_servers storage_server_details = check_if_path_in_ss(file_path, 0);
-            // printf("T is %p\n", T);
             if (storage_server_details == NULL)
             {
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
@@ -341,48 +332,12 @@ int main()
                 continue;
             }
 
-            // Not sure what to do with this:
-            // Do I keep some kind of while loop to search for the server with the mentioned path
-            // and then use those ports and all?
-            // storage_servers temp = MakeNode_ss("127.0.0.1", 5568, 5568);
-
             int server_addr = storage_server_details->ss_send->client_port;
             char ip_addr[50];
             strcpy(ip_addr, storage_server_details->ss_send->ip_addr);
             strcpy(ip_addr, "127.0.0.1"); // FIX
             char server[50];
             snprintf(server, sizeof(server), "%d", server_addr);
-            // int flag = 0;
-
-            // storage_servers storage_server_details = check_if_path_in_ss(file_path, 0);
-            // if (storage_server_details == NULL)
-            // {
-            //     printf(RED "[-]Path not in list of accessible paths\n" RESET);
-            //     if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
-            //     {
-            //         perror(RED "[-]Send error\n" RESET);
-            //         exit(1);
-            //     }
-            //     flag = 1;
-            //     char success_msg[100];
-            //     strcpy(success_msg, "fail");
-            //     if (send(ns_sock, success_msg, sizeof(success_msg), 0) == -1)
-            //     {
-            //         perror(RED "[-]Send error" RESET);
-            //         exit(1);
-            //     }
-
-            //     close_socket(&ns_sock);
-            //     continue;
-            // }
-            // else
-            // {
-            //     if (send(ns_sock, "success", sizeof("success"), 0) == -1)
-            //     {
-            //         perror(RED "[-]Send error" RESET);
-            //         exit(1);
-            //     }
-            // }
             if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
             {
                 perror(RED "[-]Send error\n" RESET);
@@ -402,20 +357,6 @@ int main()
             }
 
             close_socket(&ns_sock);
-
-            // if (flag == 0)
-            // {
-            //     if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
-            //     {
-            //         perror(RED "[-]Send error\n" RESET);
-            //         exit(1);
-            //     }
-            //     if (send(client_sock, server, sizeof(server), 0) == -1)
-            //     {
-            //         perror(RED "[-]Send error\n" RESET);
-            //         exit(1);
-            //     }
-            // }
         }
         else if (strcmp("6", opt) == 0) // Read
         {
@@ -456,15 +397,6 @@ int main()
                 exit(1);
             }
 
-            // Not sure what to do with this:
-            // Do I keep some kind of while loop to search for the server with the mentioned path
-            // and then use those ports and all?
-            // storage_servers temp = MakeNode_ss("127.0.0.1", 5568, 5568);
-            // close_socket(&ns_sock);
-
-            // int flag = 0;
-            // int storage_server_sock;
-            // change naming from ns_sock to storage_server_sock
             connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
             if (send(ns_sock, "6", sizeof("6"), 0) == -1)
             {
@@ -472,38 +404,6 @@ int main()
                 exit(1);
             }
             close_socket(&ns_sock);
-            // storage_servers storage_server_details = check_if_path_in_ss(file_path, 0);
-            // if (storage_server_details == NULL)
-            // {
-            // printf(RED "[-]Path not in list of accessible paths\n" RESET);
-            // if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
-            // {
-            //     perror(RED "[-]Send error\n" RESET);
-            //     exit(1);
-            // }
-            // flag = 1;
-            // char success_msg[100];
-            // strcpy(success_msg, "fail");
-            // if (send(ns_sock, success_msg, sizeof(success_msg), 0) == -1)
-            // {
-            //     perror(RED "[-]Send error" RESET);
-            //     exit(1);
-            // }
-
-            // close_socket(&ns_sock);
-            // continue;
-            // }
-            // else
-            // {
-            // if (send(ns_sock, "success", sizeof("success"), 0) == -1)
-            // {
-            //     perror(RED "[-]Send error" RESET);
-            //     exit(1);
-            // }
-            // }
-            // if (flag == 0)
-            // {
-            // }
         }
         else if (strcmp("7", opt) == 0) // Permissions
         {
