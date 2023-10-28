@@ -12,4 +12,5 @@
 - To run: ./nm ./ss ./client and then ss can come at anytime
 - Same ports cannot be reused by multiple storage servers
 - 5566 is always reserved for the naming server and cannot be used for any other purpose
+- The storage server must always have a file that stores all the accessible paths in the same directory as the ss code, whose name needs to be input at prompt
 - 
