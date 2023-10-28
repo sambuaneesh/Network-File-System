@@ -314,7 +314,10 @@ int main()
             scanf("%s", path);
 
             if (send(naming_server_sock, path, sizeof(path), 0) == -1)
-                printf("[-]Send error\n");
+            {
+                perror(RED "[-]Send error" RESET);
+                exit(1);
+            }
 
             char ip_addr[50];
             char server_addr[50];
@@ -339,7 +342,10 @@ int main()
             struct sockaddr_in ns_addr;
             connect_to_SS_from_client(&ns_sock, &ns_addr, ip_addr, atoi(server_addr));
             if (send(ns_sock, path, sizeof(path), 0) == -1)
-                printf(RED "[-]Send error\n" RESET);
+            {
+                perror(RED "[-]Send error" RESET);
+                exit(1);
+            }
             char permission[1024];
 
             if (recv(ns_sock, permission, sizeof(permission), 0) == -1)
@@ -347,6 +353,11 @@ int main()
                 perror(RED "Error receiving data" RESET);
                 exit(0);
             }
+            if(strcmp(permission, "failed") == 0)
+            {
+                printf(RED "File does not exist\n" RESET);
+                continue;
+            }   
             printf("\n");
             printf(YELLOW "%s" RESET, permission);
 
