@@ -616,40 +616,6 @@ void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_
         printf("[+]Listening...\n");
 }
 
-void connect_to_NS_from_SS(int *sock, struct sockaddr_in *addr, const char *ip, int port_num) // Cut
-{
-    // Create the socket
-    *sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (*sock == -1)
-    {
-        perror(RED "[-]Socket error" RESET);
-        return;
-    }
-
-    // Set up the address structure
-    addr->sin_family = AF_INET;
-    addr->sin_port = htons(port_num);
-    addr->sin_addr.s_addr = inet_addr(ip); // Convert IP address to the proper format
-
-    // Bind the socket to the address
-    if (bind(*sock, (struct sockaddr *)addr, sizeof(*addr)) == -1)
-    {
-        perror(RED "[-]Bind error" RESET);
-        exit(1);
-    }
-
-    // Start listening
-    if (listen(*sock, 5) == -1)
-    {
-        perror(RED "[-]Listen error" RESET);
-        exit(1);
-    }
-    else
-        printf("[+]Listening...\n");
-
-    return;
-}
-
 void connect_to_SS_from_NS(int *ns_sock, struct sockaddr_in *ns_addr, int port_num)
 {
     // Create the socket for the naming server
@@ -704,54 +670,9 @@ void connect_to_SS_from_client(int *sock, struct sockaddr_in *addr, char *ns_ip,
     return;
 }
 
-void connect_to_client(int *sock, struct sockaddr_in *addr, const char *ip, int port_num) // same as init port create sock
-{
-    // Create the socket
-    *sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (*sock == -1)
-    {
-        perror(RED "[-]Socket error" RESET);
-        return;
-    }
-
-    // Set up the address structure
-    addr->sin_family = AF_INET;
-    addr->sin_port = htons(port_num);
-    addr->sin_addr.s_addr = inet_addr(ip); // Convert IP address to the proper format
-
-    // Bind the socket to the address
-    if (bind(*sock, (struct sockaddr *)addr, sizeof(*addr)) == -1)
-    {
-        perror(RED "[-]Bind error" RESET);
-        return;
-    }
-
-    // Start listening
-    if (listen(*sock, 5) == -1)
-    {
-        perror(RED "[-]Listen error" RESET);
-        exit(1);
-    }
-    else
-    {
-        printf("[+]Listening...\n");
-    }
-
-    return;
-}
-
 int initialize_SS(int *ss_sock)
 {
     storage_servers vital_info = MakeNode_ss("", 1, 1);
-    // NISHITA
-    // connect_to_SS_from_NS(ns_sock, ns_addr, 5566);
-    // if (send(*ns_sock, "1", sizeof("1"), 0) == -1)
-    // {
-    //     printf(RED "[-]Send error\n" RESET);
-    //     return -1;
-    // }
-    // char buffer[MAX_NUM_PATHS][2]= {'\0'};
-    // NISHITA
     char buffer[MAX_NUM_PATHS] = {'\0'};
     int size;
     if ((size = recv(*ss_sock, buffer, sizeof(buffer), 0)) == -1)

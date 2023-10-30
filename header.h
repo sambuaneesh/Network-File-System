@@ -89,7 +89,6 @@ void close_socket(int* client_sock);
 void connect_to_naming_server(char *ip, int *sock, struct sockaddr_in *addr);
 void listen_for_client(int* server_sock, int* client_sock, struct sockaddr_in *client_addr, socklen_t *addr_size);
 void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_in *server_addr);
-void connect_to_NS_from_SS(int* sock, struct sockaddr_in* addr, const char* ip, int port_num);
 void connect_to_SS_from_NS(int* ns_sock, struct sockaddr_in* ns_addr,int port_num);
 storage_servers MakeNode_ss(char *ip_addr, int client_port, int server_port);
 storage_servers check_if_path_in_ss(char *file_path, int insert);
@@ -106,7 +105,6 @@ int Delete_from_path_file(char *file_path, char* storage_file);
 int Add_to_path_file(char *file_path, char* storage_file);
 
 void connect_to_SS_from_client(int* sock, struct sockaddr_in* addr, char* ns_ip, int ns_port);
-void connect_to_client(int* sock, struct sockaddr_in* addr, const char* ip, int port_num);
 
 void make_socket_non_blocking(int socket);
 void MakeSSsend_vital(int* naming_server_sock, char* ip, int* port_for_client, int* port_for_nm, char* paths_file);
