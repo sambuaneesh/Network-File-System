@@ -822,3 +822,138 @@ void init_port_create_sock(int *sock, struct sockaddr_in *addr, const char *ip, 
 
     return;
 }
+
+int copy_file_for_dir(char* source_path, char* dest_path) {
+     char ch;
+     FILE* sourceFile = fopen(source_path, "r");
+    if (sourceFile == NULL) {
+       perror(RED "Error opening source file" RESET);
+        return 0;
+    }
+   
+    FILE* destinationFile = fopen(dest_path, "w");
+    if (destinationFile == NULL) {
+        perror(RED "Error opening destination file" RESET);
+       
+        fclose(sourceFile);
+        return 0;
+    }
+
+    while ((ch = fgetc(sourceFile) )!= EOF) {
+        fputc(ch, destinationFile);
+    }
+
+    printf(GREEN "File copied successfully!\n" RESET);
+
+    fclose(sourceFile);
+    fclose(destinationFile);
+    return 1;
+}
+
+
+int copy_file(char* source_path, char* dest_path){
+ char ch;
+ //getting the file name from source_path
+ char temp[1000];
+ int temp_ind=0;
+ int i=0;
+ for(i=strlen(source_path)-1;i>=0;i--){
+    if(source_path[i]=='/'){
+        i++;
+        break;
+    }
+ }
+ for(int j=i;j<strlen(source_path);j++){
+    temp[temp_ind]=source_path[j];
+    temp_ind++;
+ }
+ temp[temp_ind]='\0';
+     FILE* sourceFile = fopen(source_path, "r");
+    if (sourceFile == NULL) {
+       perror(RED "Error opening source file" RESET);
+        return 0;
+    }
+    strcat(dest_path,"/");
+    strcat(dest_path,temp);
+    //checking if the file already exists in dest_path
+   
+    if (access(dest_path, F_OK)!=-1) {
+        perror(RED "File Already Exists!" RESET);
+       
+        
+        return 0;
+    }
+    
+
+    FILE* destinationFile = fopen(dest_path, "w");
+    if (destinationFile == NULL) {
+        perror(RED "Error opening destination file" RESET);
+       
+        fclose(sourceFile);
+        return 0;
+    }
+
+    while ((ch = fgetc(sourceFile) )!= EOF) {
+        fputc(ch, destinationFile);
+    }
+
+    printf(GREEN "File copied successfully!\n" RESET);
+
+    fclose(sourceFile);
+    fclose(destinationFile);
+    return 1;
+}
+
+
+
+
+int copy_directory(char* source_path, char* dest_path) {
+  
+    DIR *dp = opendir(source_path);
+
+    if (dp == NULL) {
+        perror("Error opening source directory");
+        return 0;
+    }
+
+    // Create the destination directory if it doesn't exist
+    if (mkdir(dest_path, 0777) == -1) {
+        perror("Error creating destination directory");
+        return 0;
+    }
+
+    struct dirent *entry;
+
+    while ((entry = readdir(dp)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        char temp_source_path[1000];
+        char temp_dest_path[1000];
+
+        snprintf(temp_source_path, sizeof(temp_source_path), "%s/%s", source_path, entry->d_name);
+        snprintf(temp_dest_path, sizeof(temp_dest_path), "%s/%s", dest_path, entry->d_name);
+
+      //  printf("SRC: %s DEST: %s\n",temp_source_path,temp_dest_path);
+
+        struct stat st;
+        if (lstat(temp_source_path, &st) == -1) {
+            perror("Error getting file/directory information");
+            continue;
+        }
+
+        if (S_ISDIR(st.st_mode)) {
+           
+            copy_directory(temp_source_path, temp_dest_path);
+        } else {
+            
+            if (copy_file_for_dir(temp_source_path, temp_dest_path) == 0) {
+                printf("Failed to copy file: %s\n", temp_source_path);
+            }
+        }
+    }
+
+    closedir(dp);
+    return 1;
+}

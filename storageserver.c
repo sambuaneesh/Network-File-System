@@ -37,6 +37,7 @@ int main()
 
     // Defining variables for sending and recieving
     char file_path[MAX_FILE_PATH];
+    char file_path_dest[MAX_FILE_PATH];
     char command[2];
     int received;
     int i = 0;
@@ -214,6 +215,91 @@ int main()
             {
                 perror(RED "Error sending data" RESET);
             }
+        }
+        else if(strcmp(command,"4")==0){
+            if ((received = recv(naming_server_sock, &file_path, sizeof(file_path), 0)) == -1)
+            {
+                printf(RED "Error recieving data\n" RESET);
+                exit(0);
+            }
+            else
+            {
+                file_path[received] = '\0';
+            }
+
+            char *temp = (char *)malloc(sizeof(char) * 1000);
+            strcpy(temp, file_path);
+
+            if ((received = recv(naming_server_sock, &file_path_dest, sizeof(file_path_dest), 0)) == -1)
+            {
+                printf(RED "Error recieving data\n" RESET);
+                exit(0);
+            }
+            else
+            {
+                file_path_dest[received] = '\0';
+            }
+
+            char *temp2 = (char *)malloc(sizeof(char) * 1000);
+            strcpy(temp2, file_path_dest);
+
+            char option[10];
+
+            if ((received = recv(naming_server_sock, &option, sizeof(option), 0)) == -1)
+            {
+                printf(RED "Error recieving data\n" RESET);
+                exit(0);
+            }
+            else
+            {
+                option[received] = '\0';
+            }
+            int error;
+            if(strcmp(option,"1")==0){
+                 error = copy_file(file_path,file_path_dest);
+            }
+            else if(strcmp(option,"2")==0){
+                // error = copy_dir_helper(file_path,file_path_dest);
+                // if(error==1)
+
+                        char temp[1000];
+ int temp_ind=0;
+ int i=0;
+ for(i=strlen(file_path)-1;i>=0;i--){
+    if(file_path[i]=='/'){
+        i++;
+        break;
+    }
+ }
+ for(int j=i;j<strlen(file_path);j++){
+    temp[temp_ind]=file_path[j];
+    temp_ind++;
+ }
+ temp[temp_ind]='\0';
+ char* temp_dest = (char*)malloc(sizeof(char)*1000);
+ strcpy(temp_dest,file_path_dest);
+ strcat(temp_dest,"/");
+    strcat(temp_dest,temp);
+
+                error = copy_directory(file_path,temp_dest);
+            }
+            //if there is an error
+            if(error == 0){
+           int sent = send(naming_server_sock, "unsucessful", sizeof("unsucessful"), 0);
+            if (sent == -1)
+            {
+                perror(RED "Error sending data" RESET);
+            }
+            }
+            else{
+                int sent = send(naming_server_sock, "done", sizeof("done"), 0);
+            if (sent == -1)
+            {
+                perror(RED "Error sending data" RESET);
+            }
+            }
+
+            
         }
         else if (strcmp(command, "5") == 0) // Writing
         {

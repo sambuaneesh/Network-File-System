@@ -135,6 +135,7 @@ int main()
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
+                printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 continue;
             }
 
@@ -306,9 +307,131 @@ int main()
                     exit(1);
                 }
             }
+
         }
         else if (strcmp("4", opt) == 0)
         {
+              
+
+            // Receiving the path of the file/directory
+            char source_path[MAX_FILE_PATH];
+            char dest_path[MAX_FILE_PATH];
+            if ((recieved = recv(client_sock, &source_path, sizeof(source_path), 0)) == -1)
+            {
+                perror(RED "Not successful" RESET);
+                exit(0);
+            }
+            if ((recieved = recv(client_sock, &dest_path, sizeof(dest_path), 0)) == -1)
+            {
+                perror(RED "Not successful" RESET);
+                exit(0);
+            }
+
+            // Recieving the create option - 1 for file and 2 for directory
+            char copy_option[10];
+            if ((recieved = recv(client_sock, &copy_option, sizeof(copy_option), 0)) == -1)
+            {
+                perror(RED "Not successful" RESET);
+                exit(0);
+            }
+            //Checking if destination is accessible
+             storage_servers storage_server_details = check_if_path_in_ss(dest_path, 0);
+             
+            if (storage_server_details == NULL)
+            {
+                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
+
+                printf(RED "[-]Path not in list of accessible paths\n" RESET);
+                continue;
+            }
+            //Checking if source is accessible
+              storage_server_details = check_if_path_in_ss(source_path, 0);
+             
+            if (storage_server_details == NULL)
+            {
+                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
+
+                printf(RED "[-]Path not in list of accessible paths\n" RESET);
+                continue;
+            }
+            else
+            {
+                if (send(client_sock, "success", sizeof("success"), 0) == -1)
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
+            }
+
+            //Sending data to SS
+
+             connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
+            if (send(ns_sock, "4", sizeof("4"), 0) == -1)
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+
+            // Sending source path to the SS
+            if (send(ns_sock, source_path, sizeof(source_path), 0) == -1)
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+
+            // Sending destination path to the SS
+            if (send(ns_sock, dest_path, sizeof(dest_path), 0) == -1)
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+
+            //  Sending option to the SS
+            if (send(ns_sock, copy_option, sizeof(copy_option), 0) == -1)
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+             char success[25];
+            int success_message = 0;
+
+            if ((success_message = recv(ns_sock, &success, sizeof(success), 0)) == -1)
+            {
+                perror(RED "[-]Receive error\n" RESET);
+                return 1;
+            }
+            else
+                success[strlen(success)] = '\0';
+
+            if (strcmp(success, "done") == 0)
+            {
+                printf(GREEN "Copied Successfully!\n" RESET);
+                if (send(client_sock, success, sizeof(success), 0) == -1)
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
+            }
+            else
+            {
+                printf(RED "[-]%s\n" RESET, success);
+                perror(RED "[-]Copied unsuccessful\n" RESET);
+                if (send(client_sock, success, sizeof(success), 0) == -1)
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
+            }
+
+          
         }
         else if (strcmp("5", opt) == 0 || strcmp("6", opt) == 0 || strcmp("7", opt) == 0) // Write
         {

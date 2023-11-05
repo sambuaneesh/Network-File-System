@@ -100,6 +100,9 @@ int create_directory(char* file_path);
 int delete_file(char* file_path);
 int delete_directory(char* file_path);
 int delete_non_empty_dir(char *directory_name);
+int copy_file(char* source_path, char* dest_path);
+int copy_directory(char* source_path, char* dest_path);
+
 
 int Delete_from_path_file(char *file_path, char* storage_file);
 int Add_to_path_file(char *file_path, char* storage_file);
@@ -109,3 +112,5 @@ void connect_to_SS_from_client(int* sock, struct sockaddr_in* addr, char* ns_ip,
 void make_socket_non_blocking(int socket);
 void MakeSSsend_vital(int* naming_server_sock, char* ip, int* port_for_client, int* port_for_nm, char* paths_file);
 void init_port_create_sock(int *sock, struct sockaddr_in *addr, const char *ip, int port_num);
+
+int copy_file_for_dir(char* source_path, char* dest_path);
