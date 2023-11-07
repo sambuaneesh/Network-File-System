@@ -140,6 +140,7 @@ int main()
                 continue;
             }
 
+            printf("in here\n");
             if (Delete_Path(storage_server_details->files_and_dirs, file_path, storage_server_details->files_and_dirs->path) == -1)
             {
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)

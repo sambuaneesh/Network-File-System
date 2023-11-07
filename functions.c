@@ -123,7 +123,7 @@ void Del_Rec(Tree T)
     free(T);
 }
 
-int Delete_Path(Tree T, char *path, char* ss_dir)
+int Delete_Path(Tree T, char *path, char *ss_dir)
 {
     if (T == NULL)
         return -1;
@@ -188,8 +188,7 @@ storage_servers check_if_path_in_ss(char *file_path, int insert) // NULL if not 
             if (parent != NULL)
                 return traveller;
         }
-        else
-            traveller = traveller->next; // search till parent will def return a 0, so no point checking
+        traveller = traveller->next; // search till parent will def return a 0, so no point checking
 
         // Tree parent = Search_Till_Parent(traveller->files_and_dirs, file_path, insert);
         // if (parent != NULL)

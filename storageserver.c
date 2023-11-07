@@ -440,9 +440,10 @@ int main()
                 printf(RED "[-] Error receiving data\n" RESET);
                 exit(0);
             }
-            struct stat fileStat;
 
             // Getting file size
+            struct stat fileStat;
+            stat(file_path, &fileStat);
             off_t fileSize = fileStat.st_size;
             if (fileSize == 0)
             {
@@ -452,7 +453,6 @@ int main()
                     printf(RED "[-] Error sending data\n" RESET);
                     exit(0);
                 }
-
                 continue;
             }
 
