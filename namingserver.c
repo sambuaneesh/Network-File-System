@@ -140,24 +140,11 @@ int main()
                 continue;
             }
 
-            printf("in here\n");
-            if (Delete_Path(storage_server_details->files_and_dirs, file_path, storage_server_details->files_and_dirs->path) == -1)
-            {
-                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
-                {
-                    perror(RED "[-]Send error\n" RESET);
-                    exit(1);
-                }
-                printf(RED "[-]Path not in list of accessible paths\n" RESET);
-                continue;
-            }
             if (send(client_sock, "success", sizeof("success"), 0) == -1)
             {
                 perror(RED "[-]Send error\n" RESET);
                 exit(1);
             }
-
-            printf("Waiting for success message\n");
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
             if (send(ns_sock, "2", sizeof("2"), 0) == -1)
@@ -200,6 +187,16 @@ int main()
                 {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
+                }
+                if (Delete_Path(storage_server_details->files_and_dirs, file_path, storage_server_details->files_and_dirs->path) == -1)
+                {
+                    if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
+                    {
+                        perror(RED "[-]Send error\n" RESET);
+                        exit(1);
+                    }
+                    printf(RED "[-]Path not in list of accessible paths\n" RESET);
+                    continue;
                 }
             }
             else

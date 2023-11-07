@@ -133,7 +133,7 @@ int main()
                     del = 1;
             }
 
-            if (Delete_from_path_file(file_path, paths_file) == 0 && del == 0)
+            if (del == 0 && Delete_from_path_file(file_path, paths_file) == 0)
             {
                 printf(GREEN "Deleted Successfully!\n" RESET);
                 int sent = send(naming_server_sock, "done", sizeof("done"), 0);
@@ -461,7 +461,7 @@ int main()
             if (stat(file_path, &fileStat) == 0)
             {
                 // Storing file size in buffer
-                snprintf(buffer, sizeof(buffer), "File Size: %lld bytes\n", (long long)fileStat.st_size);
+                snprintf(buffer, sizeof(buffer), "\nFile Size: %lld bytes\n\n", (long long)fileStat.st_size);
 
                 // Owner permissions
                 if (fileStat.st_mode & S_IRUSR)
