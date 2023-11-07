@@ -102,6 +102,7 @@ int main()
 
         if (strcmp("1", opt) == 0)
         {
+            close_socket(&client_sock);
         }
         else if (strcmp("2", opt) == 0) // Deletion
         {
@@ -209,6 +210,7 @@ int main()
                     exit(1);
                 }
             }
+            close_socket(&ns_sock);
         }
         else if (strcmp("3", opt) == 0) // Creation
         {
@@ -307,11 +309,10 @@ int main()
                     exit(1);
                 }
             }
-
+            close_socket(&ns_sock);
         }
-        else if (strcmp("4", opt) == 0)
+        else if (strcmp("4", opt) == 0) // Copying files/directories
         {
-              
 
             // Receiving the path of the file/directory
             char source_path[MAX_FILE_PATH];
@@ -334,9 +335,9 @@ int main()
                 perror(RED "Not successful" RESET);
                 exit(0);
             }
-            //Checking if destination is accessible
-             storage_servers storage_server_details = check_if_path_in_ss(dest_path, 0);
-             
+            // Checking if destination is accessible
+            storage_servers storage_server_details = check_if_path_in_ss(dest_path, 0);
+
             if (storage_server_details == NULL)
             {
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
@@ -348,9 +349,9 @@ int main()
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 continue;
             }
-            //Checking if source is accessible
-              storage_server_details = check_if_path_in_ss(source_path, 0);
-             
+            // Checking if source is accessible
+            storage_server_details = check_if_path_in_ss(source_path, 0);
+
             if (storage_server_details == NULL)
             {
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
@@ -371,9 +372,9 @@ int main()
                 }
             }
 
-            //Sending data to SS
+            // Sending data to SS
 
-             connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
+            connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
             if (send(ns_sock, "4", sizeof("4"), 0) == -1)
             {
                 perror(RED "[-]Send error\n" RESET);
@@ -400,7 +401,7 @@ int main()
                 perror(RED "[-]Send error\n" RESET);
                 exit(1);
             }
-             char success[25];
+            char success[25];
             int success_message = 0;
 
             if ((success_message = recv(ns_sock, &success, sizeof(success), 0)) == -1)
@@ -430,8 +431,7 @@ int main()
                     exit(1);
                 }
             }
-
-          
+            close_socket(&ns_sock);
         }
         else if (strcmp("5", opt) == 0 || strcmp("6", opt) == 0 || strcmp("7", opt) == 0) // Write
         {
@@ -499,8 +499,8 @@ int main()
             close_socket(&ns_sock);
         }
     }
-    close_socket(&ns_sock);
-    close_socket(&client_sock);
+    // close_socket(&ns_sock); // Already being closed
+    // close_socket(&client_sock); // I am commenting this out because the client socket should already be closed
     close_socket(&nm_sock);
 
     return 0;

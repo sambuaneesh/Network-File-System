@@ -673,14 +673,14 @@ void connect_to_SS_from_client(int *sock, struct sockaddr_in *addr, char *ns_ip,
 int initialize_SS(int *ss_sock)
 {
     storage_servers vital_info = MakeNode_ss("", 1, 1);
-    char buffer[MAX_NUM_PATHS] = {'\0'};
+    char buffer_recv[MAX_NUM_PATHS + 20] = {'\0'};
     int size;
-    if ((size = recv(*ss_sock, buffer, sizeof(buffer), 0)) == -1)
-    {
-        perror(RED "[-]Receive error\n" RESET);
-        return -1;
-    }
-    buffer[size] = '\0';
+    // if ((size = recv(*ss_sock, buffer, sizeof(buffer), 0)) == -1)
+    // {
+    //     perror(RED "[-]Receive error\n" RESET);
+    //     return -1;
+    // }
+    // buffer[size] = '\0';
     if (recv(*ss_sock, &vital_info->ss_send->client_port, sizeof(vital_info->ss_send->client_port), 0) == -1)
     {
         printf(RED "[-]Receive error\n" RESET);
@@ -691,18 +691,34 @@ int initialize_SS(int *ss_sock)
         printf(RED "[-]Receive error\n" RESET);
         return -1;
     }
-    if ((size = recv(*ss_sock, &vital_info->ss_send->ip_addr, sizeof(vital_info->ss_send->ip_addr), 0)) == -1)
+    // if ((size = recv(*ss_sock, &vital_info->ss_send->ip_addr, sizeof(vital_info->ss_send->ip_addr), 0)) == -1)
+    // {
+    //     printf(RED "[-]Receive error\n" RESET);
+    //     return -1;
+    // }
+    if ((size = recv(*ss_sock, buffer_recv, sizeof(buffer_recv), 0)) == -1)
     {
-        printf(RED "[-]Receive error\n" RESET);
+        perror(RED "[-]Receive error\n" RESET);
         return -1;
     }
-    vital_info->ss_send->ip_addr[size] = '\0';
+    buffer_recv[size] = '\0';
+    char *to_tokenise = (char *)malloc(sizeof(char) * (MAX_NUM_PATHS + 20));
+    strcpy(to_tokenise, buffer_recv);
+    char buffer[MAX_NUM_PATHS] = {'\0'};
+    char *token = strtok_r(to_tokenise, ";", &to_tokenise);
+    strcpy(buffer, token);
+    token = strtok_r(NULL, ";", &to_tokenise);
+    strcpy(vital_info->ss_send->ip_addr, token);
 
-    // printf("Recieved vital info from SS\n");
-    // printf("Port for client: %d\n", vital_info->ss_send->client_port);
-    // printf("Port for NM: %d\n", vital_info->ss_send->server_port);
-    // printf("IP: %s\n", vital_info->ss_send->ip_addr);
-    // printf("Paths: %s\n", buffer);
+    {
+        // strcpy(vital_info->ss_send->ip_addr, buffer_recv + strlen(buffer) + 1);
+        // vital_info->ss_send->ip_addr[size] = '\0';
+        // printf("Recieved vital info from SS\n");
+        printf("Port for client: %d\n", vital_info->ss_send->client_port);
+        printf("Port for NM: %d\n", vital_info->ss_send->server_port);
+        printf("IP: %s\n", vital_info->ss_send->ip_addr);
+        printf("Paths: %s\n", buffer);
+    }
 
     FILE *file = fopen("namethatshallnotbeused.txt", "w");
     fputs(buffer, file);
@@ -720,9 +736,9 @@ int initialize_SS(int *ss_sock)
         // fclose(file2);
         // remove("temp.txt");
         // rename("temp1.txt", "temp.txt");
+        // listen_for_client(server_sock, client_sock, client_addr, addr_size);
     }
 
-    // listen_for_client(server_sock, client_sock, client_addr, addr_size);
     int num_storage_servers = 1;
     load_SS(vital_info->files_and_dirs, "namethatshallnotbeused.txt");
     vital_info->next = storage_server_list;
@@ -767,11 +783,6 @@ void MakeSSsend_vital(int *naming_server_sock, char *ip, int *port_for_client, i
     // buffer[len] = '\0';
     printf("Paths: %s\n", buffer);
 
-    if (send(*naming_server_sock, buffer, sizeof(buffer), 0) == -1)
-    {
-        perror(RED "[-]Error sending data" RESET);
-        exit(1);
-    }
     if (send(*naming_server_sock, port_for_client, sizeof(*port_for_client), 0) == -1)
     {
         perror(RED "[-]Error sending data" RESET);
@@ -782,7 +793,22 @@ void MakeSSsend_vital(int *naming_server_sock, char *ip, int *port_for_client, i
         perror(RED "[-]Error sending data" RESET);
         exit(1);
     }
-    if (send(*naming_server_sock, ip, sizeof(ip), 0) == -1)
+    char final_send[MAX_NUM_PATHS + 20] = {'\0'};
+    strcpy(final_send, buffer);
+    strcat(final_send, ";");
+    strcat(final_send, ip);
+    strcat(final_send, "\0");
+    // if (send(*naming_server_sock, buffer, sizeof(buffer), 0) == -1)
+    // {
+    //     perror(RED "[-]Error sending data" RESET);
+    //     exit(1);
+    // }
+    // if (send(*naming_server_sock, ip, sizeof(ip), 0) == -1)
+    // {
+    //     perror(RED "[-]Error sending data" RESET);
+    //     exit(1);
+    // }
+    if (send(*naming_server_sock, final_send, sizeof(final_send), 0) == -1)
     {
         perror(RED "[-]Error sending data" RESET);
         exit(1);
@@ -823,23 +849,27 @@ void init_port_create_sock(int *sock, struct sockaddr_in *addr, const char *ip, 
     return;
 }
 
-int copy_file_for_dir(char* source_path, char* dest_path) {
-     char ch;
-     FILE* sourceFile = fopen(source_path, "r");
-    if (sourceFile == NULL) {
-       perror(RED "Error opening source file" RESET);
+int copy_file_for_dir(char *source_path, char *dest_path)
+{
+    char ch;
+    FILE *sourceFile = fopen(source_path, "r");
+    if (sourceFile == NULL)
+    {
+        perror(RED "Error opening source file" RESET);
         return 0;
     }
-   
-    FILE* destinationFile = fopen(dest_path, "w");
-    if (destinationFile == NULL) {
+
+    FILE *destinationFile = fopen(dest_path, "w");
+    if (destinationFile == NULL)
+    {
         perror(RED "Error opening destination file" RESET);
-       
+
         fclose(sourceFile);
         return 0;
     }
 
-    while ((ch = fgetc(sourceFile) )!= EOF) {
+    while ((ch = fgetc(sourceFile)) != EOF)
+    {
         fputc(ch, destinationFile);
     }
 
@@ -850,50 +880,55 @@ int copy_file_for_dir(char* source_path, char* dest_path) {
     return 1;
 }
 
-
-int copy_file(char* source_path, char* dest_path){
- char ch;
- //getting the file name from source_path
- char temp[1000];
- int temp_ind=0;
- int i=0;
- for(i=strlen(source_path)-1;i>=0;i--){
-    if(source_path[i]=='/'){
-        i++;
-        break;
+int copy_file(char *source_path, char *dest_path)
+{
+    char ch;
+    // getting the file name from source_path
+    char temp[1000];
+    int temp_ind = 0;
+    int i = 0;
+    for (i = strlen(source_path) - 1; i >= 0; i--)
+    {
+        if (source_path[i] == '/')
+        {
+            i++;
+            break;
+        }
     }
- }
- for(int j=i;j<strlen(source_path);j++){
-    temp[temp_ind]=source_path[j];
-    temp_ind++;
- }
- temp[temp_ind]='\0';
-     FILE* sourceFile = fopen(source_path, "r");
-    if (sourceFile == NULL) {
-       perror(RED "Error opening source file" RESET);
+    for (int j = i; j < strlen(source_path); j++)
+    {
+        temp[temp_ind] = source_path[j];
+        temp_ind++;
+    }
+    temp[temp_ind] = '\0';
+    FILE *sourceFile = fopen(source_path, "r");
+    if (sourceFile == NULL)
+    {
+        perror(RED "Error opening source file" RESET);
         return 0;
     }
-    strcat(dest_path,"/");
-    strcat(dest_path,temp);
-    //checking if the file already exists in dest_path
-   
-    if (access(dest_path, F_OK)!=-1) {
+    strcat(dest_path, "/");
+    strcat(dest_path, temp);
+    // checking if the file already exists in dest_path
+
+    if (access(dest_path, F_OK) != -1)
+    {
         perror(RED "File Already Exists!" RESET);
-       
-        
+
         return 0;
     }
-    
 
-    FILE* destinationFile = fopen(dest_path, "w");
-    if (destinationFile == NULL) {
+    FILE *destinationFile = fopen(dest_path, "w");
+    if (destinationFile == NULL)
+    {
         perror(RED "Error opening destination file" RESET);
-       
+
         fclose(sourceFile);
         return 0;
     }
 
-    while ((ch = fgetc(sourceFile) )!= EOF) {
+    while ((ch = fgetc(sourceFile)) != EOF)
+    {
         fputc(ch, destinationFile);
     }
 
@@ -904,28 +939,30 @@ int copy_file(char* source_path, char* dest_path){
     return 1;
 }
 
+int copy_directory(char *source_path, char *dest_path)
+{
 
-
-
-int copy_directory(char* source_path, char* dest_path) {
-  
     DIR *dp = opendir(source_path);
 
-    if (dp == NULL) {
+    if (dp == NULL)
+    {
         perror("Error opening source directory");
         return 0;
     }
 
     // Create the destination directory if it doesn't exist
-    if (mkdir(dest_path, 0777) == -1) {
+    if (mkdir(dest_path, 0777) == -1)
+    {
         perror("Error creating destination directory");
         return 0;
     }
 
     struct dirent *entry;
 
-    while ((entry = readdir(dp)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+    while ((entry = readdir(dp)) != NULL)
+    {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+        {
             continue;
         }
 
@@ -935,20 +972,25 @@ int copy_directory(char* source_path, char* dest_path) {
         snprintf(temp_source_path, sizeof(temp_source_path), "%s/%s", source_path, entry->d_name);
         snprintf(temp_dest_path, sizeof(temp_dest_path), "%s/%s", dest_path, entry->d_name);
 
-      //  printf("SRC: %s DEST: %s\n",temp_source_path,temp_dest_path);
+        //  printf("SRC: %s DEST: %s\n",temp_source_path,temp_dest_path);
 
         struct stat st;
-        if (lstat(temp_source_path, &st) == -1) {
+        if (lstat(temp_source_path, &st) == -1)
+        {
             perror("Error getting file/directory information");
             continue;
         }
 
-        if (S_ISDIR(st.st_mode)) {
-           
+        if (S_ISDIR(st.st_mode))
+        {
+
             copy_directory(temp_source_path, temp_dest_path);
-        } else {
-            
-            if (copy_file_for_dir(temp_source_path, temp_dest_path) == 0) {
+        }
+        else
+        {
+
+            if (copy_file_for_dir(temp_source_path, temp_dest_path) == 0)
+            {
                 printf("Failed to copy file: %s\n", temp_source_path);
             }
         }

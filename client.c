@@ -20,7 +20,7 @@ int main()
         int option = -1;
         {
             printf(CYAN "\nDo you want to:\n");
-            // printf("1. Connect to a storage server     (enter 1)\n");
+            printf("1. Exit from program               (enter 1)\n");
             printf("2. Delete a File/Directory         (enter 2)\n");
             printf("3. Create an Empty File/Directory  (enter 3)\n");
             printf("4. Copy Files/Directories          (enter 4)\n");
@@ -31,13 +31,14 @@ int main()
 
         scanf("%d", &option);
 
-        if (option == 1)
+        if (option == 1) // Exiting from the program
         {
             if (send(naming_server_sock, "1", strlen("1"), 0) == -1)
             {
                 perror("[-]Send error");
                 exit(1);
             }
+            exit(0);
         }
         else if (option == 2) // Deletion
         {
@@ -161,7 +162,7 @@ int main()
         }
         else if (option == 4)
         {
-              char option_client[2] = "4";
+            char option_client[2] = "4";
             option_client[strlen(option_client)] = '\0';
 
             // Send option to NS
@@ -192,7 +193,7 @@ int main()
                 perror(RED "[-] Send error\n" RESET);
                 exit(1);
             }
-             // Send the  destination path to NS
+            // Send the  destination path to NS
             if (send(naming_server_sock, dest_path, sizeof(dest_path), 0) == -1)
             {
                 perror(RED "[-] Send error\n" RESET);
@@ -205,7 +206,7 @@ int main()
                 exit(1);
             }
 
-             char mid_ack[10];
+            char mid_ack[10];
             if (recv(naming_server_sock, mid_ack, sizeof(mid_ack), 0) == -1)
             {
                 printf(RED "[-]Receive error\n" RESET);
@@ -217,7 +218,7 @@ int main()
                 continue;
             }
 
-             // recieve success or error message from NS
+            // recieve success or error message from NS
             char success[25];
             if (recv(naming_server_sock, success, sizeof(success), 0) == -1)
             {
@@ -228,7 +229,6 @@ int main()
                 printf(GREEN "Copied Successfully!\n" RESET);
             else
                 printf(RED "Error copying file/directory\n" RESET);
-
         }
         else if (option == 5) // Write
         {
@@ -421,11 +421,11 @@ int main()
                 perror(RED "Error receiving data" RESET);
                 exit(0);
             }
-            if(strcmp(permission, "failed") == 0)
+            if (strcmp(permission, "failed") == 0)
             {
                 printf(RED "File does not exist\n" RESET);
                 continue;
-            }   
+            }
             printf("\n");
             printf(YELLOW "%s" RESET, permission);
 
