@@ -160,7 +160,7 @@ int main()
             else
                 printf(RED "Error creating file/directory\n" RESET);
         }
-        else if (option == 4)
+        else if (option == 4) // Copying paths
         {
             char option_client[2] = "4";
             option_client[strlen(option_client)] = '\0';

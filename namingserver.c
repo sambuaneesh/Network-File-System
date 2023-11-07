@@ -140,7 +140,7 @@ int main()
                 continue;
             }
 
-            if (Delete_Path(storage_server_details->files_and_dirs, file_path) == -1)
+            if (Delete_Path(storage_server_details->files_and_dirs, file_path, storage_server_details->files_and_dirs->path) == -1)
             {
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
                 {
@@ -313,7 +313,6 @@ int main()
         }
         else if (strcmp("4", opt) == 0) // Copying files/directories
         {
-
             // Receiving the path of the file/directory
             char source_path[MAX_FILE_PATH];
             char dest_path[MAX_FILE_PATH];
@@ -335,9 +334,9 @@ int main()
                 perror(RED "Not successful" RESET);
                 exit(0);
             }
+
             // Checking if destination is accessible
             storage_servers storage_server_details = check_if_path_in_ss(dest_path, 0);
-
             if (storage_server_details == NULL)
             {
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
@@ -349,9 +348,9 @@ int main()
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 continue;
             }
+
             // Checking if source is accessible
             storage_server_details = check_if_path_in_ss(source_path, 0);
-
             if (storage_server_details == NULL)
             {
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
@@ -365,7 +364,7 @@ int main()
             }
             else
             {
-                if (send(client_sock, "success", sizeof("success"), 0) == -1)
+                if (send(client_sock, "success", sizeof("success"), 0) == -1) // mid ack
                 {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
@@ -373,7 +372,6 @@ int main()
             }
 
             // Sending data to SS
-
             connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
             if (send(ns_sock, "4", sizeof("4"), 0) == -1)
             {
@@ -423,8 +421,8 @@ int main()
             }
             else
             {
-                printf(RED "[-]%s\n" RESET, success);
-                perror(RED "[-]Copied unsuccessful\n" RESET);
+                printf(RED "[-] %s\n" RESET, success);
+                perror(RED "[-]Copy unsuccessful\n" RESET);
                 if (send(client_sock, success, sizeof(success), 0) == -1)
                 {
                     perror(RED "[-]Send error\n" RESET);

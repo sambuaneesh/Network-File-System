@@ -41,7 +41,7 @@ Tree Insert(Tree parent, char *path)
     return parent;
 }
 
-Tree Search_Till_Parent(Tree T, char *path, int insert)
+Tree Search_Till_Parent(Tree T, char *path, int insert) // insert == 1 => you can create a new path
 {
     Tree parent = T;
     Tree traveller = parent->first_child;
@@ -123,11 +123,16 @@ void Del_Rec(Tree T)
     free(T);
 }
 
-int Delete_Path(Tree T, char *path)
+int Delete_Path(Tree T, char *path, char* ss_dir)
 {
     if (T == NULL)
         return -1;
-    Tree traveller = Search_Till_Parent(T, path, 0);
+
+    char line[MAX_FILE_PATH] = {'\0'};
+    strcpy(line, path);
+    printf("line: %s\n", line);
+    memmove(line, line + strlen(ss_dir), strlen(line) - strlen(ss_dir) + 1);
+    Tree traveller = Search_Till_Parent(T, line, 0);
     if (traveller == NULL)
     {
         printf(RED "Path not found\n" RESET);
@@ -154,22 +159,54 @@ storage_servers check_if_path_in_ss(char *file_path, int insert) // NULL if not 
     storage_servers traveller = storage_server_list;
     while (traveller != NULL)
     {
-        Tree parent = Search_Till_Parent(traveller->files_and_dirs, file_path, insert);
-        if (parent != NULL)
-            return traveller;
-        traveller = traveller->next;
+        // adding code here to find if the tree is the tree at all by checking prefix
+        /*
+        effective change made:
+        the root is no longer '.', it is path of the ss dir
+        for searching, you comapare if path of ss is a prefix of path entered by the user
+        then Search till parent
+
+        What to do if the path enntered by user = path of ss?
+        It is acceptable, but what will search till parent do?
+        path_to_look_for will be a null string, in which case,
+        return traveller
+
+        Should work...
+        */
+        char ss_dir[MAX_FILE_PATH] = {'\0'};
+        strcpy(ss_dir, traveller->files_and_dirs->path);
+        if (strncmp(file_path, ss_dir, strlen(ss_dir)) == 0) // this means that this may be the ss
+        {
+            if (strcmp(file_path, ss_dir) == 0)
+                return traveller;
+
+            char path_to_look_for[MAX_FILE_PATH] = {'\0'};
+            strcpy(path_to_look_for, file_path);
+            memmove(path_to_look_for, path_to_look_for + strlen(ss_dir), strlen(path_to_look_for) - strlen(ss_dir) + 1);
+
+            Tree parent = Search_Till_Parent(traveller->files_and_dirs, path_to_look_for, insert);
+            if (parent != NULL)
+                return traveller;
+        }
+        else
+            traveller = traveller->next; // search till parent will def return a 0, so no point checking
+
+        // Tree parent = Search_Till_Parent(traveller->files_and_dirs, file_path, insert);
+        // if (parent != NULL)
+        //     return traveller;
+        // traveller = traveller->next;
     }
     return NULL;
 }
 
-storage_servers MakeNode_ss(char *ip_addr, int client_port, int server_port)
+storage_servers MakeNode_ss(char *ip_addr, int client_port, int server_port, char *init_path)
 {
     storage_servers new = (storage_servers)malloc(sizeof(ss));
     new->ss_send = (ss_send *)malloc(sizeof(ss_send));
     strcpy(new->ss_send->ip_addr, ip_addr);
     new->ss_send->client_port = client_port;
     new->ss_send->server_port = server_port;
-    new->files_and_dirs = MakeNode(".");
+    new->files_and_dirs = MakeNode(init_path);
     new->next = NULL;
 
     return new;
@@ -246,9 +283,9 @@ int Delete_from_path_file(char *file_path, char *storage_file)
     return 0;
 }
 
-void load_SS(Tree T, char *file_name)
+void load_SS(Tree T, char *file_name, char *ss_dir)
 {
-    char line[1024];
+    char line[MAX_FILE_PATH];
     FILE *file = fopen(file_name, "r");
 
     if (file == NULL)
@@ -266,6 +303,13 @@ void load_SS(Tree T, char *file_name)
             line[len] = '\0'; // Replace newline with null-terminator
         }
 
+        // removing the first part of path. i.e, the part that is the same as the
+        // path of ss
+        memmove(line, line + strlen(ss_dir), strlen(line) - strlen(ss_dir) + 1);
+        printf("line: %s\n", line);
+        printf("dir: %s\n", ss_dir);
+        if (strlen(line) == 0)
+            continue;
         T = Search_Till_Parent(T, line, 1);
     }
 
@@ -672,48 +716,50 @@ void connect_to_SS_from_client(int *sock, struct sockaddr_in *addr, char *ns_ip,
 
 int initialize_SS(int *ss_sock)
 {
-    storage_servers vital_info = MakeNode_ss("", 1, 1);
+    int client_port;
+    int server_port;
+
     char buffer_recv[MAX_NUM_PATHS + 20] = {'\0'};
     int size;
-    // if ((size = recv(*ss_sock, buffer, sizeof(buffer), 0)) == -1)
-    // {
-    //     perror(RED "[-]Receive error\n" RESET);
-    //     return -1;
-    // }
-    // buffer[size] = '\0';
-    if (recv(*ss_sock, &vital_info->ss_send->client_port, sizeof(vital_info->ss_send->client_port), 0) == -1)
+
+    if (recv(*ss_sock, &client_port, sizeof(client_port), 0) == -1)
     {
         printf(RED "[-]Receive error\n" RESET);
         return -1;
     }
-    if (recv(*ss_sock, &vital_info->ss_send->server_port, sizeof(vital_info->ss_send->server_port), 0) == -1)
+    if (recv(*ss_sock, &server_port, sizeof(server_port), 0) == -1)
     {
         printf(RED "[-]Receive error\n" RESET);
         return -1;
     }
-    // if ((size = recv(*ss_sock, &vital_info->ss_send->ip_addr, sizeof(vital_info->ss_send->ip_addr), 0)) == -1)
-    // {
-    //     printf(RED "[-]Receive error\n" RESET);
-    //     return -1;
-    // }
     if ((size = recv(*ss_sock, buffer_recv, sizeof(buffer_recv), 0)) == -1)
     {
         perror(RED "[-]Receive error\n" RESET);
         return -1;
     }
     buffer_recv[size] = '\0';
+
+    char path_of_ss[MAX_FILE_PATH];
     char *to_tokenise = (char *)malloc(sizeof(char) * (MAX_NUM_PATHS + 20));
     strcpy(to_tokenise, buffer_recv);
     char buffer[MAX_NUM_PATHS] = {'\0'};
     char *token = strtok_r(to_tokenise, ";", &to_tokenise);
     strcpy(buffer, token);
     token = strtok_r(NULL, ";", &to_tokenise);
-    strcpy(vital_info->ss_send->ip_addr, token);
+
+    char ip[20] = {'\0'};
+    strcpy(ip, token);
+    token = strtok_r(NULL, ";", &to_tokenise);
+    strcpy(path_of_ss, token);
+    // printf("pathhhhhh: %s\n", path_of_ss);
+    // path_of_ss[sizeof(token)] = '\0';
+
+    storage_servers vital_info = MakeNode_ss(path_of_ss, 1, 1, path_of_ss);
+    vital_info->ss_send->client_port = client_port;
+    vital_info->ss_send->server_port = server_port;
+    strcpy(vital_info->ss_send->ip_addr, ip);
 
     {
-        // strcpy(vital_info->ss_send->ip_addr, buffer_recv + strlen(buffer) + 1);
-        // vital_info->ss_send->ip_addr[size] = '\0';
-        // printf("Recieved vital info from SS\n");
         printf("Port for client: %d\n", vital_info->ss_send->client_port);
         printf("Port for NM: %d\n", vital_info->ss_send->server_port);
         printf("IP: %s\n", vital_info->ss_send->ip_addr);
@@ -724,23 +770,8 @@ int initialize_SS(int *ss_sock)
     fputs(buffer, file);
     fclose(file);
 
-    {
-        // char buffer2[15]= {'\0'};
-        // file = fopen("temp.txt", "r");
-        // FILE *file2 = fopen("temp1.txt", "w");
-        // fgets(buffer2, sizeof(buffer2), file);
-        // while (fgets(buffer2, sizeof(buffer2), file) != NULL)
-        //     fputs(buffer2, file2);
-
-        // fclose(file);
-        // fclose(file2);
-        // remove("temp.txt");
-        // rename("temp1.txt", "temp.txt");
-        // listen_for_client(server_sock, client_sock, client_addr, addr_size);
-    }
-
     int num_storage_servers = 1;
-    load_SS(vital_info->files_and_dirs, "namethatshallnotbeused.txt");
+    load_SS(vital_info->files_and_dirs, "namethatshallnotbeused.txt", path_of_ss);
     vital_info->next = storage_server_list;
     storage_server_list = vital_info;
     remove("namethatshallnotbeused.txt");
@@ -780,7 +811,6 @@ void MakeSSsend_vital(int *naming_server_sock, char *ip, int *port_for_client, i
         perror(RED "[-] File reading error" RESET);
         exit(1);
     }
-    // buffer[len] = '\0';
     printf("Paths: %s\n", buffer);
 
     if (send(*naming_server_sock, port_for_client, sizeof(*port_for_client), 0) == -1)
@@ -793,21 +823,24 @@ void MakeSSsend_vital(int *naming_server_sock, char *ip, int *port_for_client, i
         perror(RED "[-]Error sending data" RESET);
         exit(1);
     }
-    char final_send[MAX_NUM_PATHS + 20] = {'\0'};
+
+    char current_dir[MAX_FILE_PATH];
+    if (getcwd(current_dir, sizeof(current_dir)) == NULL)
+    {
+        perror("[-] getcwd error");
+        exit(1);
+    }
+
+    // printf("curr %s\n", current_dir);
+
+    char final_send[MAX_NUM_PATHS + 20 + MAX_FILE_PATH] = {'\0'};
     strcpy(final_send, buffer);
     strcat(final_send, ";");
     strcat(final_send, ip);
+    strcat(final_send, ";");
+    strcat(final_send, current_dir);
     strcat(final_send, "\0");
-    // if (send(*naming_server_sock, buffer, sizeof(buffer), 0) == -1)
-    // {
-    //     perror(RED "[-]Error sending data" RESET);
-    //     exit(1);
-    // }
-    // if (send(*naming_server_sock, ip, sizeof(ip), 0) == -1)
-    // {
-    //     perror(RED "[-]Error sending data" RESET);
-    //     exit(1);
-    // }
+
     if (send(*naming_server_sock, final_send, sizeof(final_send), 0) == -1)
     {
         perror(RED "[-]Error sending data" RESET);

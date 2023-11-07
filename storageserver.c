@@ -79,7 +79,7 @@ int main()
             command[received] = '\0';
         }
 
-        if (strcmp(command, "1") == 0) // Initialisation
+        if (strcmp(command, "1") == 0) // Must be an invalid option, cause we now use it for exit, right??
         {
             // NISHITA
             // printf("File contents:\n%s\n", buffer);
@@ -216,7 +216,8 @@ int main()
                 perror(RED "Error sending data" RESET);
             }
         }
-        else if(strcmp(command,"4")==0){
+        else if (strcmp(command, "4") == 0) // Copying files and dirs
+        {
             if ((received = recv(naming_server_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
                 printf(RED "Error recieving data\n" RESET);
@@ -255,51 +256,56 @@ int main()
                 option[received] = '\0';
             }
             int error;
-            if(strcmp(option,"1")==0){
-                 error = copy_file(file_path,file_path_dest);
+            if (strcmp(option, "1") == 0)
+            {
+                error = copy_file(file_path, file_path_dest);
             }
-            else if(strcmp(option,"2")==0){
+            else if (strcmp(option, "2") == 0)
+            {
                 // error = copy_dir_helper(file_path,file_path_dest);
                 // if(error==1)
 
-                        char temp[1000];
- int temp_ind=0;
- int i=0;
- for(i=strlen(file_path)-1;i>=0;i--){
-    if(file_path[i]=='/'){
-        i++;
-        break;
-    }
- }
- for(int j=i;j<strlen(file_path);j++){
-    temp[temp_ind]=file_path[j];
-    temp_ind++;
- }
- temp[temp_ind]='\0';
- char* temp_dest = (char*)malloc(sizeof(char)*1000);
- strcpy(temp_dest,file_path_dest);
- strcat(temp_dest,"/");
-    strcat(temp_dest,temp);
+                char temp[1000];
+                int temp_ind = 0;
+                int i = 0;
+                for (i = strlen(file_path) - 1; i >= 0; i--)
+                {
+                    if (file_path[i] == '/')
+                    {
+                        i++;
+                        break;
+                    }
+                }
+                for (int j = i; j < strlen(file_path); j++)
+                {
+                    temp[temp_ind] = file_path[j];
+                    temp_ind++;
+                }
+                temp[temp_ind] = '\0';
+                char *temp_dest = (char *)malloc(sizeof(char) * 1000);
+                strcpy(temp_dest, file_path_dest);
+                strcat(temp_dest, "/");
+                strcat(temp_dest, temp);
 
-                error = copy_directory(file_path,temp_dest);
+                error = copy_directory(file_path, temp_dest);
             }
-            //if there is an error
-            if(error == 0){
-           int sent = send(naming_server_sock, "unsucessful", sizeof("unsucessful"), 0);
-            if (sent == -1)
+            // if there is an error
+            if (error == 0)
             {
-                perror(RED "Error sending data" RESET);
+                int sent = send(naming_server_sock, "unsucessful", sizeof("unsucessful"), 0);
+                if (sent == -1)
+                {
+                    perror(RED "Error sending data" RESET);
+                }
             }
-            }
-            else{
+            else
+            {
                 int sent = send(naming_server_sock, "done", sizeof("done"), 0);
-            if (sent == -1)
-            {
-                perror(RED "Error sending data" RESET);
+                if (sent == -1)
+                {
+                    perror(RED "Error sending data" RESET);
+                }
             }
-            }
-
-            
         }
         else if (strcmp(command, "5") == 0) // Writing
         {
@@ -309,10 +315,8 @@ int main()
                 exit(0);
             }
             else
-            {
                 printf("[+]Client connected.\n");
-            }
-            printf("in here\n");
+            // printf("in here\n");
 
             char file_path[100];
             // Getting file path from client
@@ -507,7 +511,7 @@ int main()
                     exit(0);
                 }
 
-                printf("Permissions Sent Successfully!\n");
+                printf(GREEN "Permissions Sent Successfully!\n" RESET);
             }
             else
             {
