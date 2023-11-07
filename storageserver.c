@@ -256,8 +256,10 @@ int main()
                 option[received] = '\0';
             }
             int error;
+            printf("%s-----\n", option);
             if (strcmp(option, "1") == 0)
             {
+                printf("uyg\n");
                 error = copy_file(file_path, file_path_dest);
             }
             else if (strcmp(option, "2") == 0)

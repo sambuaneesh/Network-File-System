@@ -130,7 +130,6 @@ int Delete_Path(Tree T, char *path, char *ss_dir)
 
     char line[MAX_FILE_PATH] = {'\0'};
     strcpy(line, path);
-    printf("line: %s\n", line);
     memmove(line, line + strlen(ss_dir), strlen(line) - strlen(ss_dir) + 1);
     Tree traveller = Search_Till_Parent(T, line, 0);
     if (traveller == NULL)
@@ -304,9 +303,10 @@ void load_SS(Tree T, char *file_name, char *ss_dir)
 
         // removing the first part of path. i.e, the part that is the same as the
         // path of ss
+        // printf("%s loool\n", ss_dir);
+        if (line[0] == '\0')
+            continue;
         memmove(line, line + strlen(ss_dir), strlen(line) - strlen(ss_dir) + 1);
-        printf("line: %s\n", line);
-        printf("dir: %s\n", ss_dir);
         if (strlen(line) == 0)
             continue;
         T = Search_Till_Parent(T, line, 1);
@@ -766,6 +766,8 @@ int initialize_SS(int *ss_sock)
     }
 
     FILE *file = fopen("namethatshallnotbeused.txt", "w");
+    if (file == NULL)
+        perror("[-] File opening error");
     fputs(buffer, file);
     fclose(file);
 
@@ -905,7 +907,7 @@ int copy_file_for_dir(char *source_path, char *dest_path)
         fputc(ch, destinationFile);
     }
 
-    printf(GREEN "File copied successfully!\n" RESET);
+    // printf(GREEN "File copied successfully!\n" RESET);
 
     fclose(sourceFile);
     fclose(destinationFile);
@@ -973,7 +975,6 @@ int copy_file(char *source_path, char *dest_path)
 
 int copy_directory(char *source_path, char *dest_path)
 {
-
     DIR *dp = opendir(source_path);
 
     if (dp == NULL)
@@ -994,9 +995,7 @@ int copy_directory(char *source_path, char *dest_path)
     while ((entry = readdir(dp)) != NULL)
     {
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-        {
             continue;
-        }
 
         char temp_source_path[1000];
         char temp_dest_path[1000];
@@ -1013,18 +1012,22 @@ int copy_directory(char *source_path, char *dest_path)
             continue;
         }
 
+        printf("pathhhhh: %s\n", temp_source_path);
+        if (check_if_path_in_ss(temp_source_path, 0) == NULL)
+        {
+            printf("jydf\n");
+            continue;
+        }
         if (S_ISDIR(st.st_mode))
         {
-
             copy_directory(temp_source_path, temp_dest_path);
         }
         else
         {
-
+            if (check_if_path_in_ss(temp_source_path, 0) == NULL)
+                continue;
             if (copy_file_for_dir(temp_source_path, temp_dest_path) == 0)
-            {
                 printf("Failed to copy file: %s\n", temp_source_path);
-            }
         }
     }
 

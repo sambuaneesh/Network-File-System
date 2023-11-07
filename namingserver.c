@@ -48,7 +48,7 @@ int main()
             {
                 printf("role is %d\n", role);
                 something_connect = 1;
-                if (role == 1)
+                if (role == 1) // SS
                 {
                     num_ss++;
                     if (initialize_SS(&ss_sock) == -1)
@@ -60,7 +60,7 @@ int main()
                     close_socket(&ss_sock);
                     continue;
                 }
-                else if (role == 2)
+                else if (role == 2) // Client
                 {
                     client_sock = ss_sock;
                     client_addr = ss_addr;
@@ -300,7 +300,7 @@ int main()
             else
             {
                 printf(RED "[-]%s\n" RESET, success);
-                perror(RED "[-]Creation unsuccessful\n" RESET);
+                perror(RED "[-]Creation unsuccessful" RESET);
                 if (send(client_sock, success, sizeof(success), 0) == -1)
                 {
                     perror(RED "[-]Send error\n" RESET);
@@ -501,3 +501,19 @@ int main()
 
     return 0;
 }
+
+
+/*
+
+nm
+ss1
+ss2
+
+nm - ss1
+nm - ss2
+
+create ss1
+read ss2
+write ss2
+
+*/
