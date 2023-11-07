@@ -182,7 +182,7 @@ storage_servers check_if_path_in_ss(char *file_path, int insert) // NULL if not 
             char path_to_look_for[MAX_FILE_PATH] = {'\0'};
             strcpy(path_to_look_for, file_path);
             memmove(path_to_look_for, path_to_look_for + strlen(ss_dir), strlen(path_to_look_for) - strlen(ss_dir) + 1);
-
+            printf("----%s\n", path_to_look_for);
             Tree parent = Search_Till_Parent(traveller->files_and_dirs, path_to_look_for, insert);
             if (parent != NULL)
                 return traveller;
@@ -916,6 +916,7 @@ int copy_file_for_dir(char *source_path, char *dest_path)
 
 int copy_file(char *source_path, char *dest_path)
 {
+    printf("uysg\n");
     char ch;
     // getting the file name from source_path
     char temp[1000];
