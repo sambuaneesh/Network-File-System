@@ -155,6 +155,7 @@ int Delete_Path(Tree T, char *path, char *ss_dir)
 
 storage_servers check_if_path_in_ss(char *file_path, int insert) // NULL if not found else returns the parent depending on value of insert
 {
+    //printf("here\n");
     storage_servers traveller = storage_server_list;
     while (traveller != NULL)
     {
@@ -304,7 +305,7 @@ void load_SS(Tree T, char *file_name, char *ss_dir)
         // removing the first part of path. i.e, the part that is the same as the
         // path of ss
         // printf("%s loool\n", ss_dir);
-        if (line[0] == '\0')
+        if (line[len] == '\0' || line[0]=='\0' || strlen(line) - strlen(ss_dir)<0)
             continue;
         memmove(line, line + strlen(ss_dir), strlen(line) - strlen(ss_dir) + 1);
         if (strlen(line) == 0)
@@ -974,7 +975,7 @@ int copy_file(char *source_path, char *dest_path)
     return 1;
 }
 
-int copy_directory(char *source_path, char *dest_path)
+int copy_directory(char *source_path, char *dest_path,char* buffer,char* path_file)
 {
     DIR *dp = opendir(source_path);
 
@@ -1013,6 +1014,11 @@ int copy_directory(char *source_path, char *dest_path)
             continue;
         }
 
+        // FILE* checkpath = fopen(path_file);
+        // if(checkpath==NULL){
+        //     perror(RED"Error Opening Path"RESET);
+        // }
+
         printf("pathhhhh: %s\n", temp_source_path);
         if (check_if_path_in_ss(temp_source_path, 0) == NULL)
         {
@@ -1021,7 +1027,7 @@ int copy_directory(char *source_path, char *dest_path)
         }
         if (S_ISDIR(st.st_mode))
         {
-            copy_directory(temp_source_path, temp_dest_path);
+            copy_directory(temp_source_path, temp_dest_path,buffer,path_file);
         }
         else
         {
@@ -1034,4 +1040,23 @@ int copy_directory(char *source_path, char *dest_path)
 
     closedir(dp);
     return 1;
+}
+
+void get_full_path(char* path, char* buffer) {
+    char temp[1000];
+    int temp_ind = 0;
+    int i;
+    for(i=1;i<strlen(path);i++){
+        if(path[i]=='/'){
+            i++;
+            break;
+        }
+    }
+    for(int j=i;j<strlen(path);j++){
+    temp[temp_ind]=path[j];
+    temp_ind++;
+    }
+    temp[temp_ind]='\0';
+    strcat(buffer,temp);
+    return;
 }

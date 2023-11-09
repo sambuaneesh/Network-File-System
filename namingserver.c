@@ -98,7 +98,8 @@ int main()
             close(client_sock);
             break;
         }
-        opt[strlen(opt)] = '\0';
+        opt[recieved] = '\0';
+        printf("option %s\n", opt);
 
         if (strcmp("1", opt) == 0)
         {
@@ -169,7 +170,7 @@ int main()
             }
 
             // Checking if creation was successful
-            char success[20];
+            char success[200];
             int success_message = 0;
 
             if ((success_message = recv(ns_sock, &success, sizeof(success), 0)) == -1)
@@ -201,7 +202,7 @@ int main()
             }
             else
             {
-                printf(RED "[-]Deletion unsuccessful\n" RESET);
+                printf(RED "%s\n" RESET,success);
                 if (send(client_sock, success, sizeof(success), 0) == -1)
                 {
                     perror(RED "[-]Send error\n" RESET);
@@ -332,7 +333,7 @@ int main()
                 perror(RED "Not successful" RESET);
                 exit(0);
             }
-
+            //printf("Here\n");
             // Checking if destination is accessible
             storage_servers storage_server_details = check_if_path_in_ss(dest_path, 0);
             if (storage_server_details == NULL)
@@ -346,7 +347,7 @@ int main()
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 continue;
             }
-
+             // printf("Here too\n");
             // Checking if source is accessible
             storage_server_details = check_if_path_in_ss(source_path, 0);
             if (storage_server_details == NULL)
@@ -369,59 +370,53 @@ int main()
                 }
             }
 
-            // Sending data to SS
-            connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
-            if (send(ns_sock, "4", sizeof("4"), 0) == -1)
+            int error;
+            char* buffer = (char*)malloc(sizeof(char)*1500);
+            strcpy(buffer,"");
+           // printf("%s-----\n", option);
+            if (strcmp(copy_option, "1") == 0)
             {
-                perror(RED "[-]Send error\n" RESET);
-                exit(1);
+               // printf("uyg\n");
+                error = copy_file(source_path, dest_path);
             }
-
-            // Sending source path to the SS
-            if (send(ns_sock, source_path, sizeof(source_path), 0) == -1)
+            else if (strcmp(copy_option, "2") == 0)
             {
-                perror(RED "[-]Send error\n" RESET);
-                exit(1);
+                // error = copy_dir_helper(file_path,file_path_dest);
+                // if(error==1)
+
+                char temp[1000];
+                int temp_ind = 0;
+                int i = 0;
+                for (i = strlen(source_path) - 1; i >= 0; i--)
+                {
+                    if (source_path[i] == '/')
+                    {
+                        i++;
+                        break;
+                    }
+                }
+                for (int j = i; j < strlen(source_path); j++)
+                {
+                    temp[temp_ind] = source_path[j];
+                    temp_ind++;
+                }
+                temp[temp_ind] = '\0';
+                char *temp_dest = (char *)malloc(sizeof(char) * 1000);
+                strcpy(temp_dest, dest_path);
+                strcat(temp_dest, "/");
+                strcat(temp_dest, temp);
+
+                error = copy_directory(source_path, temp_dest,buffer,dest_path);
             }
-
-            // Sending destination path to the SS
-            if (send(ns_sock, dest_path, sizeof(dest_path), 0) == -1)
-            {
-                perror(RED "[-]Send error\n" RESET);
-                exit(1);
-            }
-
-            //  Sending option to the SS
-            if (send(ns_sock, copy_option, sizeof(copy_option), 0) == -1)
-            {
-                perror(RED "[-]Send error\n" RESET);
-                exit(1);
-            }
-            char success[25];
-            int success_message = 0;
-
-            if ((success_message = recv(ns_sock, &success, sizeof(success), 0)) == -1)
-            {
-                perror(RED "[-]Receive error\n" RESET);
-                return 1;
-            }
-            else
-                success[strlen(success)] = '\0';
-
-            if (strcmp(success, "done") == 0)
-            {
-                printf(GREEN "Copied Successfully!\n" RESET);
-                if (send(client_sock, success, sizeof(success), 0) == -1)
+            if(error == 0){
+                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
                 {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
             }
-            else
-            {
-                printf(RED "[-] %s\n" RESET, success);
-                perror(RED "[-]Copy unsuccessful\n" RESET);
-                if (send(client_sock, success, sizeof(success), 0) == -1)
+            else{
+                 if (send(client_sock, "done", sizeof("done"), 0) == -1)
                 {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
@@ -431,6 +426,8 @@ int main()
         }
         else if (strcmp("5", opt) == 0 || strcmp("6", opt) == 0 || strcmp("7", opt) == 0) // Write
         {
+           
+            // printf(RED "wubyvuyw\n");
             char file_path[MAX_FILE_PATH];
             if ((recieved = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
             {
@@ -449,11 +446,11 @@ int main()
                 }
                 continue;
             }
-
+         
             int server_addr = storage_server_details->ss_send->client_port;
             char ip_addr[50];
-            strcpy(ip_addr, storage_server_details->ss_send->ip_addr);
-            strcpy(ip_addr, "127.0.0.1"); // FIX
+             strcpy(ip_addr, storage_server_details->ss_send->ip_addr);
+            // strcpy(ip_addr, "127.0.0.1"); // FIX
             char server[50];
             snprintf(server, sizeof(server), "%d", server_addr);
             if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1)
@@ -501,7 +498,6 @@ int main()
 
     return 0;
 }
-
 
 /*
 

@@ -62,6 +62,7 @@ typedef struct ss_send
     char ip_addr[20];
     int client_port;
     int server_port;
+    char ss_directory[MAX_FILE_PATH];
 } ss_send;
 
 typedef struct ss *storage_servers;
@@ -101,7 +102,7 @@ int delete_file(char *file_path);
 int delete_directory(char *file_path);
 int delete_non_empty_dir(char *directory_name);
 int copy_file(char *source_path, char *dest_path);
-int copy_directory(char *source_path, char *dest_path);
+int copy_directory(char *source_path, char *dest_path,char* buffer,char* path_file);
 
 int Delete_from_path_file(char *file_path, char *storage_file);
 int Add_to_path_file(char *file_path, char *storage_file);
@@ -113,3 +114,4 @@ void MakeSSsend_vital(int *naming_server_sock, char *ip, int *port_for_client, i
 void init_port_create_sock(int *sock, struct sockaddr_in *addr, const char *ip, int port_num);
 
 int copy_file_for_dir(char *source_path, char *dest_path);
+void get_full_path(char* path, char* buffer);

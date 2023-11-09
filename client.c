@@ -275,7 +275,18 @@ int main()
                 close_socket(&ns_sock);
                 return 1; // Return an error code
             }
-
+ char mid_ack[100];
+            if (recv(ns_sock, mid_ack, sizeof(mid_ack), 0) == -1)
+            {
+                printf(RED "[-]Receive error\n" RESET);
+                exit(1);
+            }
+           
+            if (strcmp(mid_ack, "success") != 0)
+            {
+                printf(RED "%s\n" RESET,mid_ack);
+                continue;
+            }
             char input[1024];
 
             printf(CYAN "Start entering data: (Enter 'done' to stop): \n\n" RESET);
@@ -350,6 +361,19 @@ int main()
                 exit(1);
             }
 
+             char mid_ack[100];
+            if (recv(ss_sock, mid_ack, sizeof(mid_ack), 0) == -1)
+            {
+                printf(RED "[-]Receive error\n" RESET);
+                exit(1);
+            }
+           
+            if (strcmp(mid_ack, "success") != 0)
+            {
+                printf(RED "%s\n" RESET,mid_ack);
+                continue;
+            }
+
             // Getting file contents
             printf("\n");
             char buffer[1024];
@@ -357,10 +381,12 @@ int main()
             while (c == 0)
             {
                 recv(ss_sock, buffer, sizeof(buffer), 0);
-                if (strcmp("DONE", buffer) == 0)
+              
+                if (strcmp("DONE", buffer) == 0 || strcmp("DONE\n", buffer) == 0)
                 {
                     c = 2; // DONE WITH FILE
                     printf(CYAN "\nFinished reading file!\n" RESET);
+                    break;
                 }
                 else
                 {
@@ -414,6 +440,21 @@ int main()
                 perror(RED "[-]Send error" RESET);
                 exit(1);
             }
+
+             char mid_ack[100];
+            if (recv(ns_sock, mid_ack, sizeof(mid_ack), 0) == -1)
+            {
+                printf(RED "[-]Receive error\n" RESET);
+                exit(1);
+            }
+           
+           
+            if (strcmp(mid_ack, "success") != 0)
+            {
+                printf(RED "%s\n" RESET,mid_ack);
+                continue;
+            }
+
             char permission[1024];
 
             if (recv(ns_sock, permission, sizeof(permission), 0) == -1)
