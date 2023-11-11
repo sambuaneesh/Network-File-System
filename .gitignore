@@ -1,0 +1,10 @@
+*
+!.gitignore
+!client.c
+!functions.c
+!header.h
+!namingserver.c
+!README.md
+!Makefile
+!.clang-format
+!paths.txt
