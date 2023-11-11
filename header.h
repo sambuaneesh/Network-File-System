@@ -101,8 +101,8 @@ int create_directory(char *file_path);
 int delete_file(char *file_path);
 int delete_directory(char *file_path);
 int delete_non_empty_dir(char *directory_name);
-int copy_file(char *source_path, char *dest_path);
-int copy_directory(char *source_path, char *dest_path,char* buffer,char* path_file);
+int copy_file(char *source_path, char *dest_path,char* buffer);
+int copy_directory(char *source_path, char *dest_path,char* buffer,char* path_file,char* dest);
 
 int Delete_from_path_file(char *file_path, char *storage_file);
 int Add_to_path_file(char *file_path, char *storage_file);
@@ -117,3 +117,5 @@ int copy_file_for_dir(char *source_path, char *dest_path);
 void get_full_path(char* path, char* buffer);
 int isSuffix(const char *mainString, const char *suffix);
 storage_servers find_ss(char *file_path);
+
+char *get_partial_path(char *path1, char *path2);

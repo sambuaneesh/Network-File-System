@@ -9,17 +9,17 @@ int main()
 
     // REVERT BACK TO THIS
     printf("Enter the port number for client: ");
-    // scanf("%d", &port_for_client);
-    port_for_client = 5567;
+     scanf("%d", &port_for_client);
+   // port_for_client = 5567;
     printf("Enter the port number for NS: ");
-    // scanf("%d", &port_for_nm);
-    port_for_nm = 5568;
+     scanf("%d", &port_for_nm);
+   // port_for_nm = 5568;
     printf("Enter the IP address of NS: ");
-    // scanf("%s", ip);
-    strcpy(ip, "127.0.0.1");
+     scanf("%s", ip);
+    //strcpy(ip, "127.0.0.1");
     printf("Enter name of paths file: ");
-    // scanf("%s", paths_file);
-    strcpy(paths_file, "paths.txt");
+     scanf("%s", paths_file);
+   // strcpy(paths_file, "paths.txt");
     printf("\n");
 
     int sock, naming_server_sock;
@@ -242,79 +242,16 @@ int main()
         }
         else if (strcmp(command, "4") == 0)// Copying files and dirs
         {
-            if ((received = recv(naming_server_sock, &file_path, sizeof(file_path), 0)) == -1) {
+            if ((received = recv(naming_server_sock, &file_path, sizeof(file_path), 0)) == -1)
+            {
                 printf(RED "Error recieving data\n" RESET);
                 exit(0);
             }
-            else {
+            else
                 file_path[received] = '\0';
-            }
-
-            char* temp = (char*)malloc(sizeof(char) * 1000);
-            strcpy(temp, file_path);
-
-            if ((received = recv(naming_server_sock, &file_path_dest, sizeof(file_path_dest), 0))
-                == -1) {
-                printf(RED "Error recieving data\n" RESET);
-                exit(0);
-            }
-            else {
-                file_path_dest[received] = '\0';
-            }
-
-            char* temp2 = (char*)malloc(sizeof(char) * 1000);
-            strcpy(temp2, file_path_dest);
-
-            char option[10];
-
-            if ((received = recv(naming_server_sock, &option, sizeof(option), 0)) == -1) {
-                printf(RED "Error recieving data\n" RESET);
-                exit(0);
-            }
-            else {
-                option[received] = '\0';
-            }
-            int error;
-            char* buffer = (char*)malloc(sizeof(char) * 1500);
-            strcpy(buffer, "");
-            if (strcmp(option, "1") == 0) {
-                error = copy_file(file_path, file_path_dest);
-            }
-            else if (strcmp(option, "2") == 0) {
-                char temp[1000];
-                int temp_ind = 0;
-                int i        = 0;
-                for (i = strlen(file_path) - 1; i >= 0; i--) {
-                    if (file_path[i] == '/') {
-                        i++;
-                        break;
-                    }
-                }
-                for (int j = i; j < strlen(file_path); j++) {
-                    temp[temp_ind] = file_path[j];
-                    temp_ind++;
-                }
-                temp[temp_ind]  = '\0';
-                char* temp_dest = (char*)malloc(sizeof(char) * 1000);
-                strcpy(temp_dest, file_path_dest);
-                strcat(temp_dest, "/");
-                strcat(temp_dest, temp);
-
-                error = copy_directory(file_path, temp_dest, buffer, paths_file);
-            }
-            // if there is an error
-            if (error == 0) {
-                int sent = send(naming_server_sock, "unsucessful", sizeof("unsucessful"), 0);
-                if (sent == -1) {
-                    perror(RED "Error sending data" RESET);
-                }
-            }
-            else {
-                int sent = send(naming_server_sock, "done", sizeof("done"), 0);
-                if (sent == -1) {
-                    perror(RED "Error sending data" RESET);
-                }
-            }
+          //  printf("FILE: %s\n",file_path);
+         if (Add_to_path_file(file_path, paths_file) == 0)
+                printf(GREEN "Created Successfully!\n" RESET);
         }
         else if (strcmp(command, "5") == 0)// Writing
         {

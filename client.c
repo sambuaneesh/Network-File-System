@@ -162,11 +162,13 @@ int main()
         }
         else if (option == 4)// Copying paths
         {
-            char option_client[2]                = "4";
+            
+            char option_client[2] = "4";
             option_client[strlen(option_client)] = '\0';
 
             // Send option to NS
-            if (send(naming_server_sock, option_client, sizeof(option_client), 0) == -1) {
+            if (send(naming_server_sock, option_client, sizeof(option_client), 0) == -1)
+            {
                 perror(RED "[-]Send error" RESET);
                 exit(1);
             }
@@ -187,43 +189,47 @@ int main()
             scanf("%s", copy_option);
 
             // Send the source path to NS
-            if (send(naming_server_sock, source_path, sizeof(source_path), 0) == -1) {
+            if (send(naming_server_sock, source_path, sizeof(source_path), 0) == -1)
+            {
                 perror(RED "[-] Send error\n" RESET);
                 exit(1);
             }
             // Send the  destination path to NS
-            if (send(naming_server_sock, dest_path, sizeof(dest_path), 0) == -1) {
+            if (send(naming_server_sock, dest_path, sizeof(dest_path), 0) == -1)
+            {
                 perror(RED "[-] Send error\n" RESET);
                 exit(1);
             }
             // Send whether you want to create a file or directory to NS
-            if (send(naming_server_sock, copy_option, sizeof(copy_option), 0) == -1) {
+            if (send(naming_server_sock, copy_option, sizeof(copy_option), 0) == -1)
+            {
                 printf(RED "[-]Send error\n" RESET);
                 exit(1);
             }
 
             char mid_ack[10];
-            if (recv(naming_server_sock, mid_ack, sizeof(mid_ack), 0) == -1) {
+            if (recv(naming_server_sock, mid_ack, sizeof(mid_ack), 0) == -1)
+            {
                 printf(RED "[-]Receive error\n" RESET);
                 exit(1);
             }
-            if (strcmp(mid_ack, "failed") == 0) {
+            if (strcmp(mid_ack, "failed") == 0)
+            {
                 printf(RED "Invalid Path\n" RESET);
                 continue;
             }
 
             // recieve success or error message from NS
-            char success[25];
-            if (recv(naming_server_sock, success, sizeof(success), 0) == -1) {
+            char success[10];
+            if (recv(naming_server_sock, success, sizeof(success), 0) == -1)
+            {
                 perror(RED "[-] Receive error\n" RESET);
                 exit(1);
             }
-            if (strcmp(success, "done") == 0) {
+            if (strcmp(success, "done") == 0)
                 printf(GREEN "Copied Successfully!\n" RESET);
-            }
-            else {
+            else
                 printf(RED "Error copying file/directory\n" RESET);
-            }
         }
         else if (option == 5)// Write
         {

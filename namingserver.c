@@ -299,29 +299,37 @@ int main()
         }
         else if (strcmp("4", opt) == 0)// Copying files/directories
         {
-            // Receiving the path of the file/directory
+           // Receiving the path of the file/directory
             char source_path[MAX_FILE_PATH];
             char dest_path[MAX_FILE_PATH];
-            if ((recieved = recv(client_sock, &source_path, sizeof(source_path), 0)) == -1) {
+            char source_full_path[MAX_FILE_PATH];
+            char dest_full_path[MAX_FILE_PATH];
+            if ((recieved = recv(client_sock, &source_path, sizeof(source_path), 0)) == -1)
+            {
                 perror(RED "Not successful" RESET);
                 exit(0);
             }
-            if ((recieved = recv(client_sock, &dest_path, sizeof(dest_path), 0)) == -1) {
+            if ((recieved = recv(client_sock, &dest_path, sizeof(dest_path), 0)) == -1)
+            {
                 perror(RED "Not successful" RESET);
                 exit(0);
             }
 
             // Recieving the create option - 1 for file and 2 for directory
+            char buffer_paths[MAX_FILE_PATH];
             char copy_option[10];
-            if ((recieved = recv(client_sock, &copy_option, sizeof(copy_option), 0)) == -1) {
+            if ((recieved = recv(client_sock, &copy_option, sizeof(copy_option), 0)) == -1)
+            {
                 perror(RED "Not successful" RESET);
                 exit(0);
             }
             // printf("Here\n");
             //  Checking if destination is accessible
-            storage_servers storage_server_details = check_if_path_in_ss(dest_path, 0);
-            if (storage_server_details == NULL) {
-                if (send(client_sock, "failed", sizeof("failed"), 0) == -1) {
+            storage_servers storage_server_details = check_if_path_in_ss(source_path, 0);
+            if (storage_server_details == NULL)
+            {
+                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
+                {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
@@ -329,11 +337,16 @@ int main()
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 continue;
             }
+          //  printf("PATH FROM SS: %s\n",storage_server_details->files_and_dirs->path);
+            strcpy(source_full_path,storage_server_details->files_and_dirs->path);
+            strcat(source_full_path,source_path);
             // printf("Here too\n");
             // Checking if source is accessible
-            storage_server_details = check_if_path_in_ss(source_path, 0);
-            if (storage_server_details == NULL) {
-                if (send(client_sock, "failed", sizeof("failed"), 0) == -1) {
+            storage_server_details = check_if_path_in_ss(dest_path, 0);
+            if (storage_server_details == NULL)
+            {
+                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
+                {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
@@ -341,60 +354,135 @@ int main()
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 continue;
             }
-            else {
-                if (send(client_sock, "success", sizeof("success"), 0) == -1)// mid ack
+            else
+            { 
+                if (send(client_sock, "success", sizeof("success"), 0) == -1) // mid ack
                 {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
             }
+         //   printf("PATH FROM SS: %s\n",storage_server_details->files_and_dirs->path);
+             strcpy(dest_full_path,storage_server_details->files_and_dirs->path);
+            strcat(dest_full_path,dest_path);
+            strcpy(buffer_paths,"");
+           
 
-            int error;
-            char* buffer = (char*)malloc(sizeof(char) * 1500);
+            int error = 1;
+            char *buffer = (char *)malloc(sizeof(char) * 1500);
             strcpy(buffer, "");
             // printf("%s-----\n", option);
-            if (strcmp(copy_option, "1") == 0) {
+            if (strcmp(copy_option, "1") == 0)
+            {
                 // printf("uyg\n");
-                error = copy_file(source_path, dest_path);
+                error = copy_file(source_full_path, dest_full_path,buffer_paths);
+               if(error!=0){
+                 connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
+            if (send(ns_sock, "4", sizeof("4"), 0) == -1)
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
             }
-            else if (strcmp(copy_option, "2") == 0) {
+         //   printf("BUFFER: %s\n",buffer_paths);
+            if (send(ns_sock, buffer_paths, sizeof(buffer_paths), 0) == -1)
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+
+             storage_servers storage_server_details = find_ss(buffer_paths);
+             close_socket(&ns_sock);
+               }
+           
+               // printf("ERR: %d S: %s D: %s\n",error,source_full_path,dest_full_path);
+            }
+            else if (strcmp(copy_option, "2") == 0)
+            {
                 // error = copy_dir_helper(file_path,file_path_dest);
                 // if(error==1)
 
                 char temp[1000];
                 int temp_ind = 0;
-                int i        = 0;
-                for (i = strlen(source_path) - 1; i >= 0; i--) {
-                    if (source_path[i] == '/') {
+                int i = 0;
+                for (i = strlen(source_path) - 1; i >= 0; i--)
+                {
+                    if (source_path[i] == '/')
+                    {
                         i++;
                         break;
                     }
                 }
-                for (int j = i; j < strlen(source_path); j++) {
+                for (int j = i; j < strlen(source_path); j++)
+                {
                     temp[temp_ind] = source_path[j];
                     temp_ind++;
                 }
-                temp[temp_ind]  = '\0';
-                char* temp_dest = (char*)malloc(sizeof(char) * 1000);
-                strcpy(temp_dest, dest_path);
+                temp[temp_ind] = '\0';
+                char *temp_dest = (char *)malloc(sizeof(char) * 1000);
+                strcpy(temp_dest, dest_full_path);
                 strcat(temp_dest, "/");
                 strcat(temp_dest, temp);
+              //  printf("**%s\n",temp_dest);
+                strcpy(buffer_paths,dest_path);
+                strcat(buffer_paths,"/");
+                strcat(buffer_paths,temp);
+                strcat(buffer_paths,"\n");
+                //printf("**%s\n",temp);
+                error = copy_directory(source_full_path, temp_dest, buffer_paths, dest_full_path,dest_path);
+                if(error!=0){
+                     connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
+            if (send(ns_sock, "4", sizeof("4"), 0) == -1)
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+         //   printf("BUFFER: %s\n",buffer_paths);
+            if (send(ns_sock, buffer_paths, sizeof(buffer_paths), 0) == -1)
+            {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+    // Adding every path in buffer_paths to the tree
+    char *token;
+    char *saveptr;  // This is the pointer used by strtok_r to store the context
+    
+    // Use strtok_r to tokenize the buffer based on newline character
+    token = strtok_r(buffer_paths, "\n", &saveptr);
 
-                error = copy_directory(source_path, temp_dest, buffer, dest_path);
+    while (token != NULL) {
+        printf("TOKEN: **%s**\n", token);
+
+        // Assuming find_ss is a function that takes a const char* as an argument
+        storage_servers storage_server_details = find_ss(token);
+
+        token = strtok_r(NULL, "\n", &saveptr);
+    }
+
+
+          
+             close_socket(&ns_sock);
+                }
+             
+               
             }
-            if (error == 0) {
-                if (send(client_sock, "failed", sizeof("failed"), 0) == -1) {
+            if (error == 0)
+            {
+                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
+                {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
             }
-            else {
-                if (send(client_sock, "done", sizeof("done"), 0) == -1) {
+            else
+            {
+                if (send(client_sock, "done", sizeof("done"), 0) == -1)
+                {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
+
+                
             }
-            close_socket(&ns_sock);
         }
         else if (strcmp("5", opt) == 0 || strcmp("6", opt) == 0 || strcmp("7", opt) == 0)// Write
         {

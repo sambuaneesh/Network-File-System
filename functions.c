@@ -878,49 +878,83 @@ int copy_file_for_dir(char* source_path, char* dest_path)
     return 1;
 }
 
-int copy_file(char* source_path, char* dest_path)
+int copy_file(char *source_path, char *dest_path,char* buffer)
 {
-    printf("uysg\n");
+   // printf("uysg\n");
     char ch;
     // getting the file name from source_path
     char temp[1000];
     int temp_ind = 0;
-    int i        = 0;
-    for (i = strlen(source_path) - 1; i >= 0; i--) {
-        if (source_path[i] == '/') {
+    int i = 0;
+
+     char temp2[1000];
+    int temp_ind2 = 0;
+    for (i = strlen(source_path) - 1; i >= 0; i--)
+    {
+        if (source_path[i] == '/')
+        {
             i++;
             break;
         }
     }
-    for (int j = i; j < strlen(source_path); j++) {
+    for (int j = i; j < strlen(source_path); j++)
+    {
         temp[temp_ind] = source_path[j];
         temp_ind++;
     }
-    temp[temp_ind]   = '\0';
-    FILE* sourceFile = fopen(source_path, "r");
-    if (sourceFile == NULL) {
+    temp[temp_ind] = '\0';
+
+ 
+
+    //Getting path from dest_path
+     for (i = strlen(dest_path) - 1; i >= 0; i--)
+    {
+        if (dest_path[i] == '/')
+        {
+            i++;
+            break;
+        }
+    }
+    for (int j = i; j < strlen(dest_path); j++)
+    {
+        temp2[temp_ind2] = dest_path[j];
+        temp_ind2++;
+    }
+    temp2[temp_ind2] = '\0';
+
+    strcat(dest_path, "/");
+    strcat(dest_path, temp);
+    FILE *sourceFile = fopen(source_path, "r");
+    if (sourceFile == NULL)
+    {
         perror(RED "Error opening source file" RESET);
         return 0;
     }
-    strcat(dest_path, "/");
-    strcat(dest_path, temp);
+    strcpy(buffer,"/");
+    strcat(buffer,temp2);
+    strcat(buffer,"/");
+    strcat(buffer,temp);
+   // printf("**%s\n",buffer);
     // checking if the file already exists in dest_path
 
-    if (access(dest_path, F_OK) != -1) {
+    if (access(dest_path, F_OK) != -1)
+    {
         perror(RED "File Already Exists!" RESET);
 
         return 0;
     }
 
-    FILE* destinationFile = fopen(dest_path, "w");
-    if (destinationFile == NULL) {
+    FILE *destinationFile = fopen(dest_path, "w");
+    if (destinationFile == NULL)
+    {
         perror(RED "Error opening destination file" RESET);
 
         fclose(sourceFile);
         return 0;
     }
 
-    while ((ch = fgetc(sourceFile)) != EOF) {
+    while ((ch = fgetc(sourceFile)) != EOF)
+    {
         fputc(ch, destinationFile);
     }
 
@@ -930,28 +964,67 @@ int copy_file(char* source_path, char* dest_path)
     fclose(destinationFile);
     return 1;
 }
+char *get_partial_path(char *path1, char *path2) {
+  char *p1 = path1;
+char *p2 = path2;
 
-int copy_directory(char* source_path, char* dest_path, char* buffer, char* path_file)
+    // Find the common prefix
+    while (*p1 && *p1 == *p2) {
+        p1++;
+        p2++;
+    }
+
+    // Skip common prefix
+    while (*p1 == '/') {
+        p1++;
+    }
+
+    // Extract the remaining part of path2
+    return p2;
+}
+
+int copy_directory(char *source_path, char *dest_path, char *buffer, char *path_file,char* dest)
 {
-    DIR* dp = opendir(source_path);
-
-    if (dp == NULL) {
+    // printf("**%s\n",source_path);
+   
+    // int path_ind = 0;
+    // int i = 0;
+    // for(i=strlen(path_file);i>=0;i--){
+    //     if(path_file[i]=='/'){
+    //       //  i++;
+    //         break;
+    //     }
+    // }
+    // for(int j=i;j<strlen(path_file);j++){
+    //     path_end[path_ind]=path_file[j];
+    //     path_ind++;
+    // }
+    // path_end[path_ind]='\0';
+    //  char path_end[100];
+    // strcpy(path_end,dest);
+   
+    // printf("**%s\n",dest_path);
+    DIR *dp = opendir(source_path);
+    
+    if (dp == NULL)
+    {
         perror("Error opening source directory");
         return 0;
     }
 
     // Create the destination directory if it doesn't exist
-    if (mkdir(dest_path, 0777) == -1) {
+    if (mkdir(dest_path, 0777) == -1)
+    {
         perror("Error creating destination directory");
         return 0;
     }
 
-    struct dirent* entry;
+    struct dirent *entry;
 
-    while ((entry = readdir(dp)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+    while ((entry = readdir(dp)) != NULL)
+    {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
             continue;
-        }
 
         char temp_source_path[1000];
         char temp_dest_path[1000];
@@ -960,52 +1033,77 @@ int copy_directory(char* source_path, char* dest_path, char* buffer, char* path_
         snprintf(temp_dest_path, sizeof(temp_dest_path), "%s/%s", dest_path, entry->d_name);
 
         //  printf("SRC: %s DEST: %s\n",temp_source_path,temp_dest_path);
-
+       // printf("Entry: %s\n",entry->d_name);
+ char path_end[100];
+    strcpy(path_end,dest);
         struct stat st;
-        if (lstat(temp_source_path, &st) == -1) {
+        if (lstat(temp_source_path, &st) == -1)
+        {
             perror("Error getting file/directory information");
             continue;
         }
 
-        // FILE* checkpath = fopen(path_file);
-        // if(checkpath==NULL){
-        //     perror(RED"Error Opening Path"RESET);
+       
+     //  printf("pathhhhh: %s\n", temp_source_path);
+        // if (check_if_path_in_ss(temp_source_path, 0) == NULL)
+        // {
+        //    // printf("jydf\n");
+        //     continue;
         // }
 
-        printf("pathhhhh: %s\n", temp_source_path);
-        if (check_if_path_in_ss(temp_source_path, 0) == NULL) {
-            printf("jydf\n");
-            continue;
-        }
-        if (S_ISDIR(st.st_mode)) {
-            copy_directory(temp_source_path, temp_dest_path, buffer, path_file);
-        }
-        else {
-            if (check_if_path_in_ss(temp_source_path, 0) == NULL) {
+        char* partial_path = (char*)malloc(sizeof(char)*100);
+       
+        partial_path=get_partial_path(path_file,temp_dest_path);
+        // strcat(path_end,partial_path);
+        // strcpy(partial_path,path_end);
+    
+        printf("DEST: %s PART. PATH: %s\n",dest,partial_path);
+       if (S_ISDIR(st.st_mode))
+       {
+           if (check_if_path_in_ss(partial_path, 0) == NULL)
                 continue;
-            }
-            if (copy_file_for_dir(temp_source_path, temp_dest_path) == 0) {
+           copy_directory(temp_source_path, temp_dest_path, buffer, path_file,dest);
+           strcat(path_end,partial_path);
+           strcpy(partial_path,path_end);
+           strcat(buffer,partial_path);
+           printf("BUFFER: %s\n",buffer);
+           strcat(buffer,"\n");
+       }
+       else
+       {
+            if (check_if_path_in_ss(partial_path, 0) == NULL)
+                continue;
+            if (copy_file_for_dir(temp_source_path, temp_dest_path) == 0)
                 printf("Failed to copy file: %s\n", temp_source_path);
+            else{
+                strcat(path_end,partial_path);
+                strcpy(partial_path,path_end);
+                strcat(buffer,partial_path);
+               strcat(buffer,"\n");
             }
         }
     }
 
     closedir(dp);
+  //  printf("HERE\n");
     return 1;
 }
 
-void get_full_path(char* path, char* buffer)
+void get_full_path(char *path, char *buffer)
 {
     char temp[1000];
     int temp_ind = 0;
     int i;
-    for (i = 1; i < strlen(path); i++) {
-        if (path[i] == '/') {
+    for (i = 1; i < strlen(path); i++)
+    {
+        if (path[i] == '/')
+        {
             i++;
             break;
         }
     }
-    for (int j = i; j < strlen(path); j++) {
+    for (int j = i; j < strlen(path); j++)
+    {
         temp[temp_ind] = path[j];
         temp_ind++;
     }
