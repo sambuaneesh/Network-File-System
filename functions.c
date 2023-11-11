@@ -180,20 +180,28 @@ int isSuffix(const char *mainString, const char *suffix)
 // Also adds the new child thingy
 storage_servers find_ss(char *file_path)
 {
+    // char temp[MAX_FILE_PATH] = {'\0'};
+    // strcpy(temp, file_path);
+
+    char path_to_add[MAX_FILE_PATH] = {'\0'};
+    get_full_path(file_path, path_to_add);
+
     char *token = strtok_r(file_path, "/", &file_path);
     printf("token: %s\n", token);
+
     storage_servers traveller = storage_server_list;
     while (traveller != NULL)
     {
         if (isSuffix(traveller->files_and_dirs->path, token) == 1)
         {
-            char *path_to_append = strtok_r(NULL, "/", &file_path);
-            printf("path to append: %s\n", path_to_append);
-            Search_Till_Parent(traveller->files_and_dirs, path_to_append, 1);
+            // char *path_to_append = strtok_r(NULL, "/", &file_path);
+            // printf("path to append: %s\n", path_to_append);
+            Search_Till_Parent(traveller->files_and_dirs, path_to_add, 1);
             return traveller;
         }
         traveller = traveller->next;
     }
+    return NULL;
 }
 
 storage_servers MakeNode_ss(char *ip_addr, int client_port, int server_port, char *init_path)
@@ -347,35 +355,35 @@ void get_path_details(char *path_to_go_to, char *file_name, char *file_path)
 int create_file(char *file_path)
 {
     // Finding the directory we need to change to
-    char *path_to_go_to = (char *)malloc(sizeof(char) * MAX_FILE_PATH);
-    char *file_name = (char *)malloc(sizeof(char) * MAX_FILE_NAME);
-    char current_dir[MAX_FILE_PATH];
+    // char *path_to_go_to = (char *)malloc(sizeof(char) * MAX_FILE_PATH);
+    // char *file_name = (char *)malloc(sizeof(char) * MAX_FILE_NAME);
+    // char current_dir[MAX_FILE_PATH];
 
-    // Getting the current directory
+    // // Getting the current directory
 
-    if (getcwd(current_dir, sizeof(current_dir)) == NULL)
-    {
-        perror(RED "[-]getcwd" RESET);
-        return -1;
-    }
+    // if (getcwd(current_dir, sizeof(current_dir)) == NULL)
+    // {
+    //     perror(RED "[-]getcwd" RESET);
+    //     return -1;
+    // }
 
-    get_path_details(path_to_go_to, file_name, file_path);
+    // get_path_details(path_to_go_to, file_name, file_path);
 
-    if (chdir(path_to_go_to) == -1)
-    {
-        perror(RED "[-]chdir" RESET);
-        return -1;
-    }
+    // if (chdir(path_to_go_to) == -1)
+    // {
+    //     perror(RED "[-]chdir" RESET);
+    //     return -1;
+    // }
 
     // Creating a new file
 
-    FILE *file = fopen(file_name, "r");
+    FILE *file = fopen(file_path, "r");
     if (file != NULL)
     {
         printf(RED "[-]File already exists\n" RESET);
         return -1;
     }
-    file = fopen(file_name, "w");
+    file = fopen(file_path, "w");
     if (file == NULL)
     {
         perror(RED "[-]fopen" RESET);
@@ -387,11 +395,11 @@ int create_file(char *file_path)
     }
     fclose(file);
 
-    if (chdir(current_dir) == -1)
-    {
-        perror(RED "[-]chdir" RESET);
-        return -1;
-    }
+    // if (chdir(current_dir) == -1)
+    // {
+    //     perror(RED "[-]chdir" RESET);
+    //     return -1;
+    // }
 
     return 0;
 }
@@ -448,32 +456,33 @@ int delete_file(char *file_path)
 
     // Getting the current directory
 
-    if (getcwd(current_dir, sizeof(current_dir)) == NULL)
-    {
-        perror(RED "getcwd" RESET);
-        return -1;
-    }
+    // if (getcwd(current_dir, sizeof(current_dir)) == NULL)
+    // {
+    //     perror(RED "getcwd" RESET);
+    //     return -1;
+    // }
 
-    get_path_details(path_to_go_to, file_name, file_path);
+    // get_path_details(path_to_go_to, file_name, file_path);
 
-    if (chdir(path_to_go_to) == -1)
-    {
-        perror(RED "chdir" RESET);
-        return -1;
-    }
+    // if (chdir(path_to_go_to) == -1)
+    // {
+    //     perror(RED "chdir" RESET);
+    //     return -1;
+    // }
 
     // Deleting the file
-    if (remove(file_name) != 0)
+   // printf("PATH: %s\n",file_path);
+    if (remove(file_path) != 0)
     {
         perror(RED "remove" RESET);
         return -1;
     }
 
-    if (chdir(current_dir) == -1)
-    {
-        perror(RED "chdir" RESET);
-        return -1;
-    }
+    // if (chdir(current_dir) == -1)
+    // {
+    //     perror(RED "chdir" RESET);
+    //     return -1;
+    // }
 
     // printf("File Deleted Successfully!\n");
 }
@@ -481,40 +490,40 @@ int delete_file(char *file_path)
 int delete_directory(char *file_path)
 {
     // Finding the directory we need to change to
-    char *path_to_go_to = (char *)malloc(sizeof(char) * MAX_FILE_PATH);
-    char *directory_name = (char *)malloc(sizeof(char) * MAX_FILE_NAME);
-    char current_dir[MAX_FILE_PATH];
+    // char *path_to_go_to = (char *)malloc(sizeof(char) * MAX_FILE_PATH);
+    // char *directory_name = (char *)malloc(sizeof(char) * MAX_FILE_NAME);
+    // char current_dir[MAX_FILE_PATH];
 
-    // Getting the current directory
+    // // Getting the current directory
 
-    if (getcwd(current_dir, sizeof(current_dir)) == NULL)
-    {
-        perror(RED "[-]getcwd" RESET);
-        return -1;
-    }
+    // if (getcwd(current_dir, sizeof(current_dir)) == NULL)
+    // {
+    //     perror(RED "[-]getcwd" RESET);
+    //     return -1;
+    // }
 
-    get_path_details(path_to_go_to, directory_name, file_path);
+    // get_path_details(path_to_go_to, directory_name, file_path);
 
-    if (chdir(path_to_go_to) == -1)
-    {
-        perror(RED "chdir" RESET);
-        return -1;
-    }
+    // if (chdir(path_to_go_to) == -1)
+    // {
+    //     perror(RED "chdir" RESET);
+    //     return -1;
+    // }
 
     // Deleting the directory
 
-    if (rmdir(directory_name) != 0)
+    if (rmdir(file_path) != 0)
     {
-        if (delete_non_empty_dir(directory_name) == -1)
+        if (delete_non_empty_dir(file_path) == -1)
             return -1;
         // perror(RED "rmdir" RESET);
     }
 
-    if (chdir(current_dir) == -1)
-    {
-        perror(RED "[-]chdir" RESET);
-        return -1;
-    }
+    // if (chdir(current_dir) == -1)
+    // {
+    //     perror(RED "[-]chdir" RESET);
+    //     return -1;
+    // }
     // printf("Directory Deleted Successfully!\n");
     return 0;
 }
@@ -1060,36 +1069,7 @@ void get_full_path(char *path, char *buffer)
         temp_ind++;
     }
     temp[temp_ind] = '\0';
+
     strcat(buffer, temp);
     return;
 }
-
-// adding code here to find if the tree is the tree at all by checking prefix
-/*
-effective change made:
-the root is no longer '.', it is path of the ss dir
-for searching, you comapare if path of ss is a prefix of path entered by the user
-then Search till parent
-
-What to do if the path enntered by user = path of ss?
-It is acceptable, but what will search till parent do?
-path_to_look_for will be a null string, in which case,
-return traveller
-
-Should work...
-*/
-// char ss_dir[MAX_FILE_PATH] = {'\0'};
-// strcpy(ss_dir, traveller->files_and_dirs->path);
-// if (strncmp(file_path, ss_dir, strlen(ss_dir)) == 0) // this means that this may be the ss
-// {
-//     if (strcmp(file_path, ss_dir) == 0)
-//         return traveller;
-//     char path_to_look_for[MAX_FILE_PATH] = {'\0'};
-//     strcpy(path_to_look_for, file_path);
-//     memmove(path_to_look_for, path_to_look_for + strlen(ss_dir), strlen(path_to_look_for) - strlen(ss_dir) + 1);
-//     // printf("----%s\n", path_to_look_for);
-//     Tree parent = Search_Till_Parent(traveller->files_and_dirs, path_to_look_for, insert);
-//     if (parent != NULL)
-//         return traveller;
-// }
-// traveller = traveller->next; // search till parent will def return a 0, so no point checking

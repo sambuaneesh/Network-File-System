@@ -77,19 +77,23 @@ int main()
             }
 
             char mid_ack[10];
-            if (recv(naming_server_sock, mid_ack, sizeof(mid_ack), 0) == -1)
+            int ind = 0;
+            if ((ind = recv(naming_server_sock, mid_ack, sizeof(mid_ack), 0)) == -1)
             {
                 printf(RED "[-]Receive error\n" RESET);
                 exit(1);
             }
+            mid_ack[ind]='\0';
+            // printf("IND: %d\n",ind);
+            // printf("MID: %s\n",mid_ack);
             if (strcmp(mid_ack, "failed") == 0)
             {
                 printf(RED "Invalid Path\n" RESET);
                 continue;
             }
-
+           
             // receive success or error message from NS
-            char success[25];
+            char success[10];
             if (recv(naming_server_sock, success, sizeof(success), 0) == -1)
             {
                 printf(RED "[-]Receive error\n" RESET);
@@ -137,11 +141,16 @@ int main()
             }
 
             char mid_ack[10];
-            if (recv(naming_server_sock, mid_ack, sizeof(mid_ack), 0) == -1)
+            int ind=0;
+            if ((ind = recv(naming_server_sock, mid_ack, sizeof(mid_ack), 0)) == -1)
             {
                 printf(RED "[-]Receive error\n" RESET);
                 exit(1);
             }
+          //  mid_ack[ind]='\0';
+           
+            // printf("IND: %d\n",ind);
+            // printf("MID: %s\n",mid_ack);
             if (strcmp(mid_ack, "failed") == 0)
             {
                 printf(RED "Invalid Path\n" RESET);
@@ -149,12 +158,14 @@ int main()
             }
 
             // recieve success or error message from NS
-            char success[25];
-            if (recv(naming_server_sock, success, sizeof(success), 0) == -1)
+            char success[10];
+            if ((ind = recv(naming_server_sock, success, sizeof(success), 0)) == -1)
             {
                 perror(RED "[-] Receive error\n" RESET);
                 exit(1);
             }
+          //  success[ind]='\0';
+        //    printf("SUCCESS: %s\n",success);
             if (strcmp(success, "done") == 0)
                 printf(GREEN "Created Successfully!\n" RESET);
             else

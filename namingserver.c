@@ -117,22 +117,24 @@ int main()
                 perror(RED "Not successful" RESET);
                 exit(0);
             }
-
+            file_path[recieved] = '\0';
             // Recieving the create option - 1 for file and 2 for directory
-            char create_option[10];
-            if ((recieved = recv(client_sock, &create_option, sizeof(create_option), 0)) == -1)
+            char delete_option[10];
+            if ((recieved = recv(client_sock, &delete_option, sizeof(delete_option), 0)) == -1)
             {
                 perror(RED "Not successful" RESET);
                 exit(0);
             }
+            delete_option[recieved] = '\0';
 
             // END OF GETTING DATA FROM CLIENT
             // THE REST OF THIS CODE MUST EXECUTE ONLY IF file_path IS IN THE LIST OF ACCESSIBLE PATHS
-
+            char mid_mess[10];
             storage_servers storage_server_details = check_if_path_in_ss(file_path, 0);
             if (storage_server_details == NULL)
             {
-                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
+                strcpy(mid_mess, "failed");
+                if (send(client_sock, mid_mess, sizeof(mid_mess), 0) == -1)
                 {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
@@ -140,11 +142,15 @@ int main()
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 continue;
             }
-
-            if (send(client_sock, "success", sizeof("success"), 0) == -1)
+            else
             {
-                perror(RED "[-]Send error\n" RESET);
-                exit(1);
+                strcpy(mid_mess, "success");
+                // printf("MIDMES: %s\n",mid_mess);
+                if (send(client_sock, mid_mess, sizeof(mid_mess), 0) == -1)
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
             }
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
@@ -163,14 +169,14 @@ int main()
 
             //  Sending option to the SS
 
-            if (send(ns_sock, create_option, sizeof(create_option), 0) == -1)
+            if (send(ns_sock, delete_option, sizeof(delete_option), 0) == -1)
             {
                 perror(RED "[-]Send error\n" RESET);
                 exit(1);
             }
 
             // Checking if creation was successful
-            char success[200];
+            char success[10];
             int success_message = 0;
 
             if ((success_message = recv(ns_sock, &success, sizeof(success), 0)) == -1)
@@ -179,16 +185,11 @@ int main()
                 exit(0);
             }
             else
-                success[strlen(success)] = '\0';
+                success[success_message] = '\0';
 
             if (strcmp(success, "done") == 0)
             {
                 printf(GREEN "Deleted Successfully!\n" RESET);
-                if (send(client_sock, success, sizeof(success), 0) == -1)
-                {
-                    perror(RED "[-]Send error\n" RESET);
-                    exit(1);
-                }
                 if (Delete_Path(storage_server_details->files_and_dirs, file_path, storage_server_details->files_and_dirs->path) == -1)
                 {
                     if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
@@ -199,10 +200,15 @@ int main()
                     printf(RED "[-]Path not in list of accessible paths\n" RESET);
                     continue;
                 }
+                if (send(client_sock, success, sizeof(success), 0) == -1)
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
             }
             else
             {
-                printf(RED "%s\n" RESET,success);
+                printf(RED "%s\n" RESET, success);
                 if (send(client_sock, success, sizeof(success), 0) == -1)
                 {
                     perror(RED "[-]Send error\n" RESET);
@@ -223,7 +229,10 @@ int main()
                 perror(RED "[-]Receive error\n" RESET);
                 exit(1);
             }
-
+            file_path[recieved] = '\0';
+            char file_path_dest[MAX_FILE_PATH];
+            strcpy(file_path_dest, file_path);
+            file_path_dest[recieved] = '\0';
             // Recieving the create option - 1 for file and 2 for directory
             char create_option[10];
             if ((recieved = recv(client_sock, &create_option, sizeof(create_option), 0)) == -1)
@@ -231,14 +240,23 @@ int main()
                 perror(RED "[-]Receive error\n" RESET);
                 exit(1);
             }
-
+            create_option[recieved] = '\0';
+            char temp_opt[10];
+            strcpy(temp_opt, create_option);
+            temp_opt[recieved] = '\0';
+            char succ_mess[10];
             // END OF GETTING DATA FROM CLIENT
             // THE REST OF THIS CODE MUST EXECUTE ONLY IF file_path IS IN THE LIST OF ACCESSIBLE PATHS
 
             // storage_servers storage_server_details = check_if_path_in_ss(file_path, 1);
+            // char path[MAX_FILE_PATH] = {'\0'};
+            // strcpy(path, "/");
+            // get_full_path(file_path, path);
             storage_servers storage_server_details = find_ss(file_path);
             if (storage_server_details == NULL)
             {
+                strcpy(succ_mess, "failed");
+                // printf("2. MIDMES: %s\n",succ_mess);
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
                 {
                     perror(RED "[-]Send error\n" RESET);
@@ -250,11 +268,14 @@ int main()
             }
             else
             {
+                strcpy(succ_mess, "success");
+
                 if (send(client_sock, "success", sizeof("success"), 0) == -1)
                 {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
+                //  printf("1. MIDMES: %s\n",succ_mess);
             }
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
@@ -264,10 +285,9 @@ int main()
                 exit(1);
             }
 
-            char* token = strtok_r(file_path, "/", &token);
-            token = strtok_r(NULL, "/", &token);
-            char file_path_dest[MAX_FILE_PATH];
-            strcpy(file_path_dest, token);
+            // char* token = strtok_r(file_path, "/", &token);
+            // token = strtok_r(NULL, "/", &token);
+
             // Sending path to the SS
             if (send(ns_sock, file_path_dest, sizeof(file_path_dest), 0) == -1)
             {
@@ -276,14 +296,14 @@ int main()
             }
 
             //  Sending option to the SS
-            if (send(ns_sock, create_option, sizeof(create_option), 0) == -1)
+            if (send(ns_sock, temp_opt, sizeof(temp_opt), 0) == -1)
             {
                 perror(RED "[-]Send error\n" RESET);
                 exit(1);
             }
 
             // Checking if creation was successful
-            char success[25];
+            char success[10];
             int success_message = 0;
 
             if ((success_message = recv(ns_sock, &success, sizeof(success), 0)) == -1)
@@ -292,8 +312,8 @@ int main()
                 return 1;
             }
             else
-                success[strlen(success)] = '\0';
-
+                success[success_message] = '\0';
+            printf("SUCCESS: %s\n", success);
             if (strcmp(success, "done") == 0)
             {
                 printf(GREEN "Created Successfully!\n" RESET);
@@ -338,8 +358,8 @@ int main()
                 perror(RED "Not successful" RESET);
                 exit(0);
             }
-            //printf("Here\n");
-            // Checking if destination is accessible
+            // printf("Here\n");
+            //  Checking if destination is accessible
             storage_servers storage_server_details = check_if_path_in_ss(dest_path, 0);
             if (storage_server_details == NULL)
             {
@@ -352,7 +372,7 @@ int main()
                 printf(RED "[-]Path not in list of accessible paths\n" RESET);
                 continue;
             }
-             // printf("Here too\n");
+            // printf("Here too\n");
             // Checking if source is accessible
             storage_server_details = check_if_path_in_ss(source_path, 0);
             if (storage_server_details == NULL)
@@ -376,12 +396,12 @@ int main()
             }
 
             int error;
-            char* buffer = (char*)malloc(sizeof(char)*1500);
-            strcpy(buffer,"");
-           // printf("%s-----\n", option);
+            char *buffer = (char *)malloc(sizeof(char) * 1500);
+            strcpy(buffer, "");
+            // printf("%s-----\n", option);
             if (strcmp(copy_option, "1") == 0)
             {
-               // printf("uyg\n");
+                // printf("uyg\n");
                 error = copy_file(source_path, dest_path);
             }
             else if (strcmp(copy_option, "2") == 0)
@@ -411,17 +431,19 @@ int main()
                 strcat(temp_dest, "/");
                 strcat(temp_dest, temp);
 
-                error = copy_directory(source_path, temp_dest,buffer,dest_path);
+                error = copy_directory(source_path, temp_dest, buffer, dest_path);
             }
-            if(error == 0){
-                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
+            if (error == 0)
+            {
+                if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
                 {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
             }
-            else{
-                 if (send(client_sock, "done", sizeof("done"), 0) == -1)
+            else
+            {
+                if (send(client_sock, "done", sizeof("done"), 0) == -1)
                 {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
@@ -430,7 +452,7 @@ int main()
             close_socket(&ns_sock);
         }
         else if (strcmp("5", opt) == 0 || strcmp("6", opt) == 0 || strcmp("7", opt) == 0) // Write
-        {    
+        {
             // printf(RED "wubyvuyw\n");
             char file_path[MAX_FILE_PATH];
             if ((recieved = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
@@ -450,10 +472,10 @@ int main()
                 }
                 continue;
             }
-         
+
             int server_addr = storage_server_details->ss_send->client_port;
             char ip_addr[50];
-             strcpy(ip_addr, storage_server_details->ss_send->ip_addr);
+            strcpy(ip_addr, storage_server_details->ss_send->ip_addr);
             // strcpy(ip_addr, "127.0.0.1"); // FIX
             char server[50];
             snprintf(server, sizeof(server), "%d", server_addr);

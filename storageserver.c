@@ -147,17 +147,21 @@ int main()
                     del = 1;
             }
             // printf("del: %d\n",del);
+            char succ_mess[10];
+
             if (del == 0 && Delete_from_path_file(file_path, paths_file) == 0)
             {
+                strcpy(succ_mess,"done");
                 printf(GREEN "Deleted Successfully!\n" RESET);
-                int sent = send(naming_server_sock, "done", sizeof("done"), 0);
+                int sent = send(naming_server_sock, succ_mess, sizeof(succ_mess), 0);
                 if (sent == -1)
                     perror(RED "[-] Error sending data" RESET);
             }
             else
-            {
+            {   
+                strcpy(succ_mess,"notdone");
                 perror(RED "[-] Error deleting file/directory" RESET);
-                int sent = send(naming_server_sock, "not done", sizeof("not done"), 0);
+                int sent = send(naming_server_sock, succ_mess, sizeof(succ_mess), 0);
                 if (sent == -1)
                     perror(RED "[-] Error sending data" RESET);
             }
@@ -174,17 +178,27 @@ int main()
 
             char *temp = (char *)malloc(sizeof(char) * 1000);
             strcpy(temp, file_path);
+         
 
             char option[10];
+           // memset(option,sizeof(option),0);
 
             if ((received = recv(naming_server_sock, &option, sizeof(option), 0)) == -1)
-            {
+            {  
                 printf(RED "Error recieving data\n" RESET);
                 exit(0);
             }
-            else
-                option[received] = '\0';
-            char cwd[1000];
+            else{
+              option[received] = '\0';
+                
+            }
+              
+            char cwd[MAX_FILE_PATH];
+         
+            char buffer_path[MAX_FILE_PATH];
+            strcpy(buffer_path,"/");
+            get_full_path(temp,buffer_path);
+          //  printf("BUFF: %s %s\n",buffer_path,temp);
 
             if (getcwd(cwd, sizeof(cwd)) != NULL)
             {
@@ -194,8 +208,9 @@ int main()
                 perror(RED "getcwd() error" RESET);
                 exit(0);
             }
-            strcat(cwd, file_path);
-
+            strcat(cwd, buffer_path);
+          //  printf("PATH: %s\n",cwd);
+           
             // If option is 1, create a file, if option is 2, create a directory
             if (strcmp(option, "1") == 0)
             {
@@ -217,13 +232,15 @@ int main()
                     continue;
                 }
             }
-            if (Add_to_path_file(file_path, paths_file) == 0)
+            if (Add_to_path_file(buffer_path, paths_file) == 0)
                 printf(GREEN "Created Successfully!\n" RESET);
             else
                 perror(RED "[-] Error creating file/directory" RESET);
 
             // Sending success message
-            int sent = send(naming_server_sock, "done", sizeof("done"), 0);
+            char suc[10];
+            strcpy(suc,"done");
+            int sent = send(naming_server_sock, suc, sizeof(suc), 0);
             if (sent == -1)
                 perror(RED "Error sending data" RESET);
         }
@@ -620,7 +637,7 @@ int main()
                 if (fileStat.st_mode & S_IXOTH)
                     snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other has execute permission\n");
                 else
-                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other does not have execute permission\n");
+                    snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "Other does not have execute permission\n\n");
 
                 if (send(client_sock, buffer, sizeof(buffer), 0) == -1)
                 {
