@@ -128,10 +128,11 @@ int Delete_Path(Tree T, char *path, char *ss_dir)
     if (T == NULL)
         return -1;
 
-    char line[MAX_FILE_PATH] = {'\0'};
-    strcpy(line, path);
-    memmove(line, line + strlen(ss_dir), strlen(line) - strlen(ss_dir) + 1);
-    Tree traveller = Search_Till_Parent(T, line, 0);
+    // char line[MAX_FILE_PATH] = {'\0'};
+    // strcpy(line, path);
+    // memmove(line, line + strlen(ss_dir), strlen(line) - strlen(ss_dir) + 1);
+    Tree traveller = Search_Till_Parent(T, path, 0);
+    printf("line: %s\n", traveller->path);
     if (traveller == NULL)
     {
         printf(RED "Path not found\n" RESET);
@@ -155,47 +156,44 @@ int Delete_Path(Tree T, char *path, char *ss_dir)
 
 storage_servers check_if_path_in_ss(char *file_path, int insert) // NULL if not found else returns the parent depending on value of insert
 {
-    //printf("here\n");
     storage_servers traveller = storage_server_list;
     while (traveller != NULL)
     {
-        // adding code here to find if the tree is the tree at all by checking prefix
-        /*
-        effective change made:
-        the root is no longer '.', it is path of the ss dir
-        for searching, you comapare if path of ss is a prefix of path entered by the user
-        then Search till parent
-
-        What to do if the path enntered by user = path of ss?
-        It is acceptable, but what will search till parent do?
-        path_to_look_for will be a null string, in which case,
-        return traveller
-
-        Should work...
-        */
-        char ss_dir[MAX_FILE_PATH] = {'\0'};
-        strcpy(ss_dir, traveller->files_and_dirs->path);
-        if (strncmp(file_path, ss_dir, strlen(ss_dir)) == 0) // this means that this may be the ss
-        {
-            if (strcmp(file_path, ss_dir) == 0)
-                return traveller;
-
-            char path_to_look_for[MAX_FILE_PATH] = {'\0'};
-            strcpy(path_to_look_for, file_path);
-            memmove(path_to_look_for, path_to_look_for + strlen(ss_dir), strlen(path_to_look_for) - strlen(ss_dir) + 1);
-            printf("----%s\n", path_to_look_for);
-            Tree parent = Search_Till_Parent(traveller->files_and_dirs, path_to_look_for, insert);
-            if (parent != NULL)
-                return traveller;
-        }
-        traveller = traveller->next; // search till parent will def return a 0, so no point checking
-
-        // Tree parent = Search_Till_Parent(traveller->files_and_dirs, file_path, insert);
-        // if (parent != NULL)
-        //     return traveller;
-        // traveller = traveller->next;
+        Tree parent = Search_Till_Parent(traveller->files_and_dirs, file_path, insert);
+        if (parent != NULL)
+            return traveller;
+        traveller = traveller->next;
     }
     return NULL;
+}
+
+int isSuffix(const char *mainString, const char *suffix)
+{
+    // Use strstr to find the suffix in the main string
+    char *ptr = strstr(mainString, suffix);
+
+    // Check if the pointer is not NULL and points to the end of the main string
+    return (ptr != NULL && *(ptr + strlen(suffix)) == '\0');
+}
+
+// Searches for ss and returns the ss_send struct
+// Also adds the new child thingy
+storage_servers find_ss(char *file_path)
+{
+    char *token = strtok_r(file_path, "/", &file_path);
+    printf("token: %s\n", token);
+    storage_servers traveller = storage_server_list;
+    while (traveller != NULL)
+    {
+        if (isSuffix(traveller->files_and_dirs->path, token) == 1)
+        {
+            char *path_to_append = strtok_r(NULL, "/", &file_path);
+            printf("path to append: %s\n", path_to_append);
+            Search_Till_Parent(traveller->files_and_dirs, path_to_append, 1);
+            return traveller;
+        }
+        traveller = traveller->next;
+    }
 }
 
 storage_servers MakeNode_ss(char *ip_addr, int client_port, int server_port, char *init_path)
@@ -219,6 +217,7 @@ void PrintAll()
         printf("IP: %s\n", traveller->ss_send->ip_addr);
         printf("Client Port: %d\n", traveller->ss_send->client_port);
         printf("Server Port: %d\n", traveller->ss_send->server_port);
+        printf("Path of ss: %s\n", traveller->files_and_dirs->path);
         printf("Files and Directories:\n");
         PrintTree(traveller->files_and_dirs);
         printf("\n");
@@ -298,19 +297,17 @@ void load_SS(Tree T, char *file_name, char *ss_dir)
         // Remove the newline character (if it exists)
         size_t len = strcspn(line, "\n");
         if (line[len] == '\n')
-        {
             line[len] = '\0'; // Replace newline with null-terminator
-        }
 
         // removing the first part of path. i.e, the part that is the same as the
         // path of ss
-        // printf("%s loool\n", ss_dir);
-        if (line[len] == '\0' || line[0]=='\0' || strlen(line) - strlen(ss_dir)<0)
-            continue;
-        memmove(line, line + strlen(ss_dir), strlen(line) - strlen(ss_dir) + 1);
-        if (strlen(line) == 0)
-            continue;
+        // if (line[len] == '\0' || line[0] == '\0' || strlen(line) - strlen(ss_dir) < 0)
+        //     continue;
+        // memmove(line, line + strlen(ss_dir), strlen(line) - strlen(ss_dir) + 1);
+        // if (strlen(line) == 0)
+        //     continue;
         T = Search_Till_Parent(T, line, 1);
+        printf("done\n");
     }
 
     fclose(file);
@@ -754,10 +751,12 @@ int initialize_SS(int *ss_sock)
     // printf("pathhhhhh: %s\n", path_of_ss);
     // path_of_ss[sizeof(token)] = '\0';
 
-    storage_servers vital_info = MakeNode_ss(path_of_ss, 1, 1, path_of_ss);
-    vital_info->ss_send->client_port = client_port;
-    vital_info->ss_send->server_port = server_port;
-    strcpy(vital_info->ss_send->ip_addr, ip);
+    storage_servers vital_info = MakeNode_ss(ip, client_port, server_port, path_of_ss); // Just making a temp node
+    // vital_info->ss_send->client_port = client_port;
+    // vital_info->ss_send->server_port = server_port;
+    // strcpy(vital_info->ss_send->ss_directory, path_of_ss);
+    vital_info->ss_send->ss_directory[sizeof(path_of_ss)] = '\0';
+    // strcpy(vital_info->ss_send->ip_addr, ip);
 
     {
         printf("Port for client: %d\n", vital_info->ss_send->client_port);
@@ -975,7 +974,7 @@ int copy_file(char *source_path, char *dest_path)
     return 1;
 }
 
-int copy_directory(char *source_path, char *dest_path,char* buffer,char* path_file)
+int copy_directory(char *source_path, char *dest_path, char *buffer, char *path_file)
 {
     DIR *dp = opendir(source_path);
 
@@ -1027,7 +1026,7 @@ int copy_directory(char *source_path, char *dest_path,char* buffer,char* path_fi
         }
         if (S_ISDIR(st.st_mode))
         {
-            copy_directory(temp_source_path, temp_dest_path,buffer,path_file);
+            copy_directory(temp_source_path, temp_dest_path, buffer, path_file);
         }
         else
         {
@@ -1042,21 +1041,55 @@ int copy_directory(char *source_path, char *dest_path,char* buffer,char* path_fi
     return 1;
 }
 
-void get_full_path(char* path, char* buffer) {
+void get_full_path(char *path, char *buffer)
+{
     char temp[1000];
     int temp_ind = 0;
     int i;
-    for(i=1;i<strlen(path);i++){
-        if(path[i]=='/'){
+    for (i = 1; i < strlen(path); i++)
+    {
+        if (path[i] == '/')
+        {
             i++;
             break;
         }
     }
-    for(int j=i;j<strlen(path);j++){
-    temp[temp_ind]=path[j];
-    temp_ind++;
+    for (int j = i; j < strlen(path); j++)
+    {
+        temp[temp_ind] = path[j];
+        temp_ind++;
     }
-    temp[temp_ind]='\0';
-    strcat(buffer,temp);
+    temp[temp_ind] = '\0';
+    strcat(buffer, temp);
     return;
 }
+
+// adding code here to find if the tree is the tree at all by checking prefix
+/*
+effective change made:
+the root is no longer '.', it is path of the ss dir
+for searching, you comapare if path of ss is a prefix of path entered by the user
+then Search till parent
+
+What to do if the path enntered by user = path of ss?
+It is acceptable, but what will search till parent do?
+path_to_look_for will be a null string, in which case,
+return traveller
+
+Should work...
+*/
+// char ss_dir[MAX_FILE_PATH] = {'\0'};
+// strcpy(ss_dir, traveller->files_and_dirs->path);
+// if (strncmp(file_path, ss_dir, strlen(ss_dir)) == 0) // this means that this may be the ss
+// {
+//     if (strcmp(file_path, ss_dir) == 0)
+//         return traveller;
+//     char path_to_look_for[MAX_FILE_PATH] = {'\0'};
+//     strcpy(path_to_look_for, file_path);
+//     memmove(path_to_look_for, path_to_look_for + strlen(ss_dir), strlen(path_to_look_for) - strlen(ss_dir) + 1);
+//     // printf("----%s\n", path_to_look_for);
+//     Tree parent = Search_Till_Parent(traveller->files_and_dirs, path_to_look_for, insert);
+//     if (parent != NULL)
+//         return traveller;
+// }
+// traveller = traveller->next; // search till parent will def return a 0, so no point checking

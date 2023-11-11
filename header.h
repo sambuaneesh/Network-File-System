@@ -115,3 +115,5 @@ void init_port_create_sock(int *sock, struct sockaddr_in *addr, const char *ip, 
 
 int copy_file_for_dir(char *source_path, char *dest_path);
 void get_full_path(char* path, char* buffer);
+int isSuffix(const char *mainString, const char *suffix);
+storage_servers find_ss(char *file_path);

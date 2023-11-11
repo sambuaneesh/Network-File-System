@@ -235,7 +235,8 @@ int main()
             // END OF GETTING DATA FROM CLIENT
             // THE REST OF THIS CODE MUST EXECUTE ONLY IF file_path IS IN THE LIST OF ACCESSIBLE PATHS
 
-            storage_servers storage_server_details = check_if_path_in_ss(file_path, 1);
+            // storage_servers storage_server_details = check_if_path_in_ss(file_path, 1);
+            storage_servers storage_server_details = find_ss(file_path);
             if (storage_server_details == NULL)
             {
                 if (send(client_sock, "failed", sizeof("failed"), 0) == -1)
@@ -263,8 +264,12 @@ int main()
                 exit(1);
             }
 
+            char* token = strtok_r(file_path, "/", &token);
+            token = strtok_r(NULL, "/", &token);
+            char file_path_dest[MAX_FILE_PATH];
+            strcpy(file_path_dest, token);
             // Sending path to the SS
-            if (send(ns_sock, file_path, sizeof(file_path), 0) == -1)
+            if (send(ns_sock, file_path_dest, sizeof(file_path_dest), 0) == -1)
             {
                 perror(RED "[-]Send error\n" RESET);
                 exit(1);
@@ -425,8 +430,7 @@ int main()
             close_socket(&ns_sock);
         }
         else if (strcmp("5", opt) == 0 || strcmp("6", opt) == 0 || strcmp("7", opt) == 0) // Write
-        {
-           
+        {    
             // printf(RED "wubyvuyw\n");
             char file_path[MAX_FILE_PATH];
             if ((recieved = recv(client_sock, &file_path, sizeof(file_path), 0)) == -1)
