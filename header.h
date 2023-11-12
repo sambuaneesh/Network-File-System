@@ -16,6 +16,8 @@
 #define MAX_FILE_PATH 500
 #define MAX_FILE_NAME 100
 #define MAX_NUM_FILES 10
+#define COMMAND_SIZE 10
+#define CACHE_SIZE 10
 #define port 5566 // port number for naming server
 
 #define RED "\033[31m"
@@ -82,12 +84,18 @@ typedef struct ss
 // 6. If the source path is the same as the one in the cache, then we need to check if the destination path is the same as the one in the cache
 // 7. If the destination path is the same as the one in the cache, then we need to check if the source path is the same as the one in the cache
 
-typedef struct Cache *cache;
-typedef struct Cache
+typedef struct CacheStore
 {
-    char command[10];
+    char command[COMMAND_SIZE];
     char source_path[MAX_FILE_PATH];
     char dest_path[MAX_FILE_PATH];
+    storage_servers ss;
+} CacheStore;
+
+typedef struct Cache
+{
+    int num_cache_entries;
+    CacheStore cache_store[CACHE_SIZE];
 } Cache;
 
 extern storage_servers storage_server_list;
@@ -136,3 +144,7 @@ int isSuffix(const char *mainString, const char *suffix);
 storage_servers find_ss(char *file_path);
 
 char *get_partial_path(char *path1, char *path2);
+
+Cache InitCache();
+storage_servers CheckCache(Cache cache, char *command, char *source_path, char *dest_path);
+void InsertIntoCache(Cache cache, char *command, char *source_path, char *dest_path, storage_servers ss);

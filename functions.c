@@ -1,6 +1,54 @@
 #include "header.h"
 storage_servers storage_server_list;
 
+// Caching functions
+Cache InitCache()
+{
+    Cache cache;
+    cache.num_cache_entries = 0;
+    return cache;
+}
+
+storage_servers CheckCache(Cache cache, char *command, char *source_path, char *dest_path)
+{
+    for (int i = 0; i < cache.num_cache_entries; i++)
+    {
+        if (strcmp(cache.cache_store[i].command, command) == 0)
+        {
+            if (strcmp(cache.cache_store[i].source_path, source_path) == 0)
+            {
+                if (strcmp(cache.cache_store[i].dest_path, dest_path) == 0)
+                    return cache.cache_store[i].ss;
+            }
+        }
+    }
+    return NULL;
+}
+
+void InsertIntoCache(Cache cache, char *command, char *source_path, char *dest_path, storage_servers ss)
+{
+    storage_servers temp = CheckCache(cache, command, source_path, dest_path);
+    if (temp != NULL)
+        return;
+
+    if (cache.num_cache_entries == CACHE_SIZE)
+    {
+        for (int i = 0; i < CACHE_SIZE - 1; i++)
+        {
+            strcpy(cache.cache_store[i].command, cache.cache_store[i + 1].command);
+            strcpy(cache.cache_store[i].source_path, cache.cache_store[i + 1].source_path);
+            strcpy(cache.cache_store[i].dest_path, cache.cache_store[i + 1].dest_path);
+            cache.cache_store[i].ss = cache.cache_store[i + 1].ss;
+        }
+        cache.num_cache_entries--;
+    }
+    strcpy(cache.cache_store[cache.num_cache_entries].command, command);
+    strcpy(cache.cache_store[cache.num_cache_entries].source_path, source_path);
+    strcpy(cache.cache_store[cache.num_cache_entries].dest_path, dest_path);
+    cache.cache_store[cache.num_cache_entries].ss = ss;
+    cache.num_cache_entries++;
+}
+
 // Tree and LL functions
 Tree MakeNode(char *name)
 {
@@ -174,9 +222,7 @@ int Delete_Path(Tree T, char *path, char *ss_dir)
     return 0;
 }
 
-storage_servers check_if_path_in_ss(
-    char *file_path,
-    int insert) // NULL if not found else returns the parent depending on value of insert
+storage_servers check_if_path_in_ss(char *file_path, int insert) // NULL if not found else returns the parent depending on value of insert
 {
     storage_servers traveller = storage_server_list;
     while (traveller != NULL)
@@ -334,16 +380,7 @@ void load_SS(Tree T, char *file_name, char *ss_dir)
         {
             line[len] = '\0'; // Replace newline with null-terminator
         }
-
-        // removing the first part of path. i.e, the part that is the same as the
-        // path of ss
-        // if (line[len] == '\0' || line[0] == '\0' || strlen(line) - strlen(ss_dir) < 0)
-        //     continue;
-        // memmove(line, line + strlen(ss_dir), strlen(line) - strlen(ss_dir) + 1);
-        // if (strlen(line) == 0)
-        //     continue;
         T = Search_Till_Parent(T, line, 1);
-        printf("done\n");
     }
 
     fclose(file);
@@ -620,10 +657,7 @@ void close_socket(int *client_sock)
     }
 }
 
-void listen_for_client(int *server_sock,
-                       int *client_sock,
-                       struct sockaddr_in *client_addr,
-                       socklen_t *addr_size)
+void listen_for_client(int *server_sock, int *client_sock, struct sockaddr_in *client_addr, socklen_t *addr_size)
 {
     if (listen(*server_sock, 5) == -1)
     {
@@ -850,8 +884,7 @@ void make_socket_non_blocking(int socket)
     }
 }
 
-void MakeSSsend_vital(
-    int *naming_server_sock, char *ip, int *port_for_client, int *port_for_nm, char *paths_file)
+void MakeSSsend_vital(int *naming_server_sock, char *ip, int *port_for_client, int *port_for_nm, char *paths_file)
 {
     FILE *file = fopen(paths_file, "r");
     if (file == NULL)

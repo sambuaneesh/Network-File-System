@@ -1,5 +1,4 @@
 /file1
 /dir1
 /dir1/file3
-/dir1/dir2
-/dir1/dir2/file5
+/file7
