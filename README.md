@@ -5,7 +5,7 @@
 - Files and Directories do not have the same name
 - Error if file to write into does not exist
 - Size of the paths file is no bigger than 2000 characters
-- 
+- The client must enter the path relative to the ss and it must begin with '/'. It will crash otherwise
 
 ### Project overview??
 - Fix search (done?)

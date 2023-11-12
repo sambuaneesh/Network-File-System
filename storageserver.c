@@ -9,17 +9,17 @@ int main()
 
     // REVERT BACK TO THIS
     printf("Enter the port number for client: ");
-     scanf("%d", &port_for_client);
-   // port_for_client = 5567;
+    //  scanf("%d", &port_for_client);
+    port_for_client = 5567;
     printf("Enter the port number for NS: ");
-     scanf("%d", &port_for_nm);
-   // port_for_nm = 5568;
+    //  scanf("%d", &port_for_nm);
+    port_for_nm = 5568;
     printf("Enter the IP address of NS: ");
-     scanf("%s", ip);
-    //strcpy(ip, "127.0.0.1");
+    //  scanf("%s", ip);
+    strcpy(ip, "127.0.0.1");
     printf("Enter name of paths file: ");
-     scanf("%s", paths_file);
-   // strcpy(paths_file, "paths.txt");
+    //  scanf("%s", paths_file);
+    strcpy(paths_file, "paths.txt");
     printf("\n");
 
     int sock, naming_server_sock;
@@ -242,16 +242,17 @@ int main()
         }
         else if (strcmp(command, "4") == 0)// Copying files and dirs
         {
-            if ((received = recv(naming_server_sock, &file_path, sizeof(file_path), 0)) == -1)
-            {
+            if ((received = recv(naming_server_sock, &file_path, sizeof(file_path), 0)) == -1) {
                 printf(RED "Error recieving data\n" RESET);
                 exit(0);
             }
-            else
+            else {
                 file_path[received] = '\0';
-          //  printf("FILE: %s\n",file_path);
-         if (Add_to_path_file(file_path, paths_file) == 0)
+            }
+            //  printf("FILE: %s\n",file_path);
+            if (Add_to_path_file(file_path, paths_file) == 0) {
                 printf(GREEN "Created Successfully!\n" RESET);
+            }
         }
         else if (strcmp(command, "5") == 0)// Writing
         {
