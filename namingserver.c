@@ -474,6 +474,7 @@ int main()
                 strcpy(buffer_paths, dest_path);
                 strcat(buffer_paths, "/");
                 strcat(buffer_paths, temp);
+                strcat(buffer_paths, "\n");
 
                 error = copy_directory(source_full_path, temp_dest, buffer_paths, dest_full_path, dest_path);
                 if (error != 0)
@@ -484,8 +485,8 @@ int main()
                         perror(RED "[-]Send error\n" RESET);
                         exit(1);
                     }
-
                     printf("BUFFER: %s END\n", buffer_paths);
+                    buffer_paths[strlen(buffer_paths) - 1] = '\0';
                     if (send(ns_sock, buffer_paths, sizeof(buffer_paths), 0) == -1)
                     {
                         perror(RED "[-]Send error\n" RESET);
@@ -497,13 +498,12 @@ int main()
 
                     // Use strtok_r to tokenize the buffer based on newline character
                     token = strtok_r(buffer_paths, "\n", &saveptr);
-
                     while (token != NULL)
                     {
                         printf("TOKEN: **%s**\n", token);
 
                         // Assuming find_ss is a function that takes a const char* as an argument
-                        storage_servers storage_server_details = find_ss(token);
+                        storage_servers storage_server_details = check_if_path_in_ss(token, 1);
 
                         token = strtok_r(NULL, "\n", &saveptr);
                     }

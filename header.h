@@ -73,6 +73,23 @@ typedef struct ss
     storage_servers next;
 } ss;
 
+// Logic for caching
+// 1. If the command is copy, then we need to check if the source path is in the cache
+// 2. If the source path is in the cache, then we need to check if the destination path is in the cache
+// 3. If the destination path is in the cache, then we need to check if the source path is the same as the one in the cache
+// 4. If the source path is the same as the one in the cache, then we need to check if the destination path is the same as the one in the cache
+// 5. If the destination path is the same as the one in the cache, then we need to check if the source path is the same as the one in the cache
+// 6. If the source path is the same as the one in the cache, then we need to check if the destination path is the same as the one in the cache
+// 7. If the destination path is the same as the one in the cache, then we need to check if the source path is the same as the one in the cache
+
+typedef struct Cache *cache;
+typedef struct Cache
+{
+    char command[10];
+    char source_path[MAX_FILE_PATH];
+    char dest_path[MAX_FILE_PATH];
+} Cache;
+
 extern storage_servers storage_server_list;
 
 Tree Insert(Tree parent, char *path);
