@@ -718,6 +718,14 @@ void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_
     }
     printf("[+]TCP server socket created.\n");
 
+    // Set the SO_REUSEADDR option to avoid "Address already in use" error
+    int yes = 1;
+    if (setsockopt(*server_sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
+    {
+        perror("setsockopt");
+        exit(1);
+    }
+
     memset(server_addr, '\0', sizeof(*server_addr));
     server_addr->sin_family = AF_INET;
     server_addr->sin_port = port;
@@ -740,6 +748,7 @@ void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_
         printf("[+]Listening...\n");
     }
 }
+
 
 void connect_to_SS_from_NS(int *ns_sock, struct sockaddr_in *ns_addr, int port_num)
 {
