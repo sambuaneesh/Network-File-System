@@ -76,7 +76,7 @@ int main()
                 exit(1);
             }
 
-            char mid_ack[10];
+            char mid_ack[100];
             int ind = 0;
             if ((ind = recv(naming_server_sock, mid_ack, sizeof(mid_ack), 0)) == -1)
             {
@@ -86,14 +86,14 @@ int main()
             mid_ack[ind] = '\0';
             // printf("IND: %d\n",ind);
             // printf("MID: %s\n",mid_ack);
-            if (strcmp(mid_ack, "failed") == 0)
+            if (strcmp(mid_ack, "success") != 0)
             {
-                printf(RED "Invalid Path\n" RESET);
+                printf(RED "%s\n" RESET,mid_ack);
                 continue;
             }
 
             // receive success or error message from NS
-            char success[10];
+            char success[100];
             if (recv(naming_server_sock, success, sizeof(success), 0) == -1)
             {
                 printf(RED "[-]Receive error\n" RESET);
@@ -106,6 +106,8 @@ int main()
             else
             {
                 printf(RED "Error deleting file/directory\n" RESET);
+                printf(RED "%s\n" RESET,success);
+
             }
         }
         else if (option == 3) // Creation
@@ -144,7 +146,7 @@ int main()
                 exit(1);
             }
 
-            char mid_ack[10];
+            char mid_ack[100];
             int ind = 0;
             if ((ind = recv(naming_server_sock, mid_ack, sizeof(mid_ack), 0)) == -1)
             {
@@ -155,14 +157,14 @@ int main()
 
             // printf("IND: %d\n",ind);
             // printf("MID: %s\n",mid_ack);
-            if (strcmp(mid_ack, "failed") == 0)
+            if (strcmp(mid_ack, "success") != 0)
             {
-                printf(RED "Invalid Path\n" RESET);
+                printf(RED "%s\n" RESET,mid_ack);
                 continue;
             }
 
             // recieve success or error message from NS
-            char success[10];
+            char success[100];
             if ((ind = recv(naming_server_sock, success, sizeof(success), 0)) == -1)
             {
                 perror(RED "[-] Receive error\n" RESET);
@@ -176,7 +178,7 @@ int main()
             }
             else
             {
-                printf(RED "Error creating file/directory\n" RESET);
+                printf(RED "%s\n" RESET,success);
             }
         }
         else if (option == 4) // Copying paths
@@ -226,20 +228,20 @@ int main()
                 exit(1);
             }
 
-            char mid_ack[10];
+            char mid_ack[100];
             if (recv(naming_server_sock, mid_ack, sizeof(mid_ack), 0) == -1)
             {
                 printf(RED "[-]Receive error\n" RESET);
                 exit(1);
             }
-            if (strcmp(mid_ack, "failed") == 0)
+            if (strcmp(mid_ack, "success") != 0)
             {
-                printf(RED "Invalid Path\n" RESET);
+                printf(RED "%s\n" RESET,mid_ack);
                 continue;
             }
 
             // recieve success or error message from NS
-            char success[10];
+            char success[100];
             if (recv(naming_server_sock, success, sizeof(success), 0) == -1)
             {
                 perror(RED "[-] Receive error\n" RESET);
@@ -248,7 +250,7 @@ int main()
             if (strcmp(success, "done") == 0)
                 printf(GREEN "Copied Successfully!\n" RESET);
             else
-                printf(RED "Error copying file/directory\n" RESET);
+                printf(RED "%s\n" RESET,success);
         }
         else if (option == 5) // Write
         {
@@ -270,25 +272,47 @@ int main()
             char ip_addr[50];
             char server_addr[50];
 
-            if (recv(naming_server_sock, ip_addr, sizeof(ip_addr), 0) == -1)
+             char mid_ack1[100];
+             int m_ind=0;
+             if ((m_ind=recv(naming_server_sock, mid_ack1, sizeof(mid_ack1), 0))== -1)
+            {
+                perror(RED "[-]Receive error" RESET);
+                exit(1);
+            }
+            mid_ack1[m_ind]='\0';
+            if (strcmp(mid_ack1, "success") != 0)
+            {
+                printf(RED "%s\n" RESET,mid_ack1);
+                continue;
+            }
+
+            if ((m_ind = recv(naming_server_sock, ip_addr, sizeof(ip_addr), 0)) == -1)
             {
                 perror("[-]Send error");
                 exit(1);
             }
+            ip_addr[m_ind]='\0';
+          
             if (strcmp(ip_addr, "failed") == 0)
             {
                 printf(RED "File does not exist\n" RESET);
                 continue;
             }
-            if (recv(naming_server_sock, server_addr, sizeof(server_addr), 0) == -1)
+            
+            if ((m_ind = recv(naming_server_sock, server_addr, sizeof(server_addr), 0)) == -1)
             {
                 perror("[-]Send error");
                 exit(1);
             }
+            server_addr[m_ind]='\0';
+             
+           
 
             int ns_sock;
             struct sockaddr_in ns_addr;
+            
             connect_to_SS_from_client(&ns_sock, &ns_addr, ip_addr, atoi(server_addr));
+        
             if (send(ns_sock, path, sizeof(path), 0) == -1)
             {
                 printf("[-] Send error\n");
@@ -332,7 +356,7 @@ int main()
                     }
                 }
             }
-
+ printf(CYAN "\nFinished writing to file!\n" RESET);
             close_socket(&ns_sock);
         }
         else if (option == 6) // Read
@@ -354,6 +378,18 @@ int main()
 
             char ip_addr[50];
             char server_addr[50];
+            char mid_ack1[100];
+
+             if (recv(naming_server_sock, mid_ack1, sizeof(mid_ack1), 0) == -1)
+            {
+                perror(RED "[-]Receive error" RESET);
+                exit(1);
+            }
+            if (strcmp(mid_ack1, "success") != 0)
+            {
+                printf(RED "%s\n" RESET,mid_ack1);
+                continue;
+            }
 
             if (recv(naming_server_sock, ip_addr, sizeof(ip_addr), 0) == -1)
             {
@@ -436,6 +472,19 @@ int main()
             char ip_addr[50];
             char server_addr[50];
 
+             char mid_ack1[100];
+
+             if (recv(naming_server_sock, mid_ack1, sizeof(mid_ack1), 0) == -1)
+            {
+                perror(RED "[-]Receive error" RESET);
+                exit(1);
+            }
+            if (strcmp(mid_ack1, "success") != 0)
+            {
+                printf(RED "%s\n" RESET,mid_ack1);
+                continue;
+            }
+
             if (recv(naming_server_sock, ip_addr, sizeof(ip_addr), 0) == -1)
             {
                 perror(RED "[-]Receive error" RESET);
@@ -467,7 +516,7 @@ int main()
                 printf(RED "[-]Receive error\n" RESET);
                 exit(1);
             }
-
+            
             if (strcmp(mid_ack, "success") != 0)
             {
                 printf(RED "%s\n" RESET, mid_ack);

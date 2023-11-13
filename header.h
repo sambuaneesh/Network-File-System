@@ -27,6 +27,17 @@
 #define CYAN "\033[36m"
 #define RESET "\033[0m"
 
+//Error codes
+#define INVALID_PATH "ERROR 101: Path not in list of accessible paths"
+#define COPY_TO_FILE "ERROR 102: Cannot copy file to file!"
+#define DIR_WRITE "ERROR 103: Cannot write to a directory!"
+#define DIR_READ "ERROR 104: Cannot read from a directory!"
+#define DIR_PERM "ERROR 105: Cannot get permissions of a directory!"
+#define FILE_EXISTS "ERROR 106: Path Already Exists!"
+#define DIR_EXISTS "ERROR 106: Path Already Exists!"
+#define FILE_DEL "ERROR 107: Error Removing File!"
+#define DIR_DEL "ERROR 108: Error Removing Directory!"
+
 typedef struct TreeNode *Tree;
 typedef struct TreeNode
 {
@@ -121,6 +132,9 @@ storage_servers check_if_path_in_ss(char *file_path, int insert);
 int initialize_SS(int *ss_sock);
 
 void get_path_details(char *path_to_go_to, char *file_name, char *file_path);
+char *get_partial_path(char *path1, char *path2);
+
+
 int create_file(char *file_path);
 int create_directory(char *file_path);
 int delete_file(char *file_path);
@@ -143,7 +157,6 @@ void get_full_path(char *path, char *buffer);
 int isSuffix(const char *mainString, const char *suffix);
 storage_servers find_ss(char *file_path);
 
-char *get_partial_path(char *path1, char *path2);
 
 Cache InitCache();
 storage_servers CheckCache(Cache cache, char *command, char *source_path, char *dest_path);
