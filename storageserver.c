@@ -8,19 +8,27 @@ int main()
     char paths_file[MAX_FILE_NAME] = {'\0'};
 
     // REVERT BACK TO THIS
-    printf("Enter the port number for client: ");
-      scanf("%d", &port_for_client);
-   // port_for_client = 5567;
-    printf("Enter the port number for NS: ");
-      scanf("%d", &port_for_nm);
-   // port_for_nm = 5568;
-    printf("Enter the IP address of NS: ");
-      scanf("%s", ip);
-  //  strcpy(ip, "127.0.0.1");
+    //     printf("Enter the port number for client: ");
+    //       scanf("%d", &port_for_client);
+    //    // port_for_client = 5567;
+    //     printf("Enter the port number for NS: ");
+    //       scanf("%d", &port_for_nm);
+    //    // port_for_nm = 5568;
+    //     printf("Enter the IP address of NS: ");
+    //       scanf("%s", ip);
+    //  strcpy(ip, "127.0.0.1");
     printf("Enter name of paths file: ");
-      scanf("%s", paths_file);
-  //  strcpy(paths_file, "paths.txt");
+    scanf("%s", paths_file);
+    //  strcpy(paths_file, "paths.txt");
     printf("\n");
+
+    // HARDCODED INFO for testing
+    port_for_client = 5567;
+    port_for_nm     = 5568;
+
+    if (strcmp(ip, "localhost")) {
+        strcpy(ip, "127.0.0.1");
+    }
 
     int sock, naming_server_sock;
     struct sockaddr_in addr, client_addr, ss_addr;
@@ -151,10 +159,12 @@ int main()
                 }
             }
             else {
-                if(del == 1)
-                strcpy(succ_mess,FILE_DEL);
-                if(del==2)
-                strcpy(succ_mess,DIR_DEL);
+                if (del == 1) {
+                    strcpy(succ_mess, FILE_DEL);
+                }
+                if (del == 2) {
+                    strcpy(succ_mess, DIR_DEL);
+                }
                 perror(RED "[-] Error deleting file/directory" RESET);
                 printf(RED "%s\n" RESET, succ_mess);
                 int sent = send(naming_server_sock, succ_mess, sizeof(succ_mess), 0);
@@ -207,10 +217,7 @@ int main()
             // If option is 1, create a file, if option is 2, create a directory
             if (strcmp(option, "1") == 0) {
                 if (create_file(cwd) == -1) {
-                    int sent = send(naming_server_sock,
-                                    FILE_EXISTS,
-                                    sizeof(FILE_EXISTS),
-                                    0);
+                    int sent = send(naming_server_sock, FILE_EXISTS, sizeof(FILE_EXISTS), 0);
                     if (sent == -1) {
                         perror(RED "Error sending data" RESET);
                     }
@@ -219,10 +226,7 @@ int main()
             }
             else if (strcmp(option, "2") == 0) {
                 if (create_directory(cwd) == -1) {
-                    int sent = send(naming_server_sock,
-                                    DIR_EXISTS,
-                                    sizeof(DIR_EXISTS),
-                                    0);
+                    int sent = send(naming_server_sock, DIR_EXISTS, sizeof(DIR_EXISTS), 0);
                     if (sent == -1) {
                         perror("Error sending data");
                     }
@@ -269,7 +273,6 @@ int main()
                 printf("[+]Client connected.\n");
             }
 
-            
 
             char file_path[MAX_FILE_PATH];
             // Getting file path from client
@@ -277,7 +280,7 @@ int main()
                 perror(RED "[-] Receive error" RESET);
                 exit(0);
             }
-         
+
             char cwd[1000];
 
             if (getcwd(cwd, sizeof(cwd)) != NULL) {
@@ -293,17 +296,17 @@ int main()
                 perror("Error getting file information");
                 exit(0);
             }
-           
+
             // Check if it is a directory
             char succ_mess[100];
             if (S_ISDIR(fileStat.st_mode)) {
                 strcpy(succ_mess, DIR_WRITE);
-                printf(RED "%s\n" RESET,DIR_WRITE);
+                printf(RED "%s\n" RESET, DIR_WRITE);
                 if (send(client_sock, succ_mess, sizeof(succ_mess), 0) == -1) {
                     printf(RED "[-] Error sending data\n" RESET);
                     exit(0);
                 }
-               
+
                 continue;
             }
 
@@ -398,7 +401,7 @@ int main()
             char succ_mess[100];
             if (S_ISDIR(fileStat.st_mode)) {
                 strcpy(succ_mess, DIR_READ);
-                printf(RED "%s\n" RESET,DIR_READ);
+                printf(RED "%s\n" RESET, DIR_READ);
                 if (send(client_sock, succ_mess, sizeof(succ_mess), 0) == -1) {
                     printf(RED "[-] Error sending data\n" RESET);
                     exit(0);
@@ -480,14 +483,14 @@ int main()
             char succ_mess[100];
             if (S_ISDIR(fileStat.st_mode)) {
                 strcpy(succ_mess, DIR_PERM);
-                printf(RED "%s\n" RESET,DIR_PERM);
+                printf(RED "%s\n" RESET, DIR_PERM);
                 if (send(client_sock, succ_mess, sizeof(succ_mess), 0) == -1) {
                     printf(RED "[-] Error sending data\n" RESET);
                     exit(0);
                 }
                 continue;
             }
-            
+
             // char succ_mess[100];
             strcpy(succ_mess, "success");
             if (send(client_sock, succ_mess, sizeof(succ_mess), 0) == -1) {

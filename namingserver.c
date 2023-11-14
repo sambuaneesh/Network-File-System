@@ -509,7 +509,7 @@ int main()
                 storage_server_details = check_if_path_in_ss(file_path, 0);
                 if (storage_server_details == NULL) {
                     printf(RED "%s\n" RESET, INVALID_PATH);
-                    strcpy(mid_ack1,INVALID_PATH);
+                    strcpy(mid_ack1, INVALID_PATH);
                     if (send(client_sock, mid_ack1, sizeof(mid_ack1), 0) == -1) {
                         perror(RED "[-]Send error\n" RESET);
                         exit(1);
@@ -517,7 +517,7 @@ int main()
                     continue;
                 }
                 else {
-                    strcpy(mid_ack1,"success");
+                    strcpy(mid_ack1, "success");
                     if (send(client_sock, mid_ack1, sizeof(mid_ack1), 0) == -1) {
                         perror(RED "[-]Send error\n" RESET);
                         exit(1);
@@ -525,20 +525,20 @@ int main()
                 }
             }
             else {
-                strcpy(mid_ack1,"success");
+                strcpy(mid_ack1, "success");
                 if (send(client_sock, mid_ack1, sizeof(mid_ack1), 0) == -1) {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
                 }
             }
 
-           
+
             int server_addr = storage_server_details->ss_send->client_port;
             char ip_addr[50];
             strcpy(ip_addr, storage_server_details->ss_send->ip_addr);
             char server[50];
             snprintf(server, sizeof(server), "%d", server_addr);
-           
+
             if (send(client_sock, ip_addr, sizeof(ip_addr), 0) == -1) {
                 perror(RED "[-]Send error\n" RESET);
                 exit(1);
@@ -547,7 +547,7 @@ int main()
                 perror(RED "[-]Send error\n" RESET);
                 exit(1);
             }
-        
+
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
             if (strcmp("5", opt) == 0) {
