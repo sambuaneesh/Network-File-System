@@ -5,6 +5,40 @@ int num_ss            = 0;
 int num_client        = 0;
 int role              = 0;
 
+// create array of semaphore for each file
+sem_t sem_array[MAX_NUM_FILES];
+
+// Define a structure to store file name and its unique number
+typedef struct {
+    char* name;
+    unsigned int uniqueNumber;
+} FileMapping;
+
+FileMapping fileMappings[MAX_NUM_FILES];// Global array to store mappings
+unsigned int counter = 0;               // Global counter for unique numbers
+
+int mapToRange(const char* name)
+{
+    // Check if the file name is already mapped
+    for (int i = 0; i < counter; ++i) {
+        if (strcmp(fileMappings[i].name, name) == 0) {
+            return fileMappings[i].uniqueNumber;
+        }
+    }
+
+    // If not already mapped, assign a new unique number
+    if (counter < MAX_NUM_FILES) {
+        fileMappings[counter].name         = strdup(name);// Save a copy of the name
+        fileMappings[counter].uniqueNumber = counter;
+        ++counter;
+        return fileMappings[counter - 1].uniqueNumber;
+    }
+
+    // Handle the case when the maximum number of files is reached
+    fprintf(stderr, "Error: Maximum number of files reached.\n");
+    exit(EXIT_FAILURE);
+}
+
 // creating a thread for client connection
 void* client_thread(void* arg)
 {
@@ -32,7 +66,6 @@ void* client_thread(void* arg)
         pthread_exit(NULL);
     }
 
-
     while (1) {
         PrintAll();
         char opt[2];
@@ -54,6 +87,7 @@ void* client_thread(void* arg)
         if (strcmp("1", opt) == 0) {
             close_socket(&client_sock);
         }
+
         else if (strcmp("2", opt) == 0)// Deletion
         {
             char temp_file_path[MAX_FILE_PATH];
@@ -158,6 +192,7 @@ void* client_thread(void* arg)
             }
             close_socket(&ns_sock);
         }
+
         else if (strcmp("3", opt) == 0)// Creation
         {
             char temp_file_path[MAX_FILE_PATH];
@@ -264,6 +299,7 @@ void* client_thread(void* arg)
             }
             close_socket(&ns_sock);
         }
+
         else if (strcmp("4", opt) == 0)// Copying files/directories
         {
             // Receiving the path of the file/directory
@@ -481,6 +517,7 @@ void* client_thread(void* arg)
                 }
             }
         }
+
         else if (strcmp("5", opt) == 0 || strcmp("6", opt) == 0 || strcmp("7", opt) == 0)// Write
         {
             char file_path[MAX_FILE_PATH];
@@ -488,7 +525,10 @@ void* client_thread(void* arg)
                 perror(RED "[-]Receive error\n" RESET);
                 exit(1);
             }
-
+            unsigned int fileIndex = mapToRange(file_path);
+            if (strcmp("5", opt) == 0) {
+                sem_wait(&sem_array[fileIndex]);
+            }
             char mid_ack1[100];
             storage_servers storage_server_details = CheckCache(cache, opt, file_path, "\0");
             if (storage_server_details == NULL) {
@@ -537,6 +577,7 @@ void* client_thread(void* arg)
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
             if (strcmp("5", opt) == 0) {
+                sem_post(&sem_array[fileIndex]);
                 if (send(ns_sock, "5", sizeof("5"), 0) == -1) {
                     perror(RED "[-]Send error\n" RESET);
                     exit(1);
@@ -562,6 +603,11 @@ void* client_thread(void* arg)
 
 int main()
 {
+    // init all sem to binary
+    for (int i = 0; i < MAX_NUM_FILES; i++) {
+        sem_init(&sem_array[i], 0, 1);
+    }
+
     Tree SS1            = MakeNode(".");
     storage_server_list = NULL;
     int nm_sock, client_sock, ss_sock;

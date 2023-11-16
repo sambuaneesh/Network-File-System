@@ -805,7 +805,8 @@ void connect_to_SS_from_client(int *sock, struct sockaddr_in *addr, char *ns_ip,
     return;
 }
 
-int initialize_SS(int *ss_sock)
+int 
+initialize_SS(int *ss_sock)
 {
     int client_port;
     int server_port;

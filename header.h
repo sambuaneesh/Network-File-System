@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <semaphore.h>
 
 #define MAX_NUM_PATHS 2000
 #define MAX_FILE_PATH 500
