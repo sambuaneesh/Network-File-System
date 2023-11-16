@@ -37,6 +37,8 @@
 #define DIR_EXISTS "ERROR 106: Path Already Exists!"
 #define FILE_DEL "ERROR 107: Error Removing File!"
 #define DIR_DEL "ERROR 108: Error Removing Directory!"
+#define FILE_OPT "ERROR 109: Option Chosen to Create a File,not a Directory!"
+#define DIR_OPT "ERROR 110: Option Chosen to Create a Directory,not a File!"
 
 typedef struct TreeNode *Tree;
 typedef struct TreeNode
