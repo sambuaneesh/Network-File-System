@@ -5,47 +5,33 @@ int num_ss            = 0;
 int num_client        = 0;
 int role              = 0;
 
-struct client_thread_args {
-    int client_sock;
-    struct sockaddr_in client_addr;
-    socklen_t client_addr_size;
-    Cache cache;
-    int nm_sock;
-    struct sockaddr_in server_addr;
-    int ss_sock;
-    struct sockaddr_in ss_addr;
-    socklen_t ss_addr_size;
-    int ns_sock;
-    struct sockaddr_in ns_addr;
-};
-
 // creating a thread for client connection
 void* client_thread(void* arg)
 {
-    // extract the following from arguments:
-    // 1. client_sock
-    // 2. client_addr
-    // 3. client_addr_size
-    // 4. cache
-    // 5. nm_sock
-    // 6. server_addr
-    // 7. ss_sock
-    // 8. ss_addr
-    // 9. ss_addr_size
-    // 10. ns_sock
-    // 11. ns_addr
+    int client_sock, nm_sock, ss_sock, ns_sock;
+    struct sockaddr_in client_addr, server_addr, ss_addr, ns_addr;
+    socklen_t client_addr_size, ss_addr_size, ns_addr_size;
+    Cache cache;
 
-    int client_sock                = ((struct client_thread_args*)arg)->client_sock;
-    struct sockaddr_in client_addr = ((struct client_thread_args*)arg)->client_addr;
-    socklen_t client_addr_size     = ((struct client_thread_args*)arg)->client_addr_size;
-    Cache cache                    = ((struct client_thread_args*)arg)->cache;
-    int nm_sock                    = ((struct client_thread_args*)arg)->nm_sock;
-    struct sockaddr_in server_addr = ((struct client_thread_args*)arg)->server_addr;
-    int ss_sock                    = ((struct client_thread_args*)arg)->ss_sock;
-    struct sockaddr_in ss_addr     = ((struct client_thread_args*)arg)->ss_addr;
-    socklen_t ss_addr_size         = ((struct client_thread_args*)arg)->ss_addr_size;
-    int ns_sock                    = ((struct client_thread_args*)arg)->ns_sock;
-    struct sockaddr_in ns_addr     = ((struct client_thread_args*)arg)->ns_addr;
+    if (arg != NULL) {
+        struct client_thread_args* args = (struct client_thread_args*)arg;
+        client_sock                     = args->client_sock;
+        client_addr                     = args->client_addr;
+        client_addr_size                = args->client_addr_size;
+        cache                           = args->cache;
+        nm_sock                         = args->nm_sock;
+        server_addr                     = args->server_addr;
+        ss_sock                         = args->ss_sock;
+        ss_addr                         = args->ss_addr;
+        ss_addr_size                    = args->ss_addr_size;
+        ns_sock                         = args->ns_sock;
+        ns_addr                         = args->ns_addr;
+    }
+    else {
+        printf(RED "[-]Error in passing arguments to client thread\n" RESET);
+        pthread_exit(NULL);
+    }
+
 
     while (1) {
         PrintAll();
