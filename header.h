@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <pthread.h>
 
 #define MAX_NUM_PATHS 2000
 #define MAX_FILE_PATH 500

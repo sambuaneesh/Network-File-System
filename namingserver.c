@@ -1,78 +1,53 @@
 #include "header.h"
 
-int main()
-{
-    Tree SS1            = MakeNode(".");
-    storage_server_list = NULL;
-    int nm_sock, client_sock, ss_sock;
-    struct sockaddr_in server_addr, client_addr, ss_addr;
-    socklen_t client_addr_size, ss_addr_size;
+int something_connect = 0;
+int num_ss            = 0;
+int num_client        = 0;
+int role              = 0;
 
-    ss_addr_size = sizeof(ss_addr);
-    Cache cache  = InitCache();
-
-    open_naming_server_port(5566, &nm_sock, &server_addr);
-    make_socket_non_blocking(nm_sock);// so that some accept requests can be ignored
-
-    // we now have a dedicated port for the naming server
+struct client_thread_args {
+    int client_sock;
+    struct sockaddr_in client_addr;
+    socklen_t client_addr_size;
+    Cache cache;
+    int nm_sock;
+    struct sockaddr_in server_addr;
+    int ss_sock;
+    struct sockaddr_in ss_addr;
+    socklen_t ss_addr_size;
     int ns_sock;
     struct sockaddr_in ns_addr;
+};
 
-    int something_connect = 0;
-    int num_ss            = 0;
-    int num_client        = 0;
-    int role              = 0;
+// creating a thread for client connection
+void* client_thread(void* arg)
+{
+    // extract the following from arguments:
+    // 1. client_sock
+    // 2. client_addr
+    // 3. client_addr_size
+    // 4. cache
+    // 5. nm_sock
+    // 6. server_addr
+    // 7. ss_sock
+    // 8. ss_addr
+    // 9. ss_addr_size
+    // 10. ns_sock
+    // 11. ns_addr
+
+    int client_sock                = ((struct client_thread_args*)arg)->client_sock;
+    struct sockaddr_in client_addr = ((struct client_thread_args*)arg)->client_addr;
+    socklen_t client_addr_size     = ((struct client_thread_args*)arg)->client_addr_size;
+    Cache cache                    = ((struct client_thread_args*)arg)->cache;
+    int nm_sock                    = ((struct client_thread_args*)arg)->nm_sock;
+    struct sockaddr_in server_addr = ((struct client_thread_args*)arg)->server_addr;
+    int ss_sock                    = ((struct client_thread_args*)arg)->ss_sock;
+    struct sockaddr_in ss_addr     = ((struct client_thread_args*)arg)->ss_addr;
+    socklen_t ss_addr_size         = ((struct client_thread_args*)arg)->ss_addr_size;
+    int ns_sock                    = ((struct client_thread_args*)arg)->ns_sock;
+    struct sockaddr_in ns_addr     = ((struct client_thread_args*)arg)->ns_addr;
 
     while (1) {
-        ss_sock = accept(nm_sock, (struct sockaddr*)&ss_addr, &ss_addr_size);
-        if (ss_sock < 0) {
-            if (errno == EWOULDBLOCK || errno == EAGAIN) {
-                // No client connection available, continue with other tasks
-            }
-            else {
-                perror(RED "[-]Accept error" RESET);
-                exit(0);
-            }
-        }
-        else {
-            if (recv(ss_sock, &role, sizeof(role), 0) == -1) {
-                perror(RED "[-]Receive error" RESET);
-                exit(1);
-            }
-            else {
-                printf("role is %d\n", role);
-                something_connect = 1;
-                if (role == 1)// SS
-                {
-                    num_ss++;
-                    if (initialize_SS(&ss_sock) == -1) {
-                        perror(RED "[-]Error initializing storage servers" RESET);
-                        exit(1);
-                    }
-                    printf("[+]New storage server connected\n");
-                    close_socket(&ss_sock);
-                    continue;
-                }
-                else if (role == 2)// Client
-                {
-                    client_sock      = ss_sock;
-                    client_addr      = ss_addr;
-                    client_addr_size = ss_addr_size;
-                    num_client++;
-                    printf("[+]New client connected\n");
-                }
-            }
-            // receive vital information, store in ll, disconnect
-        }
-        if (something_connect == 0 || (something_connect != 0 && num_client == 0)) {
-            continue;
-        }
-        if (num_ss == 0 && num_client != 0) {
-            printf(RED "[-]No storage servers connected\n" RESET);
-            break;
-            continue;
-        }
-
         PrintAll();
         char opt[2];
         int recieved;
@@ -237,7 +212,8 @@ int main()
                     // printf("2. MIDMES: %s\n",succ_mess);
                     if (send(client_sock, INVALID_PATH, sizeof(INVALID_PATH), 0) == -1) {
                         perror(RED "[-]Send error\n" RESET);
-                        exit(1);
+                        // exit(1);
+                        pthread_exit(NULL);
                     }
 
                     printf(RED "%s\n" RESET, INVALID_PATH);
@@ -278,7 +254,8 @@ int main()
 
             if ((success_message = recv(ns_sock, &success, sizeof(success), 0)) == -1) {
                 perror(RED "[-]Receive error\n" RESET);
-                return 1;
+                // return 1;
+                pthread_exit(NULL);
             }
             else {
                 success[success_message] = '\0';
@@ -361,27 +338,28 @@ int main()
             struct stat fileStat;
             char mid_ack[100];
 
-              struct stat fileStat1;
+            struct stat fileStat1;
 
-    if (stat(source_full_path, &fileStat1) == 0) {
-        if (S_ISREG(fileStat1.st_mode)  && strcmp(copy_option,"2")==0) {
-            if (send(client_sock, DIR_OPT, sizeof(DIR_OPT), 0) == -1)// mid ack
+            if (stat(source_full_path, &fileStat1) == 0) {
+                if (S_ISREG(fileStat1.st_mode) && strcmp(copy_option, "2") == 0) {
+                    if (send(client_sock, DIR_OPT, sizeof(DIR_OPT), 0) == -1)// mid ack
                     {
                         perror(RED "[-]Send error\n" RESET);
                         exit(1);
                     }
                     continue;
-        } else if (S_ISDIR(fileStat1.st_mode) && strcmp(copy_option,"1")==0) {
-            if (send(client_sock,FILE_OPT, sizeof(FILE_OPT), 0) == -1)// mid ack
+                }
+                else if (S_ISDIR(fileStat1.st_mode) && strcmp(copy_option, "1") == 0) {
+                    if (send(client_sock, FILE_OPT, sizeof(FILE_OPT), 0) == -1)// mid ack
                     {
                         perror(RED "[-]Send error\n" RESET);
                         exit(1);
                     }
                     continue;
-        } 
-    }
+                }
+            }
 
-            
+
             int fil = 0;
             if (stat(dest_full_path, &fileStat) == 0) {
                 if (S_ISREG(fileStat.st_mode)) {
@@ -592,6 +570,96 @@ int main()
             }
 
             close_socket(&ns_sock);
+        }
+    }
+}
+
+int main()
+{
+    Tree SS1            = MakeNode(".");
+    storage_server_list = NULL;
+    int nm_sock, client_sock, ss_sock;
+    struct sockaddr_in server_addr, client_addr, ss_addr;
+    socklen_t client_addr_size, ss_addr_size;
+
+    ss_addr_size = sizeof(ss_addr);
+    Cache cache  = InitCache();
+
+    open_naming_server_port(5566, &nm_sock, &server_addr);
+    make_socket_non_blocking(nm_sock);// so that some accept requests can be ignored
+
+    // we now have a dedicated port for the naming server
+    int ns_sock;
+    struct sockaddr_in ns_addr;
+
+    while (1) {
+        ss_sock = accept(nm_sock, (struct sockaddr*)&ss_addr, &ss_addr_size);
+        if (ss_sock < 0) {
+            if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                // No client connection available, continue with other tasks
+            }
+            else {
+                perror(RED "[-]Accept error" RESET);
+                exit(0);
+            }
+        }
+        else {
+            if (recv(ss_sock, &role, sizeof(role), 0) == -1) {
+                perror(RED "[-]Receive error" RESET);
+                exit(1);
+            }
+            else {
+                printf("role is %d\n", role);
+                something_connect = 1;
+                if (role == 1)// SS
+                {
+                    num_ss++;
+                    if (initialize_SS(&ss_sock) == -1) {
+                        perror(RED "[-]Error initializing storage servers" RESET);
+                        exit(1);
+                    }
+                    printf("[+]New storage server connected\n");
+                    close_socket(&ss_sock);
+                    continue;
+                }
+                else if (role == 2)// Client
+                {
+                    client_sock      = ss_sock;
+                    client_addr      = ss_addr;
+                    client_addr_size = ss_addr_size;
+                    num_client++;
+                    printf("[+]New client connected\n");
+
+                    // create a thread for the client connection and pass the client_thread_args
+                    // structure as an argument
+                    struct client_thread_args args;
+                    args.client_sock      = client_sock;
+                    args.client_addr      = client_addr;
+                    args.client_addr_size = client_addr_size;
+                    args.cache            = cache;
+                    args.nm_sock          = nm_sock;
+                    args.server_addr      = server_addr;
+                    args.ss_sock          = ss_sock;
+                    args.ss_addr          = ss_addr;
+                    args.ss_addr_size     = ss_addr_size;
+                    args.ns_sock          = ns_sock;
+                    args.ns_addr          = ns_addr;
+
+                    pthread_t client_thread_id;
+                    pthread_create(&client_thread_id, NULL, client_thread, (void*)&args);
+
+                    // dont forget to join later
+                }
+            }
+            // receive vital information, store in ll, disconnect
+        }
+        if (something_connect == 0 || (something_connect != 0 && num_client == 0)) {
+            continue;
+        }
+        if (num_ss == 0 && num_client != 0) {
+            printf(RED "[-]No storage servers connected\n" RESET);
+            break;
+            continue;
         }
     }
     close_socket(&nm_sock);
