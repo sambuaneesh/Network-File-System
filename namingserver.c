@@ -360,6 +360,28 @@ int main()
             //Checking if destination path is a file
             struct stat fileStat;
             char mid_ack[100];
+
+              struct stat fileStat1;
+
+    if (stat(source_full_path, &fileStat1) == 0) {
+        if (S_ISREG(fileStat1.st_mode)  && strcmp(copy_option,"2")==0) {
+            if (send(client_sock, DIR_OPT, sizeof(DIR_OPT), 0) == -1)// mid ack
+                    {
+                        perror(RED "[-]Send error\n" RESET);
+                        exit(1);
+                    }
+                    continue;
+        } else if (S_ISDIR(fileStat1.st_mode) && strcmp(copy_option,"1")==0) {
+            if (send(client_sock,FILE_OPT, sizeof(FILE_OPT), 0) == -1)// mid ack
+                    {
+                        perror(RED "[-]Send error\n" RESET);
+                        exit(1);
+                    }
+                    continue;
+        } 
+    }
+
+            
             int fil = 0;
             if (stat(dest_full_path, &fileStat) == 0) {
                 if (S_ISREG(fileStat.st_mode)) {
@@ -400,7 +422,7 @@ int main()
                         exit(1);
                     }
 
-                    storage_servers storage_server_details = find_ss(buffer_paths);
+                    storage_servers storage_server_details = check_if_path_in_ss(buffer_paths, 1);
                     close_socket(&ns_sock);
                 }
                 else {
