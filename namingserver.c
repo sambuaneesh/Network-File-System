@@ -8,15 +8,9 @@ int role              = 0;
 // create array of semaphore for each file
 sem_t sem_array[MAX_NUM_FILES];
 
-// Define a structure to store file name and its unique number
-typedef struct {
-    char* name;
-    unsigned int uniqueNumber;
-} FileMapping;
-
 FileMapping fileMappings[MAX_NUM_FILES];// Global array to store mappings
-unsigned int counter = 0;               // Global counter for unique numbers
 
+unsigned int counter = 0;               // Global counter for unique numbers
 int mapToRange(const char* name)
 {
     // Check if the file name is already mapped
@@ -87,7 +81,6 @@ void* client_thread(void* arg)
         if (strcmp("1", opt) == 0) {
             close_socket(&client_sock);
         }
-
         else if (strcmp("2", opt) == 0)// Deletion
         {
             char temp_file_path[MAX_FILE_PATH];
@@ -192,7 +185,6 @@ void* client_thread(void* arg)
             }
             close_socket(&ns_sock);
         }
-
         else if (strcmp("3", opt) == 0)// Creation
         {
             char temp_file_path[MAX_FILE_PATH];
@@ -299,7 +291,6 @@ void* client_thread(void* arg)
             }
             close_socket(&ns_sock);
         }
-
         else if (strcmp("4", opt) == 0)// Copying files/directories
         {
             // Receiving the path of the file/directory
@@ -517,7 +508,6 @@ void* client_thread(void* arg)
                 }
             }
         }
-
         else if (strcmp("5", opt) == 0 || strcmp("6", opt) == 0 || strcmp("7", opt) == 0)// Write
         {
             char file_path[MAX_FILE_PATH];
@@ -527,7 +517,9 @@ void* client_thread(void* arg)
             }
             unsigned int fileIndex = mapToRange(file_path);
             if (strcmp("5", opt) == 0) {
+                printf(CYAN"Checking if file is being used..\n"RESET);
                 sem_wait(&sem_array[fileIndex]);
+                printf(CYAN"Done\n"RESET);
             }
             char mid_ack1[100];
             storage_servers storage_server_details = CheckCache(cache, opt, file_path, "\0");
@@ -599,7 +591,9 @@ void* client_thread(void* arg)
             close_socket(&ns_sock);
         }
     }
+    pthread_exit(NULL);
 }
+
 
 int main()
 {
@@ -694,22 +688,16 @@ int main()
             continue;
         }
     }
+    // close all sockets
     close_socket(&nm_sock);
+    close_socket(&client_sock);
+    close_socket(&ss_sock);
+    close_socket(&ns_sock);
+
+    // destroy all semaphores
+    for (int i = 0; i < MAX_NUM_FILES; i++) {
+        sem_destroy(&sem_array[i]);
+    }
 
     return 0;
 }
-
-/*
-
-nm
-ss1
-ss2
-
-nm - ss1
-nm - ss2
-
-create ss1
-read ss2
-write ss2
-
-*/

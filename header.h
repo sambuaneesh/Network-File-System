@@ -122,6 +122,12 @@ struct client_thread_args {
     struct sockaddr_in ns_addr;
 };
 
+// Define a structure to store file name and its unique number
+typedef struct {
+    char* name;
+    unsigned int uniqueNumber;
+} FileMapping;
+
 extern storage_servers storage_server_list;
 
 Tree Insert(Tree parent, char* path);
