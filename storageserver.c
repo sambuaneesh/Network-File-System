@@ -17,8 +17,20 @@ int main()
     //     printf("Enter the IP address of NS: ");
     //       scanf("%s", ip);
     //  strcpy(ip, "127.0.0.1");
-    printf("Enter name of paths file: ");
-    scanf("%s", paths_file);
+    while (1) {
+        printf("Enter name of paths file: ");
+        scanf("%s", paths_file);
+
+        if (access(paths_file, F_OK) == -1) {
+            // File doesn't exist
+            printf(RED "[-] File opening error: " RESET);
+            printf("File '%s' doesn't exist.\n", paths_file);
+        }
+        else {
+            printf(CYAN "[+] Trying to connect to NS...\n" RESET);
+            break;
+        }
+    }
     //  strcpy(paths_file, "paths.txt");
     printf("\n");
 
