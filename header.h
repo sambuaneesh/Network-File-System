@@ -185,3 +185,5 @@ Cache InitCache();
 storage_servers CheckCache(Cache cache, char* command, char* source_path, char* dest_path);
 void InsertIntoCache(
     Cache cache, char* command, char* source_path, char* dest_path, storage_servers ss);
+
+int isPortAvailable(int p);

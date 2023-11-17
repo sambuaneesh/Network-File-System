@@ -1223,3 +1223,28 @@ void get_full_path(char *path, char *buffer)
 
     strcat(buffer, temp);
 }
+
+int isPortAvailable(int p) {
+    int temp_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (temp_socket == -1) {
+        perror("Socket creation error");
+        exit(EXIT_FAILURE);
+    }
+
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_port = htons(p);
+
+    // Attempt to bind to the port
+    if (bind(temp_socket, (struct sockaddr*)&addr, sizeof(addr)) == 0) {
+        // Binding successful, port is available
+        close(temp_socket);
+        return 1;
+    } else {
+        // Binding failed, port is not available
+        close(temp_socket);
+        return 0;
+    }
+}
