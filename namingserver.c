@@ -563,6 +563,28 @@ void* client_thread(void* arg)
     pthread_exit(NULL);
 }
 
+// health thread
+void* health_thread(void* arg)
+{
+    while (1) {
+        sleep(5);
+        printf("Checking health of storage servers\n");
+        storage_servers temp = storage_server_list;
+        while (temp != NULL) {
+            int ss_sock;
+            struct sockaddr_in ss_addr;
+            socklen_t ss_addr_size = sizeof(ss_addr);
+            connect_to_SS_from_NS(&ss_sock, &ss_addr, temp->ss_send->server_port);
+            if (send(ss_sock, "8", sizeof("8"), 0) == -1) {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+            close_socket(&ss_sock);
+            temp = temp->next;
+        }
+    }
+    pthread_exit(NULL);
+}
 
 int main()
 {
@@ -581,6 +603,12 @@ int main()
     // we now have a dedicated port for the naming server
     int ns_sock;
     struct sockaddr_in ns_addr;
+
+    // create a thread which checks for the health of the storage servers for every 5 seconds
+    pthread_t health_thread_id;
+    pthread_create(&health_thread_id, NULL, health_thread, NULL);
+    // detach the thread so that it can run in the background
+    pthread_detach(health_thread_id);
 
     while (1) {
         ss_sock = accept(nm_sock, (struct sockaddr*)&ss_addr, &ss_addr_size);
