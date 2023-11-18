@@ -21,3 +21,5 @@ nm: namingserver.o functions.o
 
 clean:
 	rm -f $(OBJ) $(TARGETS)
+
+re: clean all

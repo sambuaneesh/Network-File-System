@@ -691,7 +691,7 @@ void connect_to_naming_server(char *ip, int *sock, struct sockaddr_in *addr)
 
     memset(addr, '\0', sizeof(*addr));
     addr->sin_family = AF_INET;
-    addr->sin_port = port;
+    addr->sin_port = PORT;
     addr->sin_addr.s_addr = inet_addr(ip); // converts the string to an acceptable form
 
     if (connect(*sock, (struct sockaddr *)addr, sizeof(*addr)) == -1)
@@ -728,7 +728,7 @@ void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_
 
     memset(server_addr, '\0', sizeof(*server_addr));
     server_addr->sin_family = AF_INET;
-    server_addr->sin_port = port;
+    server_addr->sin_port = PORT;
     server_addr->sin_addr.s_addr = inet_addr(ip);
 
     n = bind(*server_sock, (struct sockaddr *)server_addr, sizeof(*server_addr));
@@ -737,7 +737,7 @@ void open_naming_server_port(int port_number, int *server_sock, struct sockaddr_
         perror(RED "[-]Bind error" RESET);
         exit(1);
     }
-    printf("[+]Bind to the port number: %d\n", port);
+    printf("[+]Bind to the port number: %d\n", PORT);
     if (listen(*server_sock, 5) == -1)
     {
         perror(RED "[-]Listen error" RESET);

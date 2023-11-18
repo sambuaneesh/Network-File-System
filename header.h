@@ -13,6 +13,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <semaphore.h>
+#include <sys/time.h>
+#include <sys/select.h>
 
 #define MAX_NUM_PATHS 2000
 #define MAX_FILE_PATH 500
@@ -20,7 +22,7 @@
 #define MAX_NUM_FILES 10
 #define COMMAND_SIZE 10
 #define CACHE_SIZE 10
-#define port 5566// port number for naming server
+#define PORT 5566// port number for naming server
 
 #define RED "\033[31m"
 #define GREEN "\033[32m"
