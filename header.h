@@ -5,16 +5,16 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <pthread.h>
-#include <semaphore.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <semaphore.h>
+#include <sys/time.h>
+#include <sys/select.h>
 
 #define MAX_NUM_PATHS 2000
 #define MAX_FILE_PATH 500
@@ -32,8 +32,8 @@
 #define RESET "\033[0m"
 
 //Error codes
-#define INVALID_PATH "ERROR 101: Path not in list of accessible paths"
-#define COPY_TO_FILE "ERROR 102: Cannot copy file to file!"
+#define INVALID_PATH "ERROR 101: Path not in list of accessible paths!"
+#define COPY_TO_FILE "ERROR 102: Cannot copy to file!"
 #define DIR_WRITE "ERROR 103: Cannot write to a directory!"
 #define DIR_READ "ERROR 104: Cannot read from a directory!"
 #define DIR_PERM "ERROR 105: Cannot get permissions of a directory!"
@@ -41,8 +41,10 @@
 #define DIR_EXISTS "ERROR 106: Path Already Exists!"
 #define FILE_DEL "ERROR 107: Error Removing File!"
 #define DIR_DEL "ERROR 108: Error Removing Directory!"
-#define FILE_OPT "ERROR 109: Option Chosen to Create a File,not a Directory!"
-#define DIR_OPT "ERROR 110: Option Chosen to Create a Directory,not a File!"
+#define FILE_OPT "ERROR 109: Option Chosen to Copy a File, not a Directory!"
+#define DIR_OPT "ERROR 110: Option Chosen to Copy a Directory, not a File!"
+#define WRONG_DEL_DIR "ERROR 111: Cannot delete a file using delete directory!"
+#define WRONG_DEL_FILE "ERROR 112: Cannot delete a directory using delete file!"
 
 typedef struct TreeNode* Tree;
 typedef struct TreeNode {
@@ -131,8 +133,6 @@ typedef struct {
 } FileMapping;
 
 extern storage_servers storage_server_list;
-extern FileMapping fileMappings[];// Global array to store mappings
-unsigned int counter;             // Global counter for unique numbers
 
 Tree Insert(Tree parent, char* path);
 Tree MakeNode(char* name);
@@ -191,4 +191,3 @@ void InsertIntoCache(
     Cache cache, char* command, char* source_path, char* dest_path, storage_servers ss);
 
 int isPortAvailable(int p);
-int mapToRange(const char* name);

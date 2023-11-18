@@ -5,11 +5,13 @@
 - Files and Directories do not have the same name
 - Error if file to write into does not exist
 - Size of the paths file is no bigger than 2000 characters
-- The client must enter the path relative to the ss and it must begin with '/'. It will crash otherwise
+- The client must enter the path relative to the ss and it must begin with '/'
 - If a client is writing to a file, then the other client can't access the file (Resource Busy error)
+- You cannot get permissions of a directory
+- The code will NOT work with string when you are required to enter an integer (like for options)
+- Assuming error codes requires us to display only one of the possible errors.
 
 ### Project overview??
-- Fix search (done?)
 - To run: ./nm ./ss ./client and then ss can come at anytime
 - Same ports cannot be reused by multiple storage servers
 - 5566 is always reserved for the naming server and cannot be used for any other purpose

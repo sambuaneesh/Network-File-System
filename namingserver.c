@@ -488,8 +488,8 @@ void* client_thread(void* arg)
                 exit(1);
             }
             if (strcmp("5", opt) == 0) {
-                printf(CYAN "Checking if file is being used..\n" RESET);
-                printf(CYAN "Done\n" RESET);
+                printf(CYAN"Checking if file is being used..\n"RESET);
+                printf(CYAN"Done\n"RESET);
             }
             char mid_ack1[100];
             storage_servers storage_server_details = CheckCache(cache, opt, file_path, "\0");

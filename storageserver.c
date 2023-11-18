@@ -11,6 +11,27 @@ sem_t sem_array[MAX_NUM_FILES];
 FileMapping fileMappings[MAX_NUM_FILES];// Global array to store mappings
 
 unsigned int counter = 0;// Global counter for unique numbers
+int mapToRange(const char* name)
+{
+    // Check if the file name is already mapped
+    for (int i = 0; i < counter; ++i) {
+        if (strcmp(fileMappings[i].name, name) == 0) {
+            return fileMappings[i].uniqueNumber;
+        }
+    }
+
+    // If not already mapped, assign a new unique number
+    if (counter < MAX_NUM_FILES) {
+        fileMappings[counter].name         = strdup(name);// Save a copy of the name
+        fileMappings[counter].uniqueNumber = counter;
+        ++counter;
+        return fileMappings[counter - 1].uniqueNumber;
+    }
+
+    // Handle the case when the maximum number of files is reached
+    fprintf(stderr, "Error: Maximum number of files reached.\n");
+    exit(EXIT_FAILURE);
+}
 
 struct ss_thread_args {
     // command
@@ -99,7 +120,7 @@ void* handleClient(void* args)
             exit(0);
         }
         strcat(cwd, file_path);
-        // printf("********%s\n",cwd);
+
         // If option is 1, delete a file, if option is 2, delete a directory
         if (strcmp(option, "1") == 0) {
             if (delete_file(cwd) == -1) {
@@ -113,6 +134,27 @@ void* handleClient(void* args)
         }
         // printf("del: %d\n",del);
         char succ_mess[100];
+
+        struct stat fileStat1;
+
+            if (stat(cwd, &fileStat1) == 0) {
+                if (S_ISREG(fileStat1.st_mode) && strcmp(option, "2") == 0) {
+                    if (send(naming_server_sock, WRONG_DEL_DIR, sizeof(WRONG_DEL_DIR), 0) == -1)// mid ack
+                    {
+                        perror(RED "[-]Send error\n" RESET);
+                        exit(1);
+                    }
+                    return NULL;
+                }
+                else if (S_ISDIR(fileStat1.st_mode) && strcmp(option, "1") == 0) {
+                    if (send(naming_server_sock, WRONG_DEL_FILE, sizeof(WRONG_DEL_FILE), 0) == -1)// mid ack
+                    {
+                        perror(RED "[-]Send error\n" RESET);
+                        exit(1);
+                    }
+                     return NULL;
+                }
+            }
 
         if (del == 0 && Delete_from_path_file(file_path, paths_file) == 0) {
             strcpy(succ_mess, "done");
@@ -185,7 +227,7 @@ void* handleClient(void* args)
                 if (sent == -1) {
                     perror(RED "Error sending data" RESET);
                 }
-                // continue;
+                return NULL;
             }
         }
         else if (strcmp(option, "2") == 0) {
@@ -194,7 +236,7 @@ void* handleClient(void* args)
                 if (sent == -1) {
                     perror("Error sending data");
                 }
-                // continue;
+                return NULL;
             }
         }
         if (Add_to_path_file(buffer_path, paths_file) == 0) {
@@ -223,7 +265,7 @@ void* handleClient(void* args)
         }
         //  printf("FILE: %s\n",file_path);
         if (Add_to_path_file(file_path, paths_file) == 0) {
-            printf(GREEN "Created Successfully!\n" RESET);
+            printf(GREEN "Copied Successfully!\n" RESET);
         }
     }
     else if (strcmp(command, "5") == 0)// Writing
@@ -288,7 +330,7 @@ void* handleClient(void* args)
                 exit(0);
             }
 
-            // continue;
+            return NULL;
         }
 
         FILE* file;
@@ -388,7 +430,7 @@ void* handleClient(void* args)
                 printf(RED "[-] Error sending data\n" RESET);
                 exit(0);
             }
-            // continue;
+            return NULL;
         }
 
         FILE* file;
@@ -403,7 +445,7 @@ void* handleClient(void* args)
                 exit(0);
             }
 
-            // continue;
+            return NULL;
         }
         strcpy(succ_mess, "success");
         if (send(client_sock, succ_mess, sizeof(succ_mess), 0) == -1) {
@@ -470,7 +512,7 @@ void* handleClient(void* args)
                 printf(RED "[-] Error sending data\n" RESET);
                 exit(0);
             }
-            // continue;
+            return NULL;
         }
 
         // char succ_mess[100];
