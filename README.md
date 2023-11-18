@@ -6,6 +6,7 @@
 - Error if file to write into does not exist
 - Size of the paths file is no bigger than 2000 characters
 - The client must enter the path relative to the ss and it must begin with '/'. It will crash otherwise
+- If a client is writing to a file, then the other client can't access the file (Resource Busy error)
 
 ### Project overview??
 - Fix search (done?)
