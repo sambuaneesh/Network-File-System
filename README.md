@@ -18,3 +18,8 @@
 - 5566 is always reserved for the naming server and cannot be used for any other purpose
 - The storage server must always have a file that stores all the accessible paths in the same directory as the ss code, whose name needs to be input at prompt
 - If the parent directory of a file/folder is not accessible, the file/folder itself will not be accessible
+
+
+to do:
+- fix random input in client infinite loop
+- remove hardcoded server ip connect_to_SS_from_NS
