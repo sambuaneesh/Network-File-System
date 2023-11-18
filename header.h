@@ -5,16 +5,16 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <semaphore.h>
-#include <sys/time.h>
-#include <sys/select.h>
 
 #define MAX_NUM_PATHS 2000
 #define MAX_FILE_PATH 500
@@ -131,6 +131,8 @@ typedef struct {
 } FileMapping;
 
 extern storage_servers storage_server_list;
+extern FileMapping fileMappings[];// Global array to store mappings
+unsigned int counter;             // Global counter for unique numbers
 
 Tree Insert(Tree parent, char* path);
 Tree MakeNode(char* name);
@@ -189,3 +191,4 @@ void InsertIntoCache(
     Cache cache, char* command, char* source_path, char* dest_path, storage_servers ss);
 
 int isPortAvailable(int p);
+int mapToRange(const char* name);

@@ -10,28 +10,7 @@ sem_t sem_array[MAX_NUM_FILES];
 
 FileMapping fileMappings[MAX_NUM_FILES];// Global array to store mappings
 
-unsigned int counter = 0;               // Global counter for unique numbers
-int mapToRange(const char* name)
-{
-    // Check if the file name is already mapped
-    for (int i = 0; i < counter; ++i) {
-        if (strcmp(fileMappings[i].name, name) == 0) {
-            return fileMappings[i].uniqueNumber;
-        }
-    }
-
-    // If not already mapped, assign a new unique number
-    if (counter < MAX_NUM_FILES) {
-        fileMappings[counter].name         = strdup(name);// Save a copy of the name
-        fileMappings[counter].uniqueNumber = counter;
-        ++counter;
-        return fileMappings[counter - 1].uniqueNumber;
-    }
-
-    // Handle the case when the maximum number of files is reached
-    fprintf(stderr, "Error: Maximum number of files reached.\n");
-    exit(EXIT_FAILURE);
-}
+unsigned int counter = 0;// Global counter for unique numbers
 
 struct ss_thread_args {
     // command
@@ -67,9 +46,8 @@ void* handleClient(void* args)
     int sock_ss_client     = client_args->sock_ss_client;
     int client_sock        = client_args->client_sock;
     struct sockaddr_in cli_addr;
-    cli_addr      = client_args->cli_addr;
+    cli_addr                = client_args->cli_addr;
     socklen_t cli_addr_size = client_args->cli_addr_size;
-
 
 
     if (strcmp(command, "1")
@@ -761,14 +739,13 @@ int main()
 
         // creating thread for each client
         pthread_t thread_id;
-        struct ss_thread_args* args = (struct ss_thread_args*)malloc(
-            sizeof(struct ss_thread_args));
-        args->client_sock        = client_sock;
-        args->cli_addr           = cli_addr;
-        args->cli_addr_size      = cli_addr_size;
-        args->naming_server_sock = naming_server_sock;
-        args->sock_ss_client     = sock_ss_client;
-        args->received           = received;
+        struct ss_thread_args* args = (struct ss_thread_args*)malloc(sizeof(struct ss_thread_args));
+        args->client_sock           = client_sock;
+        args->cli_addr              = cli_addr;
+        args->cli_addr_size         = cli_addr_size;
+        args->naming_server_sock    = naming_server_sock;
+        args->sock_ss_client        = sock_ss_client;
+        args->received              = received;
         strcpy(args->command, command);
         pthread_create(&thread_id, NULL, handleClient, (void*)args);
         // detach the thread

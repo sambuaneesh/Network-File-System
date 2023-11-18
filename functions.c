@@ -1,5 +1,6 @@
 #include "header.h"
 storage_servers storage_server_list;
+FileMapping fileMappings[MAX_NUM_FILES];
 
 // Caching functions
 Cache InitCache()
@@ -1247,4 +1248,26 @@ int isPortAvailable(int p) {
         close(temp_socket);
         return 0;
     }
+}
+
+int mapToRange(const char* name)
+{
+    // Check if the file name is already mapped
+    for (int i = 0; i < counter; ++i) {
+        if (strcmp(fileMappings[i].name, name) == 0) {
+            return fileMappings[i].uniqueNumber;
+        }
+    }
+
+    // If not already mapped, assign a new unique number
+    if (counter < MAX_NUM_FILES) {
+        fileMappings[counter].name         = strdup(name);// Save a copy of the name
+        fileMappings[counter].uniqueNumber = counter;
+        ++counter;
+        return fileMappings[counter - 1].uniqueNumber;
+    }
+
+    // Handle the case when the maximum number of files is reached
+    fprintf(stderr, "Error: Maximum number of files reached.\n");
+    exit(EXIT_FAILURE);
 }
