@@ -1,5 +1,6 @@
 #include "header.h"
 storage_servers storage_server_list;
+int num_ss;
 
 // Caching functions
 Cache InitCache()
@@ -1247,4 +1248,85 @@ int isPortAvailable(int p) {
         close(temp_socket);
         return 0;
     }
+}
+
+
+int checkSS(int *ns_sock, struct sockaddr_in *ns_addr, int port_num)
+{
+    *ns_sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (*ns_sock == -1)
+    {
+        perror("[-]Socket error");
+        exit(1);
+    }
+
+    char ip_addr[50];
+    strcpy(ip_addr, inet_ntoa(ns_addr->sin_addr));
+    ns_addr->sin_family = AF_INET;
+    ns_addr->sin_port = htons(port_num); // Replace with your naming server's port number
+    ns_addr->sin_addr.s_addr =
+        inet_addr(ip_addr); 
+    if (connect(*ns_sock, (struct sockaddr *)ns_addr, sizeof(*ns_addr)) == -1)
+    {
+        return 0;
+    }
+    return 1;
+}
+
+// delete the storage server from the list
+void delete_ss(char* ip_addr, int port)
+{
+    storage_servers temp = storage_server_list;
+    storage_servers prev = NULL;
+    while (temp != NULL) {
+        if (strcmp(temp->ss_send->ip_addr, ip_addr) == 0 && temp->ss_send->server_port == port) {
+            if (prev == NULL) {
+                storage_server_list = temp->next;
+            }
+            else {
+                prev->next = temp->next;
+            }
+            free(temp);
+            break;
+        }
+        prev = temp;
+        temp = temp->next;
+    }
+}
+
+// health thread
+void* health_thread(void* arg)
+{
+    while (1) {
+        sleep(CHECK_HEALTH_INTERVAL);
+        printf("Checking health of storage servers\n");
+        storage_servers temp = storage_server_list;
+        while (temp != NULL) {
+            int ss_sock;
+            struct sockaddr_in ss_addr;
+            socklen_t ss_addr_size = sizeof(ss_addr);
+            if(checkSS(&ss_sock, &ss_addr, temp->ss_send->server_port)){
+                if (send(ss_sock, "8", sizeof("8"), 0) == -1) {
+                    perror(RED "[-]Send error\n" RESET);
+                    printf("Storage server with ip_addr %s and port %d disconnected\n", temp->ss_send->ip_addr, temp->ss_send->server_port);
+                    // print number of connected storage servers
+                    printf("Number of connected storage servers: %d\n", --num_ss);
+                    delete_ss(temp->ss_send->ip_addr, temp->ss_send->server_port);
+                }
+                close_socket(&ss_sock);
+                // delete the storage server from the list
+                temp = temp->next;
+            }
+            else{
+                // print storage server with ip_addr and port disconnected
+                printf("Storage server with ip_addr %s and port %d disconnected\n", temp->ss_send->ip_addr, temp->ss_send->server_port);
+                printf("Number of connected storage servers: %d\n", --num_ss);
+                // delete the storage server from the list
+                delete_ss(temp->ss_send->ip_addr, temp->ss_send->server_port);
+                // decrease the number of storage servers
+                temp = temp->next;
+            }
+        }
+    }
+    pthread_exit(NULL);
 }

@@ -23,6 +23,7 @@
 #define COMMAND_SIZE 10
 #define CACHE_SIZE 10
 #define PORT 5566// port number for naming server
+#define CHECK_HEALTH_INTERVAL 5
 
 #define RED "\033[31m"
 #define GREEN "\033[32m"
@@ -133,6 +134,7 @@ typedef struct {
 } FileMapping;
 
 extern storage_servers storage_server_list;
+extern int num_ss ;
 
 Tree Insert(Tree parent, char* path);
 Tree MakeNode(char* name);
@@ -191,3 +193,6 @@ void InsertIntoCache(
     Cache cache, char* command, char* source_path, char* dest_path, storage_servers ss);
 
 int isPortAvailable(int p);
+void* health_thread(void* arg);
+void delete_ss(char* ip_addr, int port);
+int checkSS(int *ns_sock, struct sockaddr_in *ns_addr, int port_num);
