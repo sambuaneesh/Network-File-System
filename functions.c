@@ -1,6 +1,8 @@
 #include "header.h"
 storage_servers storage_server_list;
 int num_ss;
+FileMapping fileMappings[MAX_NUM_FILES];// Global array to store mappings
+unsigned int counter;// Global counter for unique numbers
 
 // Caching functions
 Cache InitCache()
@@ -1329,4 +1331,27 @@ void* health_thread(void* arg)
         }
     }
     pthread_exit(NULL);
+}
+
+unsigned int counter = 0;// Global counter for unique numbers
+int mapToRange(const char* name)
+{
+    // Check if the file name is already mapped
+    for (int i = 0; i < counter; ++i) {
+        if (strcmp(fileMappings[i].name, name) == 0) {
+            return fileMappings[i].uniqueNumber;
+        }
+    }
+
+    // If not already mapped, assign a new unique number
+    if (counter < MAX_NUM_FILES) {
+        fileMappings[counter].name         = strdup(name);// Save a copy of the name
+        fileMappings[counter].uniqueNumber = counter;
+        ++counter;
+        return fileMappings[counter - 1].uniqueNumber;
+    }
+
+    // Handle the case when the maximum number of files is reached
+    fprintf(stderr, "Error: Maximum number of files reached.\n");
+    exit(EXIT_FAILURE);
 }

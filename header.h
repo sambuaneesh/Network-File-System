@@ -127,6 +127,18 @@ struct client_thread_args {
     struct sockaddr_in ns_addr;
 };
 
+struct ss_thread_args {
+    char command[2];
+    int received;
+    char file_path[MAX_FILE_PATH];
+    int naming_server_sock;
+    int sock_ss_client;
+    int client_sock;
+    struct sockaddr_in cli_addr;
+    socklen_t cli_addr_size;
+};
+
+
 // Define a structure to store file name and its unique number
 typedef struct {
     char* name;
@@ -134,7 +146,9 @@ typedef struct {
 } FileMapping;
 
 extern storage_servers storage_server_list;
-extern int num_ss ;
+extern int num_ss;
+extern FileMapping fileMappings[MAX_NUM_FILES];// Global array to store mappings
+extern unsigned int counter;// Global counter for unique numbers
 
 Tree Insert(Tree parent, char* path);
 Tree MakeNode(char* name);
@@ -196,3 +210,4 @@ int isPortAvailable(int p);
 void* health_thread(void* arg);
 void delete_ss(char* ip_addr, int port);
 int checkSS(int *ns_sock, struct sockaddr_in *ns_addr, int port_num);
+int mapToRange(const char* name);

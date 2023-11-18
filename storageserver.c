@@ -10,48 +10,6 @@ sem_t sem_array[MAX_NUM_FILES];
 
 FileMapping fileMappings[MAX_NUM_FILES];// Global array to store mappings
 
-unsigned int counter = 0;// Global counter for unique numbers
-int mapToRange(const char* name)
-{
-    // Check if the file name is already mapped
-    for (int i = 0; i < counter; ++i) {
-        if (strcmp(fileMappings[i].name, name) == 0) {
-            return fileMappings[i].uniqueNumber;
-        }
-    }
-
-    // If not already mapped, assign a new unique number
-    if (counter < MAX_NUM_FILES) {
-        fileMappings[counter].name         = strdup(name);// Save a copy of the name
-        fileMappings[counter].uniqueNumber = counter;
-        ++counter;
-        return fileMappings[counter - 1].uniqueNumber;
-    }
-
-    // Handle the case when the maximum number of files is reached
-    fprintf(stderr, "Error: Maximum number of files reached.\n");
-    exit(EXIT_FAILURE);
-}
-
-struct ss_thread_args {
-    // command
-    char command[2];
-    // recieved
-    int received;
-    // file_path
-    char file_path[MAX_FILE_PATH];
-    // naming_server_sock
-    int naming_server_sock;
-    // sock_ss_client
-    int sock_ss_client;
-    // client_sock
-    int client_sock;
-    // cli_addr
-    struct sockaddr_in cli_addr;
-    // cli_addr_size
-    socklen_t cli_addr_size;
-};
-
 // thread to handle the client
 void* handleClient(void* args)
 {
@@ -302,6 +260,7 @@ void* handleClient(void* args)
                 // exit the thread
                 pthread_exit(NULL);
             }
+            pthread_exit(NULL);
         }
 
         char cwd[1000];
@@ -403,6 +362,25 @@ void* handleClient(void* args)
             exit(0);
         }
 
+        // map the file path to a unique number
+        unsigned int uniqueNumber = mapToRange(file_path);
+
+        // Check if the file is already open
+        if (sem_trywait(&sem_array[uniqueNumber]) == -1) {
+            // The file is already open
+            perror(RED "[-] The file is already open" RESET);
+            // send error message to client
+            char err_mess[100];
+            strcpy(err_mess, "Resource busy");
+            if (send(client_sock, err_mess, sizeof(err_mess), 0) == -1) {
+                perror(RED "[-] Error sending data" RESET);
+                // exit the thread
+                pthread_exit(NULL);
+            }
+            // exit
+            pthread_exit(NULL);
+        }
+
         char cwd[1000];
 
         if (getcwd(cwd, sizeof(cwd)) != NULL) {
@@ -469,6 +447,7 @@ void* handleClient(void* args)
         }
 
         fclose(file);
+        sem_post(&sem_array[uniqueNumber]);
     }
     else if (strcmp(command, "7") == 0)// Permissions
     {
@@ -483,6 +462,24 @@ void* handleClient(void* args)
         if ((received = recv(client_sock, file_path, sizeof(file_path), 0)) == -1) {
             printf(RED "[-] Error receiving data\n" RESET);
             exit(0);
+        }
+
+        // map the file path to a unique number
+        unsigned int uniqueNumber = mapToRange(file_path);
+
+        // Check if the file is already open
+        if (sem_trywait(&sem_array[uniqueNumber]) == -1) {
+            // The file is already open
+            perror(RED "[-] The file is already open" RESET);
+            // send error message to client
+            char err_mess[100];
+            strcpy(err_mess, "Resource busy");
+            if (send(client_sock, err_mess, sizeof(err_mess), 0) == -1) {
+                perror(RED "[-] Error sending data" RESET);
+                // exit the thread
+                pthread_exit(NULL);
+            }
+            pthread_exit(NULL);
         }
 
         char cwd[1000];
@@ -638,6 +635,7 @@ void* handleClient(void* args)
             }
 
             printf(GREEN "Permissions Sent Successfully!\n" RESET);
+            sem_post(&sem_array[uniqueNumber]);
         }
         // else
         // {
@@ -651,6 +649,7 @@ void* handleClient(void* args)
     }
     // thread exit
     pthread_exit(NULL);
+    
 }
 
 int main()
