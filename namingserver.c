@@ -563,6 +563,66 @@ void* client_thread(void* arg)
     pthread_exit(NULL);
 }
 
+// function to get and print the pathsfile of the storage servers
+void readPathfile() {
+    // iterate through the storage servers list and connect to each one and get the pathsfile by sending the command 9
+    storage_servers temp = storage_server_list;
+    int ns_sock;
+    struct sockaddr_in ns_addr;
+    connect_to_SS_from_NS(&ns_sock, &ns_addr, temp->ss_send->server_port);
+    if (send(ns_sock, "9", sizeof("9"), 0) == -1) {
+        perror(RED "[-]Send error\n" RESET);
+        exit(1);
+    }
+    char pathsfile[MAX_FILE_PATH];
+    int pathsfile_size = 0;
+    if ((pathsfile_size = recv(ns_sock, &pathsfile, sizeof(pathsfile), 0)) == -1) {
+        perror(RED "[-]Receive error\n" RESET);
+        exit(1);
+    }
+    pathsfile[pathsfile_size] = '\0';
+    printf("pathsfile of storage server with ip_addr %s and port %d:\n%s\n", temp->ss_send->ip_addr, temp->ss_send->server_port, pathsfile);
+}
+
+
+// health thread
+void* health_thread(void* arg)
+{
+    while (1) {
+        sleep(CHECK_HEALTH_INTERVAL);
+        readPathfile();
+        printf("Checking health of storage servers\n");
+        storage_servers temp = storage_server_list;
+        while (temp != NULL) {
+            int ss_sock;
+            struct sockaddr_in ss_addr;
+            socklen_t ss_addr_size = sizeof(ss_addr);
+            if(checkSS(&ss_sock, &ss_addr, temp->ss_send->server_port)){
+                if (send(ss_sock, "8", sizeof("8"), 0) == -1) {
+                    perror(RED "[-]Send error\n" RESET);
+                    printf("Storage server with ip_addr %s and port %d disconnected\n", temp->ss_send->ip_addr, temp->ss_send->server_port);
+                    // print number of connected storage servers
+                    printf("Number of connected storage servers: %d\n", --num_ss);
+                    delete_ss(temp->ss_send->ip_addr, temp->ss_send->server_port);
+                }
+                close_socket(&ss_sock);
+                // delete the storage server from the list
+                temp = temp->next;
+            }
+            else{
+                // print storage server with ip_addr and port disconnected
+                printf("Storage server with ip_addr %s and port %d disconnected\n", temp->ss_send->ip_addr, temp->ss_send->server_port);
+                printf("Number of connected storage servers: %d\n", --num_ss);
+                // delete the storage server from the list
+                delete_ss(temp->ss_send->ip_addr, temp->ss_send->server_port);
+                // decrease the number of storage servers
+                temp = temp->next;
+            }
+        }
+    }
+    pthread_exit(NULL);
+}
+
 int main()
 {
     Tree SS1            = MakeNode(".");

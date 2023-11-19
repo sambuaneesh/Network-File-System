@@ -1296,43 +1296,6 @@ void delete_ss(char* ip_addr, int port)
     }
 }
 
-// health thread
-void* health_thread(void* arg)
-{
-    while (1) {
-        sleep(CHECK_HEALTH_INTERVAL);
-        printf("Checking health of storage servers\n");
-        storage_servers temp = storage_server_list;
-        while (temp != NULL) {
-            int ss_sock;
-            struct sockaddr_in ss_addr;
-            socklen_t ss_addr_size = sizeof(ss_addr);
-            if(checkSS(&ss_sock, &ss_addr, temp->ss_send->server_port)){
-                if (send(ss_sock, "8", sizeof("8"), 0) == -1) {
-                    perror(RED "[-]Send error\n" RESET);
-                    printf("Storage server with ip_addr %s and port %d disconnected\n", temp->ss_send->ip_addr, temp->ss_send->server_port);
-                    // print number of connected storage servers
-                    printf("Number of connected storage servers: %d\n", --num_ss);
-                    delete_ss(temp->ss_send->ip_addr, temp->ss_send->server_port);
-                }
-                close_socket(&ss_sock);
-                // delete the storage server from the list
-                temp = temp->next;
-            }
-            else{
-                // print storage server with ip_addr and port disconnected
-                printf("Storage server with ip_addr %s and port %d disconnected\n", temp->ss_send->ip_addr, temp->ss_send->server_port);
-                printf("Number of connected storage servers: %d\n", --num_ss);
-                // delete the storage server from the list
-                delete_ss(temp->ss_send->ip_addr, temp->ss_send->server_port);
-                // decrease the number of storage servers
-                temp = temp->next;
-            }
-        }
-    }
-    pthread_exit(NULL);
-}
-
 unsigned int counter = 0;// Global counter for unique numbers
 int mapToRange(const char* name)
 {

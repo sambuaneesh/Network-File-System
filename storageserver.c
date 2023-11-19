@@ -647,6 +647,10 @@ void* handleClient(void* args)
         //     }
         // }
     }
+    // if 9 just send the string of paths_file
+    else if(strcmp(command,"9")==0) {
+        send(naming_server_sock, paths_file, sizeof(paths_file), 0);
+    }
     // thread exit
     pthread_exit(NULL);
     
