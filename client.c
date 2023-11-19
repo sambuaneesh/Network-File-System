@@ -14,6 +14,18 @@ int main()
         exit(1);
     }
 
+    // recieve num zero or num one from NS
+    int num;
+    if (recv(naming_server_sock, &num, sizeof(num), 0) == -1) {
+        perror(RED "[-]Receive error" RESET);
+        exit(1);
+    }
+
+    if(num==0){
+        printf(RED "No storage servers available\nDisconnecting..\n" RESET);
+        exit(1);
+    }
+
     while (1) {
         int option = -1;
         {

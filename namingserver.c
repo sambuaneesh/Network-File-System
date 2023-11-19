@@ -618,6 +618,25 @@ int main()
                 }
                 else if (role == 2)// Client
                 {
+                    // if num_ss == 0, then send error message to client and dont accept connection
+                    if (num_ss == 0) {
+                        printf(RED "[-]No storage servers connected for client to access\n" RESET);
+                        // send number 0 to client
+                        int zero = 0;
+                        if (send(ss_sock, &zero, sizeof(zero), 0) == -1) {
+                            perror(RED "[-]Send error" RESET);
+                            exit(1);
+                        }
+                        close_socket(&ss_sock);
+                        continue;
+                    } else {
+                        int one = 1;
+                        if (send(ss_sock, &one, sizeof(one), 0) == -1) {
+                            perror(RED "[-]Send error" RESET);
+                            exit(1);
+                        }
+                    }
+
                     client_sock      = ss_sock;
                     client_addr      = ss_addr;
                     client_addr_size = ss_addr_size;

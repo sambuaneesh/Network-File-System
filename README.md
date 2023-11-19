@@ -11,6 +11,8 @@
 - The code will NOT work with string when you are required to enter an integer (like for options)
 - Assuming error codes requires us to display only one of the possible errors.
 - Not printing error codes on the NM side (For bookkeeping) for read, write and get permissions becuase for these functionalities, there is direct communication only between the SS and client.
+- Directories shall not be named with numbers, they are reserved for redundant storage servers
+- Atleast one storage shall be alive before client can make any connection
 
 ### Project overview??
 - To run: ./nm ./ss ./client and then ss can come at anytime
