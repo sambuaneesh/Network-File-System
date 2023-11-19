@@ -564,31 +564,38 @@ void* client_thread(void* arg)
 }
 
 // function to get and print the pathsfile of the storage servers
-void readPathfile() {
-    // iterate through the storage servers list and connect to each one and get the pathsfile by sending the command 9
-    storage_servers temp = storage_server_list;
-    while(temp!=NULL) {
-        int ns_sock;
-        struct sockaddr_in ns_addr;
-        connect_to_SS_from_NS(&ns_sock, &ns_addr, temp->ss_send->server_port);
-        if (send(ns_sock, "9", sizeof("9"), 0) == -1) {
-            perror(RED "[-]Send error\n" RESET);
-            exit(1);
-        }
-        
-        // receive the paths file and print it
-        char pathsfile[MAX_FILE_PATH];
-        int pathsfile_size;
-        if ((pathsfile_size = recv(ns_sock, &pathsfile, sizeof(pathsfile), 0)) == -1) {
-            perror(RED "[-]Receive error\n" RESET);
-            exit(1);
-        }
-        pathsfile[pathsfile_size] = '\0';
-        printf("Pathsfile of storage server with ip_addr %s and port %d:\n", temp->ss_send->ip_addr, temp->ss_send->server_port);
-        printf("%s\n", pathsfile);
-        close_socket(&ns_sock);
-        temp = temp->next;
+void readPathfile(const char *ip_addr, int port) {
+    int ns_sock;
+    struct sockaddr_in ns_addr;
+
+    // keep ip_addr in sockaddr_in struct
+    if (inet_pton(AF_INET, ip_addr, &ns_addr.sin_addr) <= 0) {
+        perror(RED "[-]Invalid address/ Address not supported\n" RESET);
+        exit(1);
     }
+
+    // Connect to the storage server
+    connect_to_SS_from_NS(&ns_sock, &ns_addr, port);
+
+    // Send the command to get the pathsfile
+    if (send(ns_sock, "9", sizeof("9"), 0) == -1) {
+        perror(RED "[-]Send error\n" RESET);
+        exit(1);
+    }
+
+    // Receive the pathsfile and print it
+    char pathsfile[MAX_FILE_PATH];
+    int pathsfile_size;
+    if ((pathsfile_size = recv(ns_sock, &pathsfile, sizeof(pathsfile), 0)) == -1) {
+        perror(RED "[-]Receive error\n" RESET);
+        exit(1);
+    }
+    pathsfile[pathsfile_size] = '\0';
+    printf("Pathsfile of storage server with IP address %s and port %d:\n", ip_addr, port);
+    printf("%s\n", pathsfile);
+
+    // Close the socket
+    close_socket(&ns_sock);
 }
 
 
@@ -597,7 +604,6 @@ void* health_thread(void* arg)
 {
     while (1) {
         sleep(CHECK_HEALTH_INTERVAL);
-        readPathfile();
         printf("Checking health of storage servers\n");
         storage_servers temp = storage_server_list;
         while (temp != NULL) {
