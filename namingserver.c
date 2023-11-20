@@ -488,8 +488,8 @@ void* client_thread(void* arg)
                 exit(1);
             }
             if (strcmp("5", opt) == 0) {
-                printf(CYAN"Checking if file is being used..\n"RESET);
-                printf(CYAN"Done\n"RESET);
+                printf(CYAN "Checking if file is being used..\n" RESET);
+                printf(CYAN "Done\n" RESET);
             }
             char mid_ack1[100];
             storage_servers storage_server_details = CheckCache(cache, opt, file_path, "\0");
@@ -564,7 +564,8 @@ void* client_thread(void* arg)
 }
 
 // function to get and print the pathsfile of the storage servers
-void readPathfile(const char *ip_addr, int port) {
+struct path_details* readPathfile(const char* ip_addr, int port)
+{
     int ns_sock;
     struct sockaddr_in ns_addr;
 
@@ -583,40 +584,57 @@ void readPathfile(const char *ip_addr, int port) {
         exit(1);
     }
 
-    while (1) {
-        // Receive path_details from the storage server
-        // create path_details struct
-        struct path_details *path_details = (struct path_details *)malloc(sizeof(struct path_details));
-        int path_details_size = sizeof(struct path_details);
-        int received = 0;
+    // define struct to store the pathsfile
+    struct path_details* pathsfile = (struct path_details*)malloc(sizeof(struct path_details));
 
-        if ((received = recv(ns_sock, path_details, path_details_size, 0)) == -1) {
+    // Receive the path_details struct one by one in loop and connect them to form a linked list
+    while (1) {
+        // Receive the path_details struct
+        struct path_details* temp = (struct path_details*)malloc(sizeof(struct path_details));
+        int received              = 0;
+        if ((received = recv(ns_sock, temp, sizeof(struct path_details), 0)) == -1) {
             perror(RED "[-]Receive error\n" RESET);
             exit(1);
         }
-        if (path_details->is_dir == -1) {
-            printf("Received path_details from storage server\n");
+        else if (received == 0) {
+            // The storage server has closed the connection, so break out of the loop
+            printf(RED "Storage server disconnected.\n" RESET);
+            close(ns_sock);
+            break;
+        }
+        temp->next = NULL;
+
+        // if temp->dir is -1, then break out of the loop
+        if (temp->is_dir == -1) {
             break;
         }
 
-        // print the path_details
-        printf("Path: %s\n", path_details->path);
-        // print isDir
-        if (path_details->is_dir == 1) {
-            printf("isDir: true\n");
+        // Connect the path_details struct to the linked list
+        if (pathsfile->next == NULL) {
+            pathsfile->next = temp;
         }
         else {
-            printf("isDir: false\n");
+            struct path_details* temp2 = pathsfile;
+            while (temp2->next != NULL) {
+                temp2 = temp2->next;
+            }
+            temp2->next = temp;
         }
-        // print contents
-        printf("Contents: %s\n", path_details->contents);
-
-        // free the path_details struct
-        free(path_details);
     }
+
+    // iterate through the linked list and print the pathsfile
+    // struct path_details* temp = pathsfile->next;
+    // while (temp != NULL) {
+    //     printf("Path: %s\n", temp->path);
+    //     printf("isDir: %d\n", temp->is_dir);
+    //     printf("content: %s\n", temp->contents);
+    //     temp = temp->next;
+    // }
 
     // Close the socket
     close_socket(&ns_sock);
+
+    return pathsfile->next;
 }
 
 
@@ -628,14 +646,16 @@ void* health_thread(void* arg)
         printf("Checking health of storage servers\n");
         storage_servers temp = storage_server_list;
         while (temp != NULL) {
-            readPathfile(temp->ss_send->ip_addr, temp->ss_send->server_port);
+            // readPathfile(temp->ss_send->ip_addr, temp->ss_send->server_port);
             int ss_sock;
             struct sockaddr_in ss_addr;
             socklen_t ss_addr_size = sizeof(ss_addr);
-            if(checkSS(&ss_sock, &ss_addr, temp->ss_send->server_port)){
+            if (checkSS(&ss_sock, &ss_addr, temp->ss_send->server_port)) {
                 if (send(ss_sock, "8", sizeof("8"), 0) == -1) {
                     perror(RED "[-]Send error\n" RESET);
-                    printf("Storage server with ip_addr %s and port %d disconnected\n", temp->ss_send->ip_addr, temp->ss_send->server_port);
+                    printf("Storage server with ip_addr %s and port %d disconnected\n",
+                           temp->ss_send->ip_addr,
+                           temp->ss_send->server_port);
                     // print number of connected storage servers
                     printf("Number of connected storage servers: %d\n", --num_ss);
                     delete_ss(temp->ss_send->ip_addr, temp->ss_send->server_port);
@@ -644,9 +664,11 @@ void* health_thread(void* arg)
                 // delete the storage server from the list
                 temp = temp->next;
             }
-            else{
+            else {
                 // print storage server with ip_addr and port disconnected
-                printf("Storage server with ip_addr %s and port %d disconnected\n", temp->ss_send->ip_addr, temp->ss_send->server_port);
+                printf("Storage server with ip_addr %s and port %d disconnected\n",
+                       temp->ss_send->ip_addr,
+                       temp->ss_send->server_port);
                 printf("Number of connected storage servers: %d\n", --num_ss);
                 // delete the storage server from the list
                 delete_ss(temp->ss_send->ip_addr, temp->ss_send->server_port);
@@ -724,7 +746,8 @@ int main()
                         }
                         close_socket(&ss_sock);
                         continue;
-                    } else {
+                    }
+                    else {
                         int one = 1;
                         if (send(ss_sock, &one, sizeof(one), 0) == -1) {
                             perror(RED "[-]Send error" RESET);

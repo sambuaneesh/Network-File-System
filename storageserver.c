@@ -691,6 +691,7 @@ void* handleClient(void* args)
             //     exit(0);
             // }
             strcpy(path_details.path, path);
+            path_details.next = NULL;
 
             // check if the path is a directory
             struct stat fileStat;

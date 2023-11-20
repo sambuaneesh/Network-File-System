@@ -5,16 +5,16 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <semaphore.h>
-#include <sys/time.h>
-#include <sys/select.h>
 
 #define MAX_FILE_SIZE 10000
 #define MAX_NUM_PATHS 2000
@@ -24,7 +24,7 @@
 #define COMMAND_SIZE 10
 #define CACHE_SIZE 10
 #define PORT 5566// port number for naming server
-#define CHECK_HEALTH_INTERVAL 15
+#define CHECK_HEALTH_INTERVAL 10
 
 #define RED "\033[31m"
 #define GREEN "\033[32m"
@@ -61,6 +61,7 @@ struct path_details {
     char path[MAX_FILE_PATH];
     int is_dir;
     char contents[MAX_FILE_SIZE];
+    struct path_details* next;
 };
 
 // for now, I am assuming that the storage server sends all paths in the format:
@@ -155,7 +156,7 @@ typedef struct {
 extern storage_servers storage_server_list;
 extern int num_ss;
 extern FileMapping fileMappings[MAX_NUM_FILES];// Global array to store mappings
-extern unsigned int counter;// Global counter for unique numbers
+extern unsigned int counter;                   // Global counter for unique numbers
 
 Tree Insert(Tree parent, char* path);
 Tree MakeNode(char* name);
@@ -216,5 +217,5 @@ void InsertIntoCache(
 int isPortAvailable(int p);
 void* health_thread(void* arg);
 void delete_ss(char* ip_addr, int port);
-int checkSS(int *ns_sock, struct sockaddr_in *ns_addr, int port_num);
+int checkSS(int* ns_sock, struct sockaddr_in* ns_addr, int port_num);
 int mapToRange(const char* name);
