@@ -862,6 +862,40 @@ void* handleClient(void* args)
             fclose(file);
         }
     }
+    else if (strcmp(command, "b") == 0) {
+        struct path_details path_details;
+        if (recv(naming_server_sock, &path_details, sizeof(path_details), 0) == -1) {
+            perror(RED "[-] Error receiving data" RESET);
+            exit(0);
+        }
+
+        // check if the path is existing relative to the cwd
+        char cwd[MAX_FILE_PATH];
+        // get current working directory
+        if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        }
+        else {
+            perror(RED "getcwd() error" RESET);
+            exit(0);
+        }
+
+        strcat(cwd, path_details.path);
+
+        if (path_details.is_dir) {
+            pthread_exit(NULL);
+        }
+
+        // open the cwd file and write the contents
+        FILE* file;
+        if ((file = fopen(cwd, "w")) == NULL) {
+            perror(RED "[-] Could not open the file" RESET);
+            exit(0);
+        }
+
+        fprintf(file, "%s", path_details.contents);
+
+        fclose(file);
+    }
     // thread exit
     pthread_exit(NULL);
 }

@@ -699,18 +699,23 @@ void copy_files_to_SS(struct path_details* pathsfile, const char* ip_addr, int p
                 perror(RED "[-]Send error\n" RESET);
                 exit(1);
             }
+        }
+        else {
+            connect_to_SS_from_NS(&ns_sock, &ns_addr, port);
+            // send 'b' to the storage server to check if the file is updated or not
 
-            // send temp to the storage server
-            if (send(ns_sock, temp, sizeof(struct path_details), 0) == -1) {
+            if (send(ns_sock, "b", sizeof("b"), 0) == -1) {
                 perror(RED "[-]Send error\n" RESET);
                 exit(1);
             }
+        }
+        // send temp to the storage server
+        if (send(ns_sock, temp, sizeof(struct path_details), 0) == -1) {
+            perror(RED "[-]Send error\n" RESET);
+            exit(1);
+        }
 
-            close(ns_sock);
-        }
-        else {
-            printf("found\n");
-        }
+        close(ns_sock);
 
         temp = temp->next;
     }
