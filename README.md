@@ -26,3 +26,4 @@
 to do:
 - fix random input in client infinite loop
 - remove hardcoded server ip connect_to_SS_from_NS
+- remove 127.0.0.1 hardcoding everywhere

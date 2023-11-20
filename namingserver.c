@@ -640,21 +640,6 @@ struct path_details* readPathfile(const char* ip_addr, int port)
 
 void copy_files_to_SS(struct path_details* pathsfile, const char* ip_addr, int port)
 {
-    // iterate through the linked list of storage servers and select the one with the same ip_addr and port
-    // as the one passed as an argument
-    storage_servers storageserver = storage_server_list;
-    while (storageserver != NULL) {
-        if (strcmp(storageserver->ss_send->ip_addr, ip_addr) == 0
-            && storageserver->ss_send->server_port == port) {
-            break;
-        }
-        storageserver = storageserver->next;
-    }
-
-    if (storageserver == NULL) {
-        printf(RED "[-]Storage server not found\n" RESET);
-        exit(1);
-    }
 
     // connect to the found storage server and send "8" to get the pathsfile
     int ns_sock;
@@ -706,6 +691,9 @@ void copy_files_to_SS(struct path_details* pathsfile, const char* ip_addr, int p
 
         temp = temp->next;
     }
+
+    // Close the socket
+    close(ns_sock);
 }
 
 // health thread
@@ -717,14 +705,8 @@ void* health_thread(void* arg)
         storage_servers temp = storage_server_list;
 
         if (num_ss == 0) {
+            printf(RED "[-]No storage servers connected\n" RESET);
             continue;
-        }
-
-        else if (num_ss == 2) {
-            struct path_details* pathsfile =
-                readPathfile(temp->ss_send->ip_addr, temp->ss_send->server_port);
-            temp = temp->next;
-            copy_files_to_SS(pathsfile, temp->ss_send->ip_addr, temp->ss_send->server_port);
         }
 
         while (temp != NULL) {
@@ -758,6 +740,13 @@ void* health_thread(void* arg)
                 // decrease the number of storage servers
                 temp = temp->next;
             }
+        }
+        temp = storage_server_list;
+        if (num_ss == 2) {
+            struct path_details* pathsfile =
+                readPathfile(temp->ss_send->ip_addr, temp->ss_send->server_port);
+            temp = temp->next;
+            copy_files_to_SS(pathsfile, temp->ss_send->ip_addr, temp->ss_send->server_port);
         }
     }
     pthread_exit(NULL);
