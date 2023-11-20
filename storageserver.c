@@ -95,24 +95,26 @@ void* handleClient(void* args)
 
         struct stat fileStat1;
 
-            if (stat(cwd, &fileStat1) == 0) {
-                if (S_ISREG(fileStat1.st_mode) && strcmp(option, "2") == 0) {
-                    if (send(naming_server_sock, WRONG_DEL_DIR, sizeof(WRONG_DEL_DIR), 0) == -1)// mid ack
-                    {
-                        perror(RED "[-]Send error\n" RESET);
-                        exit(1);
-                    }
-                    return NULL;
+        if (stat(cwd, &fileStat1) == 0) {
+            if (S_ISREG(fileStat1.st_mode) && strcmp(option, "2") == 0) {
+                if (send(naming_server_sock, WRONG_DEL_DIR, sizeof(WRONG_DEL_DIR), 0)
+                    == -1)// mid ack
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
                 }
-                else if (S_ISDIR(fileStat1.st_mode) && strcmp(option, "1") == 0) {
-                    if (send(naming_server_sock, WRONG_DEL_FILE, sizeof(WRONG_DEL_FILE), 0) == -1)// mid ack
-                    {
-                        perror(RED "[-]Send error\n" RESET);
-                        exit(1);
-                    }
-                     return NULL;
-                }
+                return NULL;
             }
+            else if (S_ISDIR(fileStat1.st_mode) && strcmp(option, "1") == 0) {
+                if (send(naming_server_sock, WRONG_DEL_FILE, sizeof(WRONG_DEL_FILE), 0)
+                    == -1)// mid ack
+                {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
+                return NULL;
+            }
+        }
 
         if (del == 0 && Delete_from_path_file(file_path, paths_file) == 0) {
             strcpy(succ_mess, "done");
@@ -647,8 +649,7 @@ void* handleClient(void* args)
         //     }
         // }
     }
-    // if 9 just send the string of paths_file
-    else if(strcmp(command,"9")==0) {
+    else if (strcmp(command, "9") == 0) {
         // send(naming_server_sock, paths_file, sizeof(paths_file), 0);
 
         // open the paths file concatanate all the paths and send it to the naming server
@@ -658,24 +659,107 @@ void* handleClient(void* args)
             exit(0);
         }
 
-        char buffer[1024];
-        char file_buffer[1024];
-        strcpy(file_buffer, "");
-        while (fgets(buffer, sizeof(buffer), fp) != NULL) {
-            strcat(file_buffer, buffer);
+
+        char path[MAX_FILE_PATH];
+        while (fgets(path, sizeof(path), fp) != NULL) {
+
+            // create a struct to store the path details
+            struct path_details path_details;
+
+            char cwd[MAX_FILE_PATH];
+            // get current working directory
+            if (getcwd(cwd, sizeof(cwd)) != NULL) {
+            }
+            else {
+                perror(RED "getcwd() error" RESET);
+                exit(0);
+            }
+            // remove the newline character
+            path[strlen(path) - 1] = '\0';
+
+            strcat(cwd, path);
+            // print cwd
+            printf("%s\n", cwd);
+
+            char file_contents[MAX_FILE_SIZE];
+            strcpy(file_contents, "");
+
+            printf("sending path: %s\n", path);
+            // send path to naming server
+            // if (send(naming_server_sock, path, sizeof(path), 0) == -1) {
+            //     perror(RED "[-] Error sending data" RESET);
+            //     exit(0);
+            // }
+            strcpy(path_details.path, path);
+
+            // check if the path is a directory
+            struct stat fileStat;
+            printf("%s\n", cwd);
+            if (stat(cwd, &fileStat) == -1) {
+                perror(RED "Error getting file information" RESET);
+                exit(0);
+            }
+
+            if (S_ISDIR(fileStat.st_mode)) {
+                // send "1" for dir
+                // if (send(naming_server_sock, "1", sizeof("1"), 0) == -1) {
+                //     perror(RED "[-] Error sending data" RESET);
+                //     exit(0);
+                // }
+                path_details.is_dir = 1;
+            }
+            else {
+                // send "0" for file
+                // if (send(naming_server_sock, "0", sizeof("0"), 0) == -1) {
+                //     perror(RED "[-] Error sending data" RESET);
+                //     exit(0);
+                // }
+                path_details.is_dir = 0;
+
+                // open the file and concatenate the contents
+                FILE* file;
+                if ((file = fopen(cwd, "r")) == NULL) {
+                    perror(RED "[-] Could not open the file" RESET);
+                    exit(0);
+                }
+
+                char buffer[1024];
+                while (fgets(buffer, sizeof(buffer), file) != NULL) {
+                    strcat(file_contents, buffer);
+                }
+                fclose(file);
+            }
+
+            // send the contents of the file
+            // if (send(naming_server_sock, file_contents, sizeof(file_contents), 0) == -1) {
+            //     perror(RED "[-] Error sending data" RESET);
+            //     exit(0);
+            // }
+            strcpy(path_details.contents, file_contents);
+
+            // reset path
+            strcpy(path, "");
+
+            // send the struct to the naming server
+            if (send(naming_server_sock, &path_details, sizeof(path_details), 0) == -1) {
+                perror(RED "[-] Error sending data" RESET);
+                exit(0);
+            }
         }
         fclose(fp);
 
-        if (send(naming_server_sock, file_buffer, sizeof(file_buffer), 0) == -1) {
+        // send struct with is_dir = -1 to indicate end of file
+        struct path_details path_details;
+        path_details.is_dir = -1;
+        if (send(naming_server_sock, &path_details, sizeof(path_details), 0) == -1) {
             perror(RED "[-] Error sending data" RESET);
             exit(0);
         }
 
-        printf(GREEN "Paths file sent successfully!\n" RESET);
+        printf(GREEN "Server Data sent successfully!\n" RESET);
     }
     // thread exit
     pthread_exit(NULL);
-    
 }
 
 int main()

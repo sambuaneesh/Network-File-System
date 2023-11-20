@@ -583,16 +583,37 @@ void readPathfile(const char *ip_addr, int port) {
         exit(1);
     }
 
-    // Receive the pathsfile and print it
-    char pathsfile[MAX_FILE_PATH];
-    int pathsfile_size;
-    if ((pathsfile_size = recv(ns_sock, &pathsfile, sizeof(pathsfile), 0)) == -1) {
-        perror(RED "[-]Receive error\n" RESET);
-        exit(1);
+    while (1) {
+        // Receive path_details from the storage server
+        // create path_details struct
+        struct path_details *path_details = (struct path_details *)malloc(sizeof(struct path_details));
+        int path_details_size = sizeof(struct path_details);
+        int received = 0;
+
+        if ((received = recv(ns_sock, path_details, path_details_size, 0)) == -1) {
+            perror(RED "[-]Receive error\n" RESET);
+            exit(1);
+        }
+        if (path_details->is_dir == -1) {
+            printf("Received path_details from storage server\n");
+            break;
+        }
+
+        // print the path_details
+        printf("Path: %s\n", path_details->path);
+        // print isDir
+        if (path_details->is_dir == 1) {
+            printf("isDir: true\n");
+        }
+        else {
+            printf("isDir: false\n");
+        }
+        // print contents
+        printf("Contents: %s\n", path_details->contents);
+
+        // free the path_details struct
+        free(path_details);
     }
-    pathsfile[pathsfile_size] = '\0';
-    printf("Pathsfile of storage server with IP address %s and port %d:\n", ip_addr, port);
-    printf("%s\n", pathsfile);
 
     // Close the socket
     close_socket(&ns_sock);
@@ -607,6 +628,7 @@ void* health_thread(void* arg)
         printf("Checking health of storage servers\n");
         storage_servers temp = storage_server_list;
         while (temp != NULL) {
+            readPathfile(temp->ss_send->ip_addr, temp->ss_send->server_port);
             int ss_sock;
             struct sockaddr_in ss_addr;
             socklen_t ss_addr_size = sizeof(ss_addr);

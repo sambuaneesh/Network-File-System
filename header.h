@@ -16,6 +16,7 @@
 #include <sys/time.h>
 #include <sys/select.h>
 
+#define MAX_FILE_SIZE 10000
 #define MAX_NUM_PATHS 2000
 #define MAX_FILE_PATH 500
 #define MAX_FILE_NAME 100
@@ -55,6 +56,12 @@ typedef struct TreeNode {
     Tree prev_sibling;
     Tree parent;
 } TreeNode;
+
+struct path_details {
+    char path[MAX_FILE_PATH];
+    int is_dir;
+    char contents[MAX_FILE_SIZE];
+};
 
 // for now, I am assuming that the storage server sends all paths in the format:
 //
