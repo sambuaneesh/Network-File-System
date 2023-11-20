@@ -24,7 +24,7 @@
 #define COMMAND_SIZE 10
 #define CACHE_SIZE 10
 #define PORT 5566// port number for naming server
-#define CHECK_HEALTH_INTERVAL 10
+#define CHECK_HEALTH_INTERVAL 5
 
 #define RED "\033[31m"
 #define GREEN "\033[32m"

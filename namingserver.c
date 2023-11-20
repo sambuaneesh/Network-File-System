@@ -638,6 +638,76 @@ struct path_details* readPathfile(const char* ip_addr, int port)
 }
 
 
+void copy_files_to_SS(struct path_details* pathsfile, const char* ip_addr, int port)
+{
+    // iterate through the linked list of storage servers and select the one with the same ip_addr and port
+    // as the one passed as an argument
+    storage_servers storageserver = storage_server_list;
+    while (storageserver != NULL) {
+        if (strcmp(storageserver->ss_send->ip_addr, ip_addr) == 0
+            && storageserver->ss_send->server_port == port) {
+            break;
+        }
+        storageserver = storageserver->next;
+    }
+
+    if (storageserver == NULL) {
+        printf(RED "[-]Storage server not found\n" RESET);
+        exit(1);
+    }
+
+    // connect to the found storage server and send "8" to get the pathsfile
+    int ns_sock;
+    struct sockaddr_in ns_addr;
+
+    // keep ip_addr in sockaddr_in struct
+    if (inet_pton(AF_INET, ip_addr, &ns_addr.sin_addr) <= 0) {
+        perror(RED "[-]Invalid address/ Address not supported\n" RESET);
+        exit(1);
+    }
+
+    // Connect to the storage server
+    connect_to_SS_from_NS(&ns_sock, &ns_addr, port);
+
+    // Send the command to get the pathsfile
+    if (send(ns_sock, "8", sizeof("8"), 0) == -1) {
+        perror(RED "[-]Send error\n" RESET);
+        exit(1);
+    }
+
+    // Receive the pathsfile string file
+    char pathsfile_ss[MAX_FILE_SIZE];
+    int received = 0;
+    if ((received = recv(ns_sock, &pathsfile_ss, sizeof(pathsfile_ss), 0)) == -1) {
+        perror(RED "[-]Receive error\n" RESET);
+        exit(1);
+    }
+    else if (received == 0) {
+        // The storage server has closed the connection, so break out of the loop
+        printf(RED "Storage server disconnected.\n" RESET);
+        close(ns_sock);
+    }
+
+    // iterate through the linked list of pathsfile  and print path
+    struct path_details* temp = pathsfile;
+    while (temp != NULL) {
+        printf("Path: %s ", temp->path);
+
+        // check if the temp->path is existing in the pathsfile_ss
+        char* found = strstr(pathsfile_ss, temp->path);
+
+        // if found is NULL, then the path is not present in the pathsfile_ss
+        if (found == NULL) {
+            printf("not found\n");
+        }
+        else {
+            printf("found\n");
+        }
+
+        temp = temp->next;
+    }
+}
+
 // health thread
 void* health_thread(void* arg)
 {
@@ -645,8 +715,21 @@ void* health_thread(void* arg)
         sleep(CHECK_HEALTH_INTERVAL);
         printf("Checking health of storage servers\n");
         storage_servers temp = storage_server_list;
+
+        if (num_ss == 0) {
+            continue;
+        }
+
+        else if (num_ss == 2) {
+            struct path_details* pathsfile =
+                readPathfile(temp->ss_send->ip_addr, temp->ss_send->server_port);
+            temp = temp->next;
+            copy_files_to_SS(pathsfile, temp->ss_send->ip_addr, temp->ss_send->server_port);
+        }
+
         while (temp != NULL) {
             // readPathfile(temp->ss_send->ip_addr, temp->ss_send->server_port);
+            // copy_files_to_SS(temp->ss_send->ip_addr, temp->ss_send->server_port);
             int ss_sock;
             struct sockaddr_in ss_addr;
             socklen_t ss_addr_size = sizeof(ss_addr);

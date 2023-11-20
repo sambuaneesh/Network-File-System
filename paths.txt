@@ -1,3 +1,2 @@
 /
 /file1
-/.clang-format

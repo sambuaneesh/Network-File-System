@@ -759,6 +759,29 @@ void* handleClient(void* args)
 
         printf(GREEN "Server Data sent successfully!\n" RESET);
     }
+    else if (strcmp(command, "8") == 0) {
+        // send(naming_server_sock, paths_file, sizeof(paths_file), 0);
+
+        // open the paths file concatanate all the paths and send it to the naming server
+        FILE* fp = fopen(paths_file, "r");
+        if (fp == NULL) {
+            perror(RED "[-] File opening error" RESET);
+            exit(0);
+        }
+
+        char buffer[1024];
+        char file_buffer[1024];
+        strcpy(file_buffer, "");
+        while (fgets(buffer, sizeof(buffer), fp) != NULL) {
+            strcat(file_buffer, buffer);
+        }
+        fclose(fp);
+
+        if (send(naming_server_sock, file_buffer, sizeof(file_buffer), 0) == -1) {
+            perror(RED "[-] Error sending data" RESET);
+            exit(0);
+        }
+    }
     // thread exit
     pthread_exit(NULL);
 }

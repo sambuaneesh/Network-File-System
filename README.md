@@ -13,6 +13,7 @@
 - Not printing error codes on the NM side (For bookkeeping) for read, write and get permissions becuase for these functionalities, there is direct communication only between the SS and client.
 - Directories shall not be named with numbers, they are reserved for redundant storage servers
 - Atleast one storage shall be alive before client can make any connection
+- Paths file must end with a new line
 
 ### Project overview??
 - To run: ./nm ./ss ./client and then ss can come at anytime
