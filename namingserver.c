@@ -5,6 +5,13 @@ int num_ss            = 0;
 int num_client        = 0;
 int role              = 0;
 
+int debugCounter = 0;
+
+void print()
+{
+    printf("Debug Counter: %d\n", debugCounter++);
+}
+
 // creating a thread for client connection
 void* client_thread(void* arg)
 {
@@ -673,6 +680,8 @@ void copy_files_to_SS(struct path_details* pathsfile, const char* ip_addr, int p
         close(ns_sock);
     }
 
+    close(ns_sock);
+
     // iterate through the linked list of pathsfile  and print path
     struct path_details* temp = pathsfile;
     while (temp != NULL) {
@@ -683,7 +692,21 @@ void copy_files_to_SS(struct path_details* pathsfile, const char* ip_addr, int p
 
         // if found is NULL, then the path is not present in the pathsfile_ss
         if (found == NULL) {
-            printf("not found\n");
+            connect_to_SS_from_NS(&ns_sock, &ns_addr, port);
+            // send 'a' to the storage server to check if the path is already present
+
+            if (send(ns_sock, "a", sizeof("a"), 0) == -1) {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+
+            // send temp to the storage server
+            if (send(ns_sock, temp, sizeof(struct path_details), 0) == -1) {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+
+            close(ns_sock);
         }
         else {
             printf("found\n");
@@ -691,9 +714,6 @@ void copy_files_to_SS(struct path_details* pathsfile, const char* ip_addr, int p
 
         temp = temp->next;
     }
-
-    // Close the socket
-    close(ns_sock);
 }
 
 // health thread

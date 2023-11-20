@@ -5,6 +5,14 @@ int port_for_nm;
 char ip[16]                    = {'\0'};
 char paths_file[MAX_FILE_NAME] = {'\0'};
 
+int debugCounter = 0;
+
+void print()
+{
+    printf("Debug Counter: %d\n", debugCounter++);
+}
+
+
 // create array of semaphore for each file
 sem_t sem_array[MAX_NUM_FILES];
 
@@ -780,6 +788,78 @@ void* handleClient(void* args)
         if (send(naming_server_sock, file_buffer, sizeof(file_buffer), 0) == -1) {
             perror(RED "[-] Error sending data" RESET);
             exit(0);
+        }
+    }
+    else if (strcmp(command, "a") == 0) {
+        // receive path_details struct from naming server
+        struct path_details path_details;
+        if (recv(naming_server_sock, &path_details, sizeof(path_details), 0) == -1) {
+            perror(RED "[-] Error receiving data" RESET);
+            exit(0);
+        }
+
+        // check if the path is existing relative to the cwd
+        char cwd[MAX_FILE_PATH];
+        // get current working directory
+        if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        }
+        else {
+            perror(RED "getcwd() error" RESET);
+            exit(0);
+        }
+
+
+        strcat(cwd, path_details.path);
+
+        if (path_details.is_dir == 1) {
+            // check if the directory exists wrt cwd
+            struct stat fileStat;
+            if (stat(cwd, &fileStat) == -1) {
+                // directory does not exist
+                // create the directory
+                if (create_directory(cwd) == -1) {
+                    perror(RED "[-] Error creating directory" RESET);
+                    exit(0);
+                }
+            }
+
+            // directory exists open and append the path_details.path to the paths_file
+            if (Add_to_path_file(path_details.path, paths_file) == 0) {
+                printf(GREEN "Created Successfully!\n" RESET);
+            }
+            else {
+                perror(RED "[-] Error creating file/directory" RESET);
+            }
+        }
+        else {
+            // check if the file exists wrt cwd
+            struct stat fileStat;
+            if (stat(cwd, &fileStat) == -1) {
+                // file does not exist
+                // create the file
+                if (create_file(cwd) == -1) {
+                    perror(RED "[-] Error creating file" RESET);
+                    exit(0);
+                }
+            }
+
+            // file exists open and append the path_details.path to the paths_file
+            if (Add_to_path_file(path_details.path, paths_file) == 0) {
+                printf(GREEN "Created Successfully!\n" RESET);
+            }
+            else {
+                perror(RED "[-] Error creating file/directory" RESET);
+            }
+
+            // open the file and write the contents
+            FILE* file;
+            if ((file = fopen(cwd, "w")) == NULL) {
+                perror(RED "[-] Could not open the file" RESET);
+                exit(0);
+            }
+
+            fprintf(file, "%s", path_details.contents);
+            fclose(file);
         }
     }
     // thread exit
