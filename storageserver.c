@@ -8,7 +8,7 @@ char paths_file[MAX_FILE_NAME] = {'\0'};
 // create array of semaphore for each file
 sem_t sem_array[MAX_NUM_FILES];
 
-FileMapping fileMappings[MAX_NUM_FILES];// Global array to store mappings
+// FileMapping fileMappings[MAX_NUM_FILES];// Global array to store mappings
 
 // thread to handle the client
 void* handleClient(void* args)
