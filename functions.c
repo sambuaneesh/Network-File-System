@@ -4,7 +4,20 @@ storage_servers storage_server_list;
 FileMapping fileMappings[MAX_NUM_FILES];// Global array to store mappings
 unsigned int counter;                   // Global counter for unique numbers
 int redundantCounter;
+int num_ss;
 storage_servers redundantServers[3];
+
+// function to check if the given ip and port belong to a redundant server
+int isRedundantServer(char* ip, int port)
+{
+    for (int i = 0; i < redundantCounter; i++) {
+        if (strcmp(redundantServers[i]->ss_send->ip_addr, ip) == 0
+            && redundantServers[i]->ss_send->server_port == port) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 // Caching functions
 Cache InitCache()
@@ -805,9 +818,23 @@ int initialize_SS(int* ss_sock)
     remove("namethatshallnotbeused.txt");
 
     // assign the current server as redundant server if redundant counter is less than 3
-    if (redundantCounter < 3) {
+    if (redundantCounter < MAX_REDUNDANT_SERVERS) {
         redundantServers[redundantCounter] = vital_info;
         redundantCounter++;
+    }
+
+    for (int i = 0; i < redundantCounter && num_ss > 2; i++) {
+
+        if (isRedundantServer(vital_info->ss_send->ip_addr, vital_info->ss_send->server_port)) {
+            continue;
+        }
+
+        struct path_details* path_details =
+            readPathfile(vital_info->ss_send->ip_addr, vital_info->ss_send->server_port);
+
+        copy_files_to_SS(path_details,
+                         redundantServers[i]->ss_send->ip_addr,
+                         redundantServers[i]->ss_send->server_port);
     }
 
     return 0;
@@ -1210,4 +1237,171 @@ int mapToRange(const char* name)
     // Handle the case when the maximum number of files is reached
     fprintf(stderr, "Error: Maximum number of files reached.\n");
     exit(EXIT_FAILURE);
+}
+
+// function to get and print the pathsfile of the storage servers
+struct path_details* readPathfile(const char* ip_addr, int port)
+{
+    int ns_sock;
+    struct sockaddr_in ns_addr;
+
+    // keep ip_addr in sockaddr_in struct
+    if (inet_pton(AF_INET, ip_addr, &ns_addr.sin_addr) <= 0) {
+        perror(RED "[-]Invalid address/ Address not supported\n" RESET);
+        exit(1);
+    }
+
+    // Connect to the storage server
+    connect_to_SS_from_NS(&ns_sock, &ns_addr, port);
+
+    // Send the command to get the pathsfile
+    if (send(ns_sock, "9", sizeof("9"), 0) == -1) {
+        perror(RED "[-]Send error\n" RESET);
+        exit(1);
+    }
+
+    // define struct to store the pathsfile
+    struct path_details* pathsfile = (struct path_details*)malloc(sizeof(struct path_details));
+
+    // Receive the path_details struct one by one in loop and connect them to form a linked list
+    while (1) {
+        // Receive the path_details struct
+        struct path_details* temp = (struct path_details*)malloc(sizeof(struct path_details));
+        int received              = 0;
+        if ((received = recv(ns_sock, temp, sizeof(struct path_details), 0)) == -1) {
+            perror(RED "[-]Receive error\n" RESET);
+            exit(1);
+        }
+        else if (received == 0) {
+            // The storage server has closed the connection, so break out of the loop
+            printf(RED "Storage server disconnected.\n" RESET);
+            close(ns_sock);
+            break;
+        }
+        temp->next = NULL;
+
+        // if temp->dir is -1, then break out of the loop
+        if (temp->is_dir == -1) {
+            break;
+        }
+
+        // Connect the path_details struct to the linked list
+        if (pathsfile->next == NULL) {
+            pathsfile->next = temp;
+        }
+        else {
+            struct path_details* temp2 = pathsfile;
+            while (temp2->next != NULL) {
+                temp2 = temp2->next;
+            }
+            temp2->next = temp;
+        }
+    }
+
+    // iterate through the linked list and print the pathsfile
+    // struct path_details* temp = pathsfile->next;
+    // while (temp != NULL) {
+    //     printf("Path: %s\n", temp->path);
+    //     printf("isDir: %d\n", temp->is_dir);
+    //     printf("content: %s\n", temp->contents);
+    //     temp = temp->next;
+    // }
+
+    // Close the socket
+    close_socket(&ns_sock);
+
+    return pathsfile->next;
+}
+
+void copy_files_to_SS(struct path_details* pathsfile, const char* ip_addr, int port)
+{
+
+    // connect to the found storage server and send "8" to get the pathsfile
+    int ns_sock;
+    struct sockaddr_in ns_addr;
+
+    // keep ip_addr in sockaddr_in struct
+    if (inet_pton(AF_INET, ip_addr, &ns_addr.sin_addr) <= 0) {
+        perror(RED "[-]Invalid address/ Address not supported\n" RESET);
+        exit(1);
+    }
+
+    // Connect to the storage server
+    connect_to_SS_from_NS(&ns_sock, &ns_addr, port);
+
+    // Send the command to get the pathsfile
+    if (send(ns_sock, "8", sizeof("8"), 0) == -1) {
+        perror(RED "[-]Send error\n" RESET);
+        exit(1);
+    }
+
+    // Receive the pathsfile string file
+    char pathsfile_ss[MAX_FILE_SIZE];
+    int received = 0;
+    if ((received = recv(ns_sock, &pathsfile_ss, sizeof(pathsfile_ss), 0)) == -1) {
+        perror(RED "[-]Receive error\n" RESET);
+        exit(1);
+    }
+    else if (received == 0) {
+        // The storage server has closed the connection, so break out of the loop
+        printf(RED "Storage server disconnected.\n" RESET);
+        close(ns_sock);
+    }
+
+    close(ns_sock);
+
+    // iterate through the linked list of pathsfile  and print path
+    struct path_details* temp = pathsfile;
+    while (temp != NULL) {
+        printf("Path: %s ", temp->path);
+
+        // check if the temp->path is existing in the pathsfile_ss
+        char* found = strstr(pathsfile_ss, temp->path);
+
+        // if found is NULL, then the path is not present in the pathsfile_ss
+        if (found == NULL) {
+            connect_to_SS_from_NS(&ns_sock, &ns_addr, port);
+            // send 'a' to the storage server to check if the path is already present
+
+            if (send(ns_sock, "a", sizeof("a"), 0) == -1) {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+
+            // add to the tree of the storage server using Search_Till_Parent with insert 1
+            // search for the storage server in storage_server_list and find the tree
+            Tree SS1              = NULL;
+            storage_servers temp2 = storage_server_list;
+            while (temp2 != NULL) {
+                if (temp2->ss_send->server_port == port
+                    && strcmp(temp2->ss_send->ip_addr, ip_addr) == 0) {
+                    SS1 = temp2->files_and_dirs;
+                    break;
+                }
+                temp2 = temp2->next;
+            }
+            if (Search_Till_Parent(SS1, temp->path, 1) == NULL) {
+                printf(RED "[-]Error in adding path to the tree\n" RESET);
+                exit(1);
+            }
+        }
+        else {
+            connect_to_SS_from_NS(&ns_sock, &ns_addr, port);
+            // send 'b' to the storage server to check if the file is updated or not
+
+            if (send(ns_sock, "b", sizeof("b"), 0) == -1) {
+                perror(RED "[-]Send error\n" RESET);
+                exit(1);
+            }
+        }
+        // send temp to the storage server
+        if (send(ns_sock, temp, sizeof(struct path_details), 0) == -1) {
+            perror(RED "[-]Send error\n" RESET);
+            exit(1);
+        }
+
+        close(ns_sock);
+
+        temp = temp->next;
+    }
 }

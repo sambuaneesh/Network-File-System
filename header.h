@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#define MAX_REDUNDANT_SERVERS 3
 #define MAX_FILE_SIZE 10000
 #define MAX_NUM_PATHS 2000
 #define MAX_FILE_PATH 500
@@ -222,3 +223,6 @@ void* health_thread(void* arg);
 void delete_ss(char* ip_addr, int port);
 int checkSS(int* ns_sock, struct sockaddr_in* ns_addr, int port_num);
 int mapToRange(const char* name);
+struct path_details* readPathfile(const char* ip_addr, int port);
+void copy_files_to_SS(struct path_details* pathsfile, const char* ip_addr, int port);
+int isRedundantServer(char* ip, int port);
