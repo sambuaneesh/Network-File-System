@@ -721,6 +721,17 @@ void copy_files_to_SS(struct path_details* pathsfile, const char* ip_addr, int p
     }
 }
 
+int check_if_port_in_redundant_list(int port)
+{
+    // check if the port is in redundantServerPorts
+    for (int i = 0; i < redundantCounter; i++) {
+        if (redundantServerPorts[i] == port) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 // health thread
 void* health_thread(void* arg)
 {
@@ -767,11 +778,31 @@ void* health_thread(void* arg)
             }
         }
         temp = storage_server_list;
-        if (num_ss == 2) {
-            struct path_details* pathsfile =
-                readPathfile(temp->ss_send->ip_addr, temp->ss_send->server_port);
-            temp = temp->next;
-            copy_files_to_SS(pathsfile, temp->ss_send->ip_addr, temp->ss_send->server_port);
+        if (num_ss >= 3) {
+            // loop through the storage servers and check if the server port is in redundant list
+            while (temp != NULL) {
+                if (check_if_port_in_redundant_list(temp->ss_send->server_port)) {
+                    // get ip and port of the storage server
+                    char ip_addr[50];
+                    strcpy(ip_addr, temp->ss_send->ip_addr);
+                    int port = temp->ss_send->server_port;
+
+                    // loop through the storage servers and get the pathsfile
+                    storage_servers temp2 = storage_server_list;
+                    while (temp2 != NULL) {
+                        if (temp2->ss_send->server_port != port) {
+                            // get the pathsfile of the storage server
+                            struct path_details* pathsfile =
+                                readPathfile(temp2->ss_send->ip_addr, temp2->ss_send->server_port);
+
+                            // copy the pathsfile to the storage server
+                            copy_files_to_SS(pathsfile, ip_addr, port);
+                        }
+                        temp2 = temp2->next;
+                    }
+                }
+                temp = temp->next;
+            }
         }
     }
     pthread_exit(NULL);
@@ -781,6 +812,7 @@ int main()
 {
     Tree SS1            = MakeNode(".");
     storage_server_list = NULL;
+    redundantCounter    = 0;
     int nm_sock, client_sock, ss_sock;
     struct sockaddr_in server_addr, client_addr, ss_addr;
     socklen_t client_addr_size, ss_addr_size;

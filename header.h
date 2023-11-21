@@ -157,6 +157,9 @@ extern storage_servers storage_server_list;
 extern int num_ss;
 extern FileMapping fileMappings[MAX_NUM_FILES];// Global array to store mappings
 extern unsigned int counter;                   // Global counter for unique numbers
+extern int redundantCounter;
+extern int redundantServerPorts[3];
+
 
 Tree Insert(Tree parent, char* path);
 Tree MakeNode(char* name);

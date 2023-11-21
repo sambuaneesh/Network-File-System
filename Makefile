@@ -23,3 +23,9 @@ clean:
 	rm -f $(OBJ) $(TARGETS)
 
 re: clean all
+
+test: ss
+	cp ss ss1
+	cp ss ss2
+	cp ss ss3
+	cp ss ss4
