@@ -3,6 +3,7 @@
 int something_connect = 0;
 int num_client        = 0;
 int role              = 0;
+int num_ss;
 
 int debugCounter = 0;
 
@@ -178,6 +179,50 @@ void* client_thread(void* arg)
                 }
             }
             close_socket(&ns_sock);
+
+            // iterate through the redundant servers connect to them and send "2" to delete the file
+            for (int i = 0; i < redundantCounter; i++) {
+                connect_to_SS_from_NS(&ns_sock,
+                                      &ns_addr,
+                                      redundantServers[i]->ss_send->server_port);
+                if (send(ns_sock, "2", sizeof("2"), 0) == -1) {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
+
+                // Sending path to the SS
+                if (send(ns_sock, file_path, sizeof(file_path), 0) == -1) {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
+
+                //  Sending option to the SS
+
+                if (send(ns_sock, delete_option, sizeof(delete_option), 0) == -1) {
+                    perror(RED "[-]Send error\n" RESET);
+                    exit(1);
+                }
+
+                // Checking if creation was successful
+                char success[100];
+                int success_message = 0;
+
+                if ((success_message = recv(ns_sock, &success, sizeof(success), 0)) == -1) {
+                    perror(RED "[-]Not successful" RESET);
+                    exit(0);
+                }
+                else {
+                    success[success_message] = '\0';
+                }
+
+                if (strcmp(success, "done") == 0) {
+                    printf(GREEN "Deleted Successfully!\n" RESET);
+                }
+                else {
+                    printf(RED "%s\n" RESET, success);
+                }
+                close_socket(&ns_sock);
+            }
         }
         else if (strcmp("3", opt) == 0)// Creation
         {
@@ -690,7 +735,7 @@ void* health_thread(void* arg)
 int main()
 {
     Tree SS1            = MakeNode(".");
-    int num_ss          = 0;
+    num_ss              = 0;
     storage_server_list = NULL;
     redundantCounter    = 0;
     int nm_sock, client_sock, ss_sock;
