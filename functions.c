@@ -1,6 +1,5 @@
 #include "header.h"
 storage_servers storage_server_list;
-// int num_ss;
 FileMapping fileMappings[MAX_NUM_FILES];// Global array to store mappings
 unsigned int counter;                   // Global counter for unique numbers
 int redundantCounter;

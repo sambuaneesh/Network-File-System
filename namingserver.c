@@ -3,7 +3,6 @@
 int something_connect = 0;
 int num_client        = 0;
 int role              = 0;
-int num_ss;
 
 int debugCounter = 0;
 
