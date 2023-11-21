@@ -43,10 +43,6 @@ int main()
 
         if (option == 1)// Exiting from the program
         {
-            if (send(naming_server_sock, "1", strlen("1"), 0) == -1) {
-                perror("[-]Send error");
-                exit(1);
-            }
             exit(0);
         }
         else if (option == 2)// Deletion
