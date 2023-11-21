@@ -9,7 +9,10 @@ storage_servers redundantServers[3];
 // function to check if the given ip and port belong to a redundant server
 int isRedundantServer(char* ip, int port)
 {
-    for (int i = 0; i < redundantCounter; i++) {
+    for (int i = 0; i < MAX_REDUNDANT_SERVERS; i++) {
+        if (redundantServers[i] == NULL) {
+            continue;
+        }
         if (strcmp(redundantServers[i]->ss_send->ip_addr, ip) == 0
             && redundantServers[i]->ss_send->server_port == port) {
             return 1;
@@ -821,9 +824,14 @@ int initialize_SS(int* ss_sock)
         redundantCounter++;
     }
 
-    for (int i = 0; i < redundantCounter && num_ss > 2; i++) {
+    for (int i = 0; i < MAX_REDUNDANT_SERVERS && num_ss > 2; i++) {
 
         if (isRedundantServer(vital_info->ss_send->ip_addr, vital_info->ss_send->server_port)) {
+            continue;
+        }
+
+        // if null continue
+        if (redundantServers[i] == NULL) {
             continue;
         }
 
@@ -1196,8 +1204,26 @@ int checkSS(int* ns_sock, struct sockaddr_in* ns_addr, int port_num)
 // delete the storage server from the list
 void delete_ss(char* ip_addr, int port)
 {
+
     storage_servers temp = storage_server_list;
     storage_servers prev = NULL;
+
+    for (int i = 0; i < MAX_REDUNDANT_SERVERS; i++) {
+        if (redundantServers[i] == NULL) {
+            continue;
+        }
+        if (strcmp(redundantServers[i]->ss_send->ip_addr, ip_addr) == 0
+            && redundantServers[i]->ss_send->server_port == port) {
+            // for (int j = i; j < MAX_REDUNDANT_SERVERS - 1; j++) {
+
+            //     redundantServers[j] = redundantServers[j + 1];
+            // }
+            redundantServers[i] = NULL;
+            redundantCounter--;
+            break;
+        }
+    }
+
     while (temp != NULL) {
         if (strcmp(temp->ss_send->ip_addr, ip_addr) == 0 && temp->ss_send->server_port == port) {
             if (prev == NULL) {
@@ -1212,18 +1238,6 @@ void delete_ss(char* ip_addr, int port)
         prev = temp;
         temp = temp->next;
     }
-
-    // if the storage server is the redundant server, then delete it from the redundant server list
-    // for (int i = 0; i < redundantCounter; i++) {
-    //     if (strcmp(redundantServers[i]->ss_send->ip_addr, ip_addr) == 0
-    //         && redundantServers[i]->ss_send->server_port == port) {
-    //         for (int j = i; j < redundantCounter - 1; j++) {
-    //             redundantServers[j] = redundantServers[j + 1];
-    //         }
-    //         redundantCounter--;
-    //         break;
-    //     }
-    // }
 }
 
 unsigned int counter = 0;// Global counter for unique numbers

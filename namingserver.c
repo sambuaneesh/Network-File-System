@@ -603,6 +603,14 @@ void* client_thread(void* arg)
                 }
             }
 
+            // if the storage server is a redundant server, then cancel the operation
+            if (isRedundantServer(storage_server_details->ss_send->ip_addr,
+                                  storage_server_details->ss_send->server_port)) {
+                printf(RED "[-]Cannot write to a redundant server\n" RESET);
+                // disconnect from the storage server
+                close_socket(&client_sock);
+                continue;
+                        }
 
             int server_addr = storage_server_details->ss_send->client_port;
             char ip_addr[50];
