@@ -29,3 +29,9 @@ test: ss
 	cp ss ss2
 	cp ss ss3
 	cp ss ss4
+
+rem : 
+	rm ss1/ss
+	rm ss2/ss
+	rm ss3/ss
+	rm ss4/ss

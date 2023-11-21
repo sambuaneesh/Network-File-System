@@ -699,6 +699,23 @@ void copy_files_to_SS(struct path_details* pathsfile, const char* ip_addr, int p
                 perror(RED "[-]Send error\n" RESET);
                 exit(1);
             }
+
+            // add to the tree of the storage server using Search_Till_Parent with insert 1
+            // search for the storage server in storage_server_list and find the tree
+            Tree SS1              = NULL;
+            storage_servers temp2 = storage_server_list;
+            while (temp2 != NULL) {
+                if (temp2->ss_send->server_port == port
+                    && strcmp(temp2->ss_send->ip_addr, ip_addr) == 0) {
+                    SS1 = temp2->files_and_dirs;
+                    break;
+                }
+                temp2 = temp2->next;
+            }
+            if (Search_Till_Parent(SS1, temp->path, 1) == NULL) {
+                printf(RED "[-]Error in adding path to the tree\n" RESET);
+                exit(1);
+            }
         }
         else {
             connect_to_SS_from_NS(&ns_sock, &ns_addr, port);
@@ -778,31 +795,39 @@ void* health_thread(void* arg)
             }
         }
         temp = storage_server_list;
-        if (num_ss >= 3) {
-            // loop through the storage servers and check if the server port is in redundant list
-            while (temp != NULL) {
-                if (check_if_port_in_redundant_list(temp->ss_send->server_port)) {
-                    // get ip and port of the storage server
-                    char ip_addr[50];
-                    strcpy(ip_addr, temp->ss_send->ip_addr);
-                    int port = temp->ss_send->server_port;
+        // if (num_ss >= 3) {
+        //     // loop through the storage servers and check if the server port is in redundant list
+        //     while (temp != NULL) {
+        //         if (check_if_port_in_redundant_list(temp->ss_send->server_port)) {
+        //             // get ip and port of the storage server
+        //             char ip_addr[50];
+        //             strcpy(ip_addr, temp->ss_send->ip_addr);
+        //             int port = temp->ss_send->server_port;
 
-                    // loop through the storage servers and get the pathsfile
-                    storage_servers temp2 = storage_server_list;
-                    while (temp2 != NULL) {
-                        if (temp2->ss_send->server_port != port) {
-                            // get the pathsfile of the storage server
-                            struct path_details* pathsfile =
-                                readPathfile(temp2->ss_send->ip_addr, temp2->ss_send->server_port);
+        //             // loop through the storage servers and get the pathsfile
+        //             storage_servers temp2 = storage_server_list;
+        //             while (temp2 != NULL) {
+        //                 if (temp2->ss_send->server_port != port) {
+        //                     // get the pathsfile of the storage server
+        //                     struct path_details* pathsfile =
+        //                         readPathfile(temp2->ss_send->ip_addr, temp2->ss_send->server_port);
 
-                            // copy the pathsfile to the storage server
-                            copy_files_to_SS(pathsfile, ip_addr, port);
-                        }
-                        temp2 = temp2->next;
-                    }
-                }
-                temp = temp->next;
-            }
+        //                     // copy the pathsfile to the storage server
+        //                     copy_files_to_SS(pathsfile, ip_addr, port);
+        //                 }
+        //                 temp2 = temp2->next;
+        //                 sleep(1);
+        //             }
+        //         }
+        //         temp = temp->next;
+        //     }
+        // }
+        temp = storage_server_list;
+        if (num_ss == 2) {
+            struct path_details* pathsfile =
+                readPathfile(temp->ss_send->ip_addr, temp->ss_send->server_port);
+            temp = temp->next;
+            copy_files_to_SS(pathsfile, temp->ss_send->ip_addr, temp->ss_send->server_port);
         }
     }
     pthread_exit(NULL);

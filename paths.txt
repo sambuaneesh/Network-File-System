@@ -1,2 +1,5 @@
-/dir1
 /file1
+/dir1
+/dir1/file2
+/dir1/file1
+/dir1/file3

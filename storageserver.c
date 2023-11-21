@@ -918,48 +918,69 @@ int main()
     //       scanf("%s", ip);
     //  strcpy(ip, "127.0.0.1");
 
-    while (1) {
-        printf("Enter the port number for client: ");
-        scanf("%d", &port_for_client);
+    // while (1) {
+    //     printf("Enter the port number for client: ");
+    //     scanf("%d", &port_for_client);
 
-        // as 5566 is reserved for naming server
-        if (isPortAvailable(port_for_client) && port_for_client != 5566) {
+    //     // as 5566 is reserved for naming server
+    //     if (isPortAvailable(port_for_client) && port_for_client != 5566) {
+    //         break;
+    //     }
+    //     else {
+    //         // Port is not available
+    //         printf(RED "Port %d is not available. Try a different port.\n" RESET, port_for_client);
+    //     }
+    // }
+
+
+    // while (1) {
+    //     printf("Enter the port number for NS: ");
+    //     scanf("%d", &port_for_nm);
+
+    //     if (isPortAvailable(port_for_nm) && port_for_nm != port_for_client) {
+    //         break;
+    //     }
+    //     else {
+    //         // Port is not available
+    //         printf(RED "Port %d is not available. Try a different port.\n" RESET, port_for_nm);
+    //     }
+    // }
+
+    int temp_port = 5567;
+    while (1) {
+        if (isPortAvailable(temp_port)) {
+            port_for_client = temp_port++;
             break;
         }
         else {
-            // Port is not available
-            printf(RED "Port %d is not available. Try a different port.\n" RESET, port_for_client);
+            temp_port++;
         }
     }
-
     while (1) {
-        printf("Enter the port number for NS: ");
-        scanf("%d", &port_for_nm);
-
-        if (isPortAvailable(port_for_nm) && port_for_nm != port_for_client) {
+        if (isPortAvailable(temp_port)) {
+            port_for_nm = temp_port++;
             break;
         }
         else {
-            // Port is not available
-            printf(RED "Port %d is not available. Try a different port.\n" RESET, port_for_nm);
+            temp_port++;
         }
     }
 
-    while (1) {
-        printf("Enter name of paths file: ");
-        scanf("%s", paths_file);
+    // while (1) {
+    //     printf("Enter name of paths file: ");
+    //     scanf("%s", paths_file);
 
-        if (access(paths_file, F_OK) == -1) {
-            // File doesn't exist
-            printf(RED "[-] File opening error: " RESET);
-            printf("File '%s' doesn't exist.\n", paths_file);
-        }
-        else {
-            printf(CYAN "[+] Trying to connect to NS...\n" RESET);
-            break;
-        }
-    }
-    //  strcpy(paths_file, "paths.txt");
+    //     if (access(paths_file, F_OK) == -1) {
+    //         // File doesn't exist
+    //         printf(RED "[-] File opening error: " RESET);
+    //         printf("File '%s' doesn't exist.\n", paths_file);
+    //     }
+    //     else {
+    //         printf(CYAN "[+] Trying to connect to NS...\n" RESET);
+    //         break;
+    //     }
+    // }
+    strcpy(paths_file, "paths.txt");
     printf("\n");
 
     // HARDCODED INFO for testing
