@@ -15,6 +15,7 @@
 - Atleast one storage shall be alive before client can make any connection
 - Paths file must end with a new line
 - Define the naming server IP in the headers
+- All implementations until multiple clients (minus redudancy) is there in the predund branch.
 
 ### Project overview??
 - To run: ./nm ./ss ./client and then ss can come at anytime
