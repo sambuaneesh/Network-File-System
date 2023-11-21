@@ -7,7 +7,7 @@ int main()
     socklen_t addr_size;
 
     // Create a socket and connect to the naming server
-    connect_to_naming_server("127.0.0.1", &naming_server_sock, &client_addr);
+    connect_to_naming_server(IP_NM, &naming_server_sock, &client_addr);
     int role = 2;
     if (send(naming_server_sock, &role, sizeof(role), 0) == -1) {
         perror(RED "[-]Send error" RESET);
@@ -21,7 +21,7 @@ int main()
         exit(1);
     }
 
-    if(num==0){
+    if (num == 0) {
         printf(RED "No storage servers available\nDisconnecting..\n" RESET);
         exit(1);
     }
@@ -375,7 +375,7 @@ int main()
                 perror(RED "[-]Receive error" RESET);
                 exit(1);
             }
-            strcpy(ip_addr, "127.0.0.1");// Fix
+            strcpy(ip_addr, IP_NM);// Fix
 
             int ss_sock;
             struct sockaddr_in ss_addr;

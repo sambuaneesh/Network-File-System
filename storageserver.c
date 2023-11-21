@@ -264,7 +264,7 @@ void* handleClient(void* args)
             perror(RED "[-] The file is already open" RESET);
             // send error message to client
             char err_mess[100];
-            strcpy(err_mess, "Resource busy");
+            strcpy(err_mess, REC_USE);
             if (send(client_sock, err_mess, sizeof(err_mess), 0) == -1) {
                 perror(RED "[-] Error sending data" RESET);
                 // exit the thread
@@ -381,7 +381,7 @@ void* handleClient(void* args)
             perror(RED "[-] The file is already open" RESET);
             // send error message to client
             char err_mess[100];
-            strcpy(err_mess, "Resource busy");
+            strcpy(err_mess, REC_USE);
             if (send(client_sock, err_mess, sizeof(err_mess), 0) == -1) {
                 perror(RED "[-] Error sending data" RESET);
                 // exit the thread
@@ -483,7 +483,7 @@ void* handleClient(void* args)
             perror(RED "[-] The file is already open" RESET);
             // send error message to client
             char err_mess[100];
-            strcpy(err_mess, "Resource busy");
+            strcpy(err_mess, REC_USE);
             if (send(client_sock, err_mess, sizeof(err_mess), 0) == -1) {
                 perror(RED "[-] Error sending data" RESET);
                 // exit the thread
@@ -825,7 +825,7 @@ void* handleClient(void* args)
 
             // directory exists open and append the path_details.path to the paths_file
             if (Add_to_path_file(path_details.path, paths_file) == 0) {
-                printf(GREEN "Created Successfully!\n" RESET);
+                printf(GREEN "%s Created Successfully!\n" RESET, path_details.path);
             }
             else {
                 perror(RED "[-] Error creating file/directory" RESET);
@@ -845,7 +845,7 @@ void* handleClient(void* args)
 
             // file exists open and append the path_details.path to the paths_file
             if (Add_to_path_file(path_details.path, paths_file) == 0) {
-                printf(GREEN "Created Successfully!\n" RESET);
+                printf(GREEN "%s Created Successfully!\n" RESET, path_details.path);
             }
             else {
                 perror(RED "[-] Error creating file/directory" RESET);

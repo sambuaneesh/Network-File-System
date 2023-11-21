@@ -662,7 +662,7 @@ void connect_to_naming_server(char* ip, int* sock, struct sockaddr_in* addr)
 
 void open_naming_server_port(int port_number, int* server_sock, struct sockaddr_in* server_addr)
 {
-    char* ip = "127.0.0.1";
+    char* ip = IP_NM;
     int n;
 
     *server_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -710,10 +710,9 @@ void connect_to_SS_from_NS(int* ns_sock, struct sockaddr_in* ns_addr, int port_n
     }
 
     // Set up the address structure for the naming server
-    ns_addr->sin_family = AF_INET;
-    ns_addr->sin_port   = htons(port_num);// Replace with your naming server's port number
-    ns_addr->sin_addr.s_addr =
-        inet_addr("127.0.0.1");// Replace with the actual IP address of the storage server
+    ns_addr->sin_family      = AF_INET;
+    ns_addr->sin_port        = htons(port_num);// Replace with your naming server's port number
+    ns_addr->sin_addr.s_addr = inet_addr(IP_NM);
 
     // Connect to the storage server
     if (connect(*ns_sock, (struct sockaddr*)ns_addr, sizeof(*ns_addr)) == -1) {
@@ -1213,6 +1212,18 @@ void delete_ss(char* ip_addr, int port)
         prev = temp;
         temp = temp->next;
     }
+
+    // if the storage server is the redundant server, then delete it from the redundant server list
+    // for (int i = 0; i < redundantCounter; i++) {
+    //     if (strcmp(redundantServers[i]->ss_send->ip_addr, ip_addr) == 0
+    //         && redundantServers[i]->ss_send->server_port == port) {
+    //         for (int j = i; j < redundantCounter - 1; j++) {
+    //             redundantServers[j] = redundantServers[j + 1];
+    //         }
+    //         redundantCounter--;
+    //         break;
+    //     }
+    // }
 }
 
 unsigned int counter = 0;// Global counter for unique numbers

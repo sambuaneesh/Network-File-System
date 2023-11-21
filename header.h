@@ -25,6 +25,7 @@
 #define COMMAND_SIZE 10
 #define CACHE_SIZE 10
 #define PORT 5566// port number for naming server
+#define IP_NM "127.0.0.1"
 #define CHECK_HEALTH_INTERVAL 5
 
 #define RED "\033[31m"
@@ -48,6 +49,7 @@
 #define DIR_OPT "ERROR 110: Option Chosen to Copy a Directory, not a File!"
 #define WRONG_DEL_DIR "ERROR 111: Cannot delete a file using delete directory!"
 #define WRONG_DEL_FILE "ERROR 112: Cannot delete a directory using delete file!"
+#define REC_USE "ERROR 113: Resource is being used by another client!"
 
 typedef struct TreeNode* Tree;
 typedef struct TreeNode {

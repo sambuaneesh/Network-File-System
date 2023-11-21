@@ -65,7 +65,7 @@ void* client_thread(void* arg)
         }
         else if (recieved == 0) {
             // The client has closed the connection, so break out of the loop
-            printf(RED "Client disconnected.\n" RESET);
+            printf(RED "[-] Client disconnected.\n" RESET);
             close(client_sock);
             break;
         }
@@ -122,6 +122,12 @@ void* client_thread(void* arg)
             }
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
+            // print the ip and port of the storage server
+            printf("Storage server ip_addr: %s\n", storage_server_details->ss_send->ip_addr);
+            printf("Storage server server port: %d\n",
+                   storage_server_details->ss_send->server_port);
+            printf("Storage server client port: %d\n",
+                   storage_server_details->ss_send->client_port);
             if (send(ns_sock, "2", sizeof("2"), 0) == -1) {
                 perror(RED "[-]Send error\n" RESET);
                 exit(1);
@@ -282,6 +288,11 @@ void* client_thread(void* arg)
             }
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
+            printf("Storage server ip_addr: %s\n", storage_server_details->ss_send->ip_addr);
+            printf("Storage server server port: %d\n",
+                   storage_server_details->ss_send->server_port);
+            printf("Storage server client port: %d\n",
+                   storage_server_details->ss_send->client_port);
             if (send(ns_sock, "3", sizeof("3"), 0) == -1) {
                 perror(RED "[-]Send error\n" RESET);
                 exit(1);
@@ -610,6 +621,11 @@ void* client_thread(void* arg)
 
 
             connect_to_SS_from_NS(&ns_sock, &ns_addr, storage_server_details->ss_send->server_port);
+            printf("Storage server ip_addr: %s\n", storage_server_details->ss_send->ip_addr);
+            printf("Storage server server port: %d\n",
+                   storage_server_details->ss_send->server_port);
+            printf("Storage server client port: %d\n",
+                   storage_server_details->ss_send->client_port);
             if (strcmp("5", opt) == 0) {
                 if (send(ns_sock, "5", sizeof("5"), 0) == -1) {
                     perror(RED "[-]Send error\n" RESET);
@@ -683,6 +699,9 @@ void* health_thread(void* arg)
                 temp = temp->next;
             }
         }
+        // print the number of storage servers connected
+        printf(GREEN "Number of total connected storage servers: %d\n" RESET, num_ss);
+        printf(GREEN "Number of redundant storage servers: %d\n" RESET, redundantCounter);
         // temp = storage_server_list;
         // if (num_ss >= 3) {
         //     // loop through the storage servers and check if the server port is in redundant list

@@ -14,6 +14,7 @@
 - Directories shall not be named with numbers, they are reserved for redundant storage servers
 - Atleast one storage shall be alive before client can make any connection
 - Paths file must end with a new line
+- Define the naming server IP in the headers
 
 ### Project overview??
 - To run: ./nm ./ss ./client and then ss can come at anytime
@@ -21,9 +22,3 @@
 - 5566 is always reserved for the naming server and cannot be used for any other purpose
 - The storage server must always have a file that stores all the accessible paths in the same directory as the ss code, whose name needs to be input at prompt
 - If the parent directory of a file/folder is not accessible, the file/folder itself will not be accessible
-
-
-to do:
-- fix random input in client infinite loop
-- remove hardcoded server ip connect_to_SS_from_NS
-- remove 127.0.0.1 hardcoding everywhere
