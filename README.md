@@ -10,6 +10,7 @@
 - You cannot get permissions of a directory
 - The code will NOT work with string when you are required to enter an integer (like for options)
 - Assuming error codes requires us to display only one of the possible errors.
+- All implementations until multiple clients (minus redudancy) is there in the predund branch.
 
 ### Project overview??
 - To run: ./nm ./ss ./client and then ss can come at anytime
