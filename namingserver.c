@@ -1,7 +1,6 @@
 #include "header.h"
 
 int something_connect = 0;
-int num_ss            = 0;
 int num_client        = 0;
 int role              = 0;
 
@@ -691,6 +690,7 @@ void* health_thread(void* arg)
 int main()
 {
     Tree SS1            = MakeNode(".");
+    int num_ss          = 0;
     storage_server_list = NULL;
     redundantCounter    = 0;
     int nm_sock, client_sock, ss_sock;
