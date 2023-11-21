@@ -738,16 +738,6 @@ void copy_files_to_SS(struct path_details* pathsfile, const char* ip_addr, int p
     }
 }
 
-int check_if_port_in_redundant_list(int port)
-{
-    // check if the port is in redundantServerPorts
-    for (int i = 0; i < redundantCounter; i++) {
-        if (redundantServerPorts[i] == port) {
-            return 1;
-        }
-    }
-    return 0;
-}
 
 // health thread
 void* health_thread(void* arg)
@@ -823,11 +813,20 @@ void* health_thread(void* arg)
         //     }
         // }
         temp = storage_server_list;
-        if (num_ss == 2) {
-            struct path_details* pathsfile =
-                readPathfile(temp->ss_send->ip_addr, temp->ss_send->server_port);
-            temp = temp->next;
-            copy_files_to_SS(pathsfile, temp->ss_send->ip_addr, temp->ss_send->server_port);
+        if (num_ss > 1) {
+            // struct path_details* pathsfile =
+            //     readPathfile(temp->ss_send->ip_addr, temp->ss_send->server_port);
+            // temp = temp->next;
+            // copy_files_to_SS(pathsfile, temp->ss_send->ip_addr, temp->ss_send->server_port);
+
+            while (temp != NULL) {
+                struct path_details* pathsfile =
+                    readPathfile(temp->ss_send->ip_addr, temp->ss_send->server_port);
+                copy_files_to_SS(pathsfile,
+                                 redundantServers[0]->ss_send->ip_addr,
+                                 redundantServers[0]->ss_send->server_port);
+                temp = temp->next;
+            }
         }
     }
     pthread_exit(NULL);

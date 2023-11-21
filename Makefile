@@ -30,8 +30,10 @@ test: ss
 	cp ss ss3
 	cp ss ss4
 
-rem : 
+rem: 
 	rm ss1/ss
 	rm ss2/ss
 	rm ss3/ss
 	rm ss4/ss
+
+dev: re rem test

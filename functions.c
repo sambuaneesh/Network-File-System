@@ -4,7 +4,7 @@ storage_servers storage_server_list;
 FileMapping fileMappings[MAX_NUM_FILES];// Global array to store mappings
 unsigned int counter;                   // Global counter for unique numbers
 int redundantCounter;
-int redundantServerPorts[3];
+storage_servers redundantServers[3];
 
 // Caching functions
 Cache InitCache()
@@ -760,11 +760,6 @@ int initialize_SS(int* ss_sock)
     }
     buffer_recv[size] = '\0';
 
-    // assign redundant ports
-    if (redundantCounter++ < 3) {
-        redundantServerPorts[redundantCounter] = server_port;
-        printf("This server has been assigned to be redundant\n");
-    }
 
     char path_of_ss[MAX_FILE_PATH];
     char* to_tokenise = (char*)malloc(sizeof(char) * (MAX_NUM_PATHS + 20));
@@ -808,6 +803,12 @@ int initialize_SS(int* ss_sock)
     vital_info->next    = storage_server_list;
     storage_server_list = vital_info;
     remove("namethatshallnotbeused.txt");
+
+    // assign the current server as redundant server if redundant counter is less than 3
+    if (redundantCounter < 3) {
+        redundantServers[redundantCounter] = vital_info;
+        redundantCounter++;
+    }
 
     return 0;
 }
